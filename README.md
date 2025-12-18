@@ -74,7 +74,15 @@ npm run build
 
 ## 라이선스
 
-MIT License
+**Proprietary License - All Rights Reserved**
+
+이 소프트웨어는 저작권법에 의해 보호됩니다.
+- ❌ **상업적 이용 금지**
+- ❌ **재배포 금지**
+- ❌ **수정 및 파생 저작물 금지**
+- ✅ **개인적, 교육적 목적으로만 사용 가능**
+
+자세한 내용은 [LICENSE](./LICENSE) 파일을 참조하세요.
 
 ## 개발자
 
