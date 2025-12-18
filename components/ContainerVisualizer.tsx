@@ -21,7 +21,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
   // Camera State
   const [rotation, setRotation] = useState({ x: -25, y: 45 });
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [scale, setScale] = useState(0.8);
+  const [scale, setScale] = useState(1.2);
   const [showCoG, setShowCoG] = useState(true); // Controls visual marker - default ON
 
   // Interaction State

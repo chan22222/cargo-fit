@@ -12,7 +12,7 @@ const App: React.FC = () => {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet'>('home');
 
-  // Simulator State
+  // Container Simulator State
   const [containerType, setContainerType] = useState<ContainerType>(ContainerType.FT20);
   const [cargoList, setCargoList] = useState<CargoItem[]>([]);
   const [packedItems, setPackedItems] = useState<PackedItem[]>([]);
@@ -20,14 +20,24 @@ const App: React.FC = () => {
   const [isArranging, setIsArranging] = useState<boolean>(false);
   const [globalPackingMode, setGlobalPackingMode] = useState<'bottom-first' | 'inner-first'>('bottom-first');
 
+  // Pallet Simulator State
+  const [palletItems, setPalletItems] = useState<any[]>([]);
+  const [palletSize, setPalletSize] = useState({ width: 1100, height: 150, length: 1100 });
+
   // Stats calculation
   const stats = useMemo(() => {
     const currentContainer = CONTAINER_SPECS[containerType];
     const totalVolume = currentContainer.width * currentContainer.height * currentContainer.length;
     const usedVolume = packedItems.reduce((acc, i) => acc + (i.dimensions.width * i.dimensions.height * i.dimensions.length), 0);
+
+    // 그룹별 아이템 개수 계산
+    const groupCounts = new Set(packedItems.map(item => item.id));
+
     return {
       volumeEfficiency: totalVolume > 0 ? (usedVolume / totalVolume) * 100 : 0,
-      count: packedItems.length
+      count: packedItems.length,
+      totalItems: packedItems.length,
+      totalGroups: groupCounts.size
     };
   }, [packedItems, containerType]);
 
@@ -468,7 +478,12 @@ const App: React.FC = () => {
       {activeTab === 'home' ? (
         <LandingPage onStart={() => setActiveTab('container')} />
       ) : activeTab === 'pallet' ? (
-        <PalletSimulator />
+        <PalletSimulator
+          palletItems={palletItems}
+          setPalletItems={setPalletItems}
+          palletSize={palletSize}
+          setPalletSize={setPalletSize}
+        />
       ) : (
         <main className="flex-1 p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden min-h-0 bg-slate-50/50">
 
@@ -536,10 +551,18 @@ const App: React.FC = () => {
                             <span className="text-sm text-slate-300 font-black">%</span>
                           </div>
                           <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                            <div 
+                            <div
                               className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.volumeEfficiency > 90 ? 'bg-emerald-500' : 'bg-blue-600'}`}
                               style={{ width: `${stats.volumeEfficiency}%` }}
                               />
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
+                            <p className="text-[10px] text-slate-500">
+                              <span className="font-black text-slate-700">아이템:</span> {stats.totalItems}개
+                            </p>
+                            <p className="text-[10px] text-slate-500">
+                              <span className="font-black text-slate-700">그룹:</span> {stats.totalGroups}개
+                            </p>
                           </div>
                       </div>
                     </div>

@@ -9,14 +9,24 @@ interface PalletItem {
   color: string;
 }
 
-const PalletSimulator: React.FC = () => {
-  const [palletSize, setPalletSize] = useState<Dimensions>({ width: 1100, height: 150, length: 1100 });
+interface PalletSimulatorProps {
+  palletItems: PalletItem[];
+  setPalletItems: (items: PalletItem[]) => void;
+  palletSize: Dimensions;
+  setPalletSize: (size: Dimensions) => void;
+}
+
+const PalletSimulator: React.FC<PalletSimulatorProps> = ({
+  palletItems,
+  setPalletItems,
+  palletSize,
+  setPalletSize
+}) => {
   const [maxHeight, setMaxHeight] = useState(2000);
-  const [palletItems, setPalletItems] = useState<PalletItem[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [rotation, setRotation] = useState({ x: -25, y: 45 });
-  const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [scale, setScale] = useState(0.8);
+  const [rotation, setRotation] = useState({ x: 35, y: 45 });
+  const [pan, setPan] = useState({ x: 0, y: 100 });
+  const [scale, setScale] = useState(2.0);
   const [isDragging, setIsDragging] = useState(false);
   const [dragMode, setDragMode] = useState<'rotate' | 'pan' | null>(null);
   const [isArranging, setIsArranging] = useState(false);
@@ -85,7 +95,7 @@ const PalletSimulator: React.FC = () => {
 
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
-    setScale(prev => Math.max(0.1, Math.min(2, prev - e.deltaY * 0.001)));
+    setScale(prev => Math.max(0.1, Math.min(3, prev - e.deltaY * 0.001)));
   };
 
   // 모든 회전 방향 가져오기
@@ -347,7 +357,8 @@ const PalletSimulator: React.FC = () => {
     ];
 
     const isSelected = selectedItemId === id;
-    const baseOpacity = showOpaque ? 1.0 : (isPallet ? 0.9 : 0.85);
+    // 팔레트는 항상 불투명, 화물만 투명도 조절
+    const baseOpacity = isPallet ? 1.0 : (showOpaque ? 1.0 : 0.85);
 
     return (
       <g key={id} onClick={() => !isPallet && setSelectedItemId(id)} className="cursor-pointer">
@@ -380,11 +391,12 @@ const PalletSimulator: React.FC = () => {
     const totalVolume = palletItems.reduce((acc, item) =>
       acc + (item.dimensions.width * item.dimensions.height * item.dimensions.length), 0);
 
-    const containerVolume = palletSize.width * palletSize.length * (currentMaxHeight - palletSize.height);
-    const efficiency = containerVolume > 0 ? (totalVolume / containerVolume) * 100 : 0;
+    // 전체 최대 허용 공간 대비 효율 계산 (컨테이너와 동일한 방식)
+    const totalAvailableVolume = palletSize.width * palletSize.length * (maxHeight - palletSize.height);
+    const efficiency = totalAvailableVolume > 0 ? (totalVolume / totalAvailableVolume) * 100 : 0;
 
     return { itemCount: palletItems.length, maxHeight: currentMaxHeight, efficiency };
-  }, [palletItems, palletSize]);
+  }, [palletItems, palletSize, maxHeight]);
 
   return (
     <main className="flex-1 p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden min-h-0 bg-slate-50/50">
@@ -566,27 +578,53 @@ const PalletSimulator: React.FC = () => {
               <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500"></span> DEL: 선택 화물 제거</p>
             </div>
 
-            {/* 통계 표시 */}
-            <div className="absolute top-4 left-4 space-y-2">
-              <div className="bg-white/90 backdrop-blur p-4 rounded-xl">
-                <p className="text-xs font-bold text-slate-600 mb-1">적재 현황</p>
-                <p className="text-sm font-black text-slate-900">아이템: {stats.itemCount}개</p>
-                <p className="text-sm font-black text-slate-900">최고 높이: {stats.maxHeight}mm</p>
-                <p className="text-sm font-black text-slate-900">효율성: {stats.efficiency.toFixed(1)}%</p>
-              </div>
-
-              {/* 불투명 토글 */}
-              <div className="bg-white/90 backdrop-blur p-3 rounded-xl">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showOpaque}
-                    onChange={(e) => setShowOpaque(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+            {/* Floating UI - Efficiency Panel */}
+            <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-none" style={{ zIndex: 20 }}>
+              <div className="bg-white/90 backdrop-blur-xl shadow-xl p-5 rounded-2xl border border-white flex flex-col gap-1 min-w-[180px]">
+                <span className="text-[9px] text-amber-500 uppercase font-black tracking-[0.2em] leading-none mb-1.5">Efficiency</span>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                    {stats.efficiency.toFixed(1)}
+                  </span>
+                  <span className="text-sm text-slate-300 font-black">%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.efficiency > 90 ? 'bg-emerald-500' : 'bg-amber-600'}`}
+                    style={{ width: `${stats.efficiency}%` }}
                   />
-                  <span className="text-xs font-bold text-slate-700">불투명 모드</span>
-                </label>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
+                  <p className="text-[10px] text-slate-500">
+                    <span className="font-black text-slate-700">아이템:</span> {stats.itemCount}개
+                  </p>
+                  <p className="text-[10px] text-slate-500">
+                    <span className="font-black text-slate-700">최고높이:</span> {stats.maxHeight}mm
+                  </p>
+                </div>
               </div>
+            </div>
+
+            {/* Bottom Left - Scale Display */}
+            <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1 text-slate-400">
+              <div className="text-xs">
+                <p>Pallet: {palletSize.width}×{palletSize.length}</p>
+                <p>Scale: {scale.toFixed(2)}x</p>
+              </div>
+            </div>
+
+            {/* Bottom Right - Opacity Toggle */}
+            <div className="absolute bottom-4 right-4 z-10 pointer-events-auto">
+              <button
+                onClick={() => setShowOpaque(!showOpaque)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-all shadow-lg border ${
+                  showOpaque
+                    ? 'bg-amber-600 text-white border-amber-500'
+                    : 'bg-slate-800 text-slate-300 border-slate-600 hover:bg-slate-700'
+                }`}
+              >
+                {showOpaque ? '◼' : '◻'} 불투명 모드
+              </button>
             </div>
           </div>
 
