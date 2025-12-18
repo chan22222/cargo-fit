@@ -1,5 +1,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+import { Analytics } from '@vercel/analytics/react';
 import { ContainerType, CargoItem, PackedItem, ContainerSpec } from './types';
 import { CONTAINER_SPECS } from './constants';
 import { calculatePacking } from './services/packingService';
@@ -443,7 +445,10 @@ const App: React.FC = () => {
   const currentContainer = CONTAINER_SPECS[containerType];
 
   return (
-    <div className="h-screen w-screen bg-white flex flex-col font-sans overflow-hidden text-slate-900">
+    <>
+      <SpeedInsights />
+      <Analytics />
+      <div className="h-screen w-screen bg-white flex flex-col font-sans overflow-hidden text-slate-900">
       {/* Premium Navigation Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 flex justify-between items-center shrink-0 z-50 h-[60px] md:h-[80px] relative">
         <div
@@ -724,7 +729,8 @@ const App: React.FC = () => {
         </main>
         )
       )}
-    </div>
+      </div>
+    </>
   );
 };
 
