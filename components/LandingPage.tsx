@@ -3,9 +3,11 @@ import React, { useEffect, useState } from 'react';
 
 interface LandingPageProps {
   onStart: () => void;
+  onPrivacy: () => void;
+  onTerms: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -53,40 +55,40 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
       </div>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-24 pb-20 px-10">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-20">
-          <div className="flex-1 space-y-10 text-center lg:text-left">
-            <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
-              <div className="h-2 w-2 rounded-full bg-blue-600 animate-ping"></div>
-              <span className="text-blue-700 text-[10px] font-black tracking-[0.2em] uppercase">Digital Logistics Pioneer</span>
+      <section className="relative z-10 pt-12 md:pt-24 pb-12 md:pb-20 px-4 md:px-10">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-10 md:gap-20">
+          <div className="flex-1 space-y-6 md:space-y-10 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 md:gap-3 px-3 md:px-5 py-1.5 md:py-2 rounded-full bg-blue-50 border border-blue-100 shadow-sm">
+              <div className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-blue-600 animate-ping"></div>
+              <span className="text-blue-700 text-[8px] md:text-[10px] font-black tracking-[0.15em] md:tracking-[0.2em] uppercase">Digital Logistics Pioneer</span>
             </div>
-            
-            <div className="space-y-8">
-              <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.95] tracking-tight">
+
+            <div className="space-y-4 md:space-y-8">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-black text-slate-900 leading-[0.95] tracking-tight">
                 Ship Smart.<br/>
                 <span className="text-blue-600">Ship Faster.</span>
               </h1>
-              <p className="text-xl text-slate-500 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
-                SHIPDA는 복잡한 물류 프로세스를 데이터와 AI로 혁신합니다. 
+              <p className="text-base md:text-xl text-slate-500 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium px-4 md:px-0">
+                SHIPDAGO는 복잡한 물류 프로세스를 데이터와 AI로 혁신합니다.
                 정밀한 3D 시뮬레이션으로 적재 효율을 극대화하고 운송 비용을 절감하세요.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-4">
-              <button 
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 md:gap-5 pt-2 md:pt-4">
+              <button
                 onClick={onStart}
-                className="group relative px-12 py-5 bg-blue-600 text-white font-black rounded-2xl transition-all shadow-2xl shadow-blue-500/40 hover:scale-105 active:scale-95 overflow-hidden"
+                className="group relative w-full sm:w-auto px-8 md:px-12 py-3 md:py-5 bg-blue-600 text-white font-black rounded-xl md:rounded-2xl transition-all shadow-xl md:shadow-2xl shadow-blue-500/30 md:shadow-blue-500/40 hover:scale-105 active:scale-95 overflow-hidden"
               >
-                <div className="flex items-center gap-3 relative z-10">
-                  <span className="text-lg">시뮬레이션 시작</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="flex items-center justify-center gap-2 md:gap-3 relative z-10">
+                  <span className="text-base md:text-lg">시뮬레이션 시작</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
                 </div>
               </button>
-              
-              <button className="px-12 py-5 bg-white text-slate-900 font-bold rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all shadow-xl shadow-slate-200/20">
-                서비스 안내서 다운로드
+
+              <button className="w-full sm:w-auto px-8 md:px-12 py-3 md:py-5 bg-white text-slate-900 font-bold rounded-xl md:rounded-2xl border border-slate-200 hover:bg-slate-50 transition-all shadow-lg md:shadow-xl shadow-slate-200/10 md:shadow-slate-200/20">
+                서비스 안내서
               </button>
             </div>
           </div>
@@ -175,7 +177,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-4 mb-20">
              <h2 className="text-sm font-black text-blue-600 uppercase tracking-[0.3em]">How it works</h2>
-             <p className="text-4xl font-black text-slate-900 tracking-tight">SHIPDA를 통한 스마트한 적재 프로세스</p>
+             <p className="text-4xl font-black text-slate-900 tracking-tight">SHIPDAGO를 통한 스마트한 적재 프로세스</p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-12">
@@ -269,7 +271,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.2),transparent)]"></div>
             <div className="relative z-10 space-y-10">
                <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight">
-                  물류의 디지털 전환,<br/>지금 바로 SHIPDA와 함께하세요.
+                  물류의 디지털 전환,<br/>지금 바로 SHIPDAGO와 함께하세요.
                </h2>
                <button 
                  onClick={onStart}
@@ -288,7 +290,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               <div className="space-y-6">
                  <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center font-black text-white text-xl">S</div>
-                    <span className="text-xl font-black tracking-tight text-slate-900">SHIPDA</span>
+                    <span className="text-xl font-black tracking-tight text-slate-900">SHIPDAGO</span>
                  </div>
                  <p className="text-slate-400 text-sm leading-relaxed">
                     디지털 기술로 수출입 물류의 고도화를 꿈꾸는 혁신 솔루션입니다.
@@ -319,10 +321,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
               </div>
            </div>
            <div className="pt-10 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-              <div>© 2024 SHIPDA. ALL RIGHTS RESERVED.</div>
+              <div>© 2025 SHIPDAGO. ALL RIGHTS RESERVED.</div>
               <div className="flex gap-8">
-                 <a href="#" className="hover:text-slate-900 transition-colors">Privacy Policy</a>
-                 <a href="#" className="hover:text-slate-900 transition-colors">Terms of Service</a>
+                 <button onClick={onPrivacy} className="hover:text-slate-900 transition-colors">Privacy Policy</button>
+                 <button onClick={onTerms} className="hover:text-slate-900 transition-colors">Terms of Service</button>
               </div>
            </div>
         </div>

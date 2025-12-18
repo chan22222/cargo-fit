@@ -7,10 +7,26 @@ import ContainerVisualizer from './components/ContainerVisualizer';
 import { CargoControls } from './components/CargoControls';
 import LandingPage from './components/LandingPage';
 import PalletSimulator from './components/PalletSimulator';
+import PrivacyPolicy from './components/PrivacyPolicy';
+import TermsOfService from './components/TermsOfService';
 
 const App: React.FC = () => {
+  // Check if screen width is large enough
+  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
+
+  // Listen for window resize
+  React.useEffect(() => {
+    const handleResize = () => {
+      setIsLargeScreen(window.innerWidth >= 1024);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'privacy' | 'terms'>('home');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Container Simulator State
   const [containerType, setContainerType] = useState<ContainerType>(ContainerType.FT20);
@@ -429,25 +445,26 @@ const App: React.FC = () => {
   return (
     <div className="h-screen w-screen bg-white flex flex-col font-sans overflow-hidden text-slate-900">
       {/* Premium Navigation Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-10 flex justify-between items-center shrink-0 z-50 h-[80px]">
-        <div 
-          className="flex items-center gap-4 cursor-pointer group"
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 flex justify-between items-center shrink-0 z-50 h-[60px] md:h-[80px] relative">
+        <div
+          className="flex items-center gap-2 md:gap-4 cursor-pointer group"
           onClick={() => setActiveTab('home')}
         >
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center font-black text-white text-2xl shadow-md group-hover:shadow-lg transition-all duration-300">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+          <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center font-black text-white text-xl md:text-2xl shadow-md group-hover:shadow-lg transition-all duration-300">
+            <svg width="20" height="20" className="md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z" stroke="currentColor" strokeWidth="2" fill="currentColor" opacity="0.9"/>
             </svg>
           </div>
           <div>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">SHIPDA</h1>
-            <p className="text-[10px] text-slate-500 font-medium tracking-wide mt-1 flex items-center gap-1.5">
-              <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+            <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-none">SHIPDAGO</h1>
+            <p className="text-[9px] md:text-[10px] text-slate-500 font-medium tracking-wide mt-0.5 md:mt-1 flex items-center gap-1 md:gap-1.5">
+              <span className="inline-block w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full animate-pulse"></span>
               Container Loading Tool
             </p>
           </div>
         </div>
-        
+
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
            <button
              onClick={() => setActiveTab('home')}
@@ -467,24 +484,135 @@ const App: React.FC = () => {
            >
              팔레트
            </button>
-           <div className="h-4 w-[1px] bg-slate-200 mx-2"></div>
-           <button className="px-5 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-blue-600 transition-colors shadow-lg shadow-slate-900/10">
-             KOREAN / KRW
-           </button>
         </nav>
+
+        {/* Mobile Menu Button */}
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
+          aria-label="메뉴"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {mobileMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+
+        {/* Mobile Menu Dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-lg">
+            <nav className="flex flex-col p-4 space-y-3">
+              <button
+                onClick={() => {
+                  setActiveTab('home');
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'home' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                HOME
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('container');
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'container' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                컨테이너
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('pallet');
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'pallet' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                팔레트
+              </button>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Content Injection */}
       {activeTab === 'home' ? (
-        <LandingPage onStart={() => setActiveTab('container')} />
-      ) : activeTab === 'pallet' ? (
-        <PalletSimulator
-          palletItems={palletItems}
-          setPalletItems={setPalletItems}
-          palletSize={palletSize}
-          setPalletSize={setPalletSize}
+        <LandingPage
+          onStart={() => setActiveTab('container')}
+          onPrivacy={() => setActiveTab('privacy')}
+          onTerms={() => setActiveTab('terms')}
         />
+      ) : activeTab === 'privacy' ? (
+        <PrivacyPolicy />
+      ) : activeTab === 'terms' ? (
+        <TermsOfService />
+      ) : activeTab === 'pallet' ? (
+        !isLargeScreen ? (
+          // Show message for small screens on pallet tab
+          <div className="flex-1 bg-slate-50 flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <svg className="w-24 h-24 mx-auto mb-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <h1 className="text-2xl font-bold text-slate-800 mb-3">PC 버전 전용</h1>
+              <p className="text-base text-slate-600 mb-6">
+                팔레트 시뮬레이터는 1024px 이상의 화면에서만 이용 가능합니다.
+              </p>
+              <p className="text-sm text-slate-500">
+                더 큰 화면의 기기에서 접속해 주세요.
+              </p>
+              <div className="mt-8 pt-6 border-t border-slate-200">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 text-sm text-slate-600">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  현재 화면: {window.innerWidth}px
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <PalletSimulator
+            palletItems={palletItems}
+            setPalletItems={setPalletItems}
+            palletSize={palletSize}
+            setPalletSize={setPalletSize}
+          />
+        )
       ) : (
+        !isLargeScreen ? (
+          // Show message for small screens on container tab
+          <div className="flex-1 bg-slate-50 flex items-center justify-center p-8">
+            <div className="text-center max-w-md">
+              <svg className="w-24 h-24 mx-auto mb-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <h1 className="text-2xl font-bold text-slate-800 mb-3">PC 버전 전용</h1>
+              <p className="text-base text-slate-600 mb-6">
+                컨테이너 시뮬레이터는 1024px 이상의 화면에서만 이용 가능합니다.
+              </p>
+              <p className="text-sm text-slate-500">
+                더 큰 화면의 기기에서 접속해 주세요.
+              </p>
+              <div className="mt-8 pt-6 border-t border-slate-200">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-slate-200 text-sm text-slate-600">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  현재 화면: {window.innerWidth}px
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
         <main className="flex-1 p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden min-h-0 bg-slate-50/50">
 
           {/* Main Visualizer Area with Left Ad Space */}
@@ -594,6 +722,7 @@ const App: React.FC = () => {
           </div>
 
         </main>
+        )
       )}
     </div>
   );
