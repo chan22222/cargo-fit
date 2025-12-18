@@ -20,7 +20,7 @@ export interface CompoundCargoPreset {
 
 interface PalletBuilderProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   onAddToList: (compoundCargo: {
     name: string;
     dimensions: Dimensions;
@@ -160,7 +160,10 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
     setScale(prev => Math.max(0.1, Math.min(2, prev - e.deltaY * 0.001)));
   };
 
-  if (!isOpen) return null;
+  // 독립 실행 모드인 경우 onClose가 없으면 항상 열림
+  const isStandalone = !onClose;
+
+  if (!isOpen && !isStandalone) return null;
 
   const addItem = () => {
     if (!newItemName) return;
@@ -648,18 +651,22 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full h-[90vh] overflow-hidden flex flex-col">
-        <div className="p-6 border-b border-slate-100">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-black text-slate-900">3D 팔레트 화물 빌더 {editingCargo ? '(수정 모드)' : ''}</h2>
-            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
+    <div className={isStandalone ? "h-full w-full" : "fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"}>
+      <div className={isStandalone
+        ? "bg-white w-full h-full overflow-hidden flex flex-col"
+        : "bg-white rounded-2xl shadow-2xl max-w-6xl w-full h-[90vh] overflow-hidden flex flex-col"}>
+        {!isStandalone && (
+          <div className="p-6 border-b border-slate-100">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-black text-slate-900">3D 팔레트 화물 빌더 {editingCargo ? '(수정 모드)' : ''}</h2>
+              <button onClick={onClose} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="flex-1 flex overflow-hidden">
           {/* 3D 뷰어 */}
@@ -692,56 +699,59 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
                 // 팔레트를 포함한 모든 아이템 정렬
                 const allItems = [palletItem, ...palletItems];
                 const sortedItems = allItems.sort((a, b) => {
-                  // 각 아이템의 중심점 계산
-                  const centerA = {
-                    x: a.position.x + a.dimensions.width / 2,
-                    y: a.position.y + a.dimensions.height / 2,
-                    z: a.position.z + a.dimensions.length / 2
-                  };
-                  const centerB = {
-                    x: b.position.x + b.dimensions.width / 2,
-                    y: b.position.y + b.dimensions.height / 2,
-                    z: b.position.z + b.dimensions.length / 2
+                  // 팔레트는 항상 먼저 렌더링 (가장 뒤에)
+                  if (a.id === 'pallet') return -1;
+                  if (b.id === 'pallet') return 1;
+
+                  // 각 아이템의 가장 가까운 꼭짓점 계산 (더 정확한 깊이 계산)
+                  const getClosestVertex = (item: typeof a) => {
+                    const vertices = [
+                      // 8개의 꼭짓점
+                      { x: item.position.x, y: item.position.y, z: item.position.z },
+                      { x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z },
+                      { x: item.position.x, y: item.position.y + item.dimensions.height, z: item.position.z },
+                      { x: item.position.x + item.dimensions.width, y: item.position.y + item.dimensions.height, z: item.position.z },
+                      { x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length },
+                      { x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z + item.dimensions.length },
+                      { x: item.position.x, y: item.position.y + item.dimensions.height, z: item.position.z + item.dimensions.length },
+                      { x: item.position.x + item.dimensions.width, y: item.position.y + item.dimensions.height, z: item.position.z + item.dimensions.length }
+                    ];
+
+                    let maxZ = -Infinity;
+
+                    for (const vertex of vertices) {
+                      // 팔레트 중심 기준으로 변환
+                      const rel = {
+                        x: vertex.x - palletSize.width / 2,
+                        y: vertex.y,
+                        z: vertex.z - palletSize.length / 2
+                      };
+
+                      // Y축 회전 적용 (좌우 회전)
+                      const rotated = {
+                        x: rel.x * Math.cos(radY) - rel.z * Math.sin(radY),
+                        y: rel.y,
+                        z: rel.x * Math.sin(radY) + rel.z * Math.cos(radY)
+                      };
+
+                      // X축 회전 적용 (상하 회전)
+                      const final = {
+                        x: rotated.x,
+                        y: rotated.y * Math.cos(radX) - rotated.z * Math.sin(radX),
+                        z: rotated.y * Math.sin(radX) + rotated.z * Math.cos(radX)
+                      };
+
+                      maxZ = Math.max(maxZ, final.z);
+                    }
+
+                    return maxZ;
                   };
 
-                  // 팔레트 중심 기준으로 변환
-                  const relA = {
-                    x: centerA.x - palletSize.width / 2,
-                    y: centerA.y,
-                    z: centerA.z - palletSize.length / 2
-                  };
-                  const relB = {
-                    x: centerB.x - palletSize.width / 2,
-                    y: centerB.y,
-                    z: centerB.z - palletSize.length / 2
-                  };
-
-                  // Y축 회전 적용 (좌우 회전)
-                  const rotatedA = {
-                    x: relA.x * Math.cos(radY) - relA.z * Math.sin(radY),
-                    y: relA.y,
-                    z: relA.x * Math.sin(radY) + relA.z * Math.cos(radY)
-                  };
-                  const rotatedB = {
-                    x: relB.x * Math.cos(radY) - relB.z * Math.sin(radY),
-                    y: relB.y,
-                    z: relB.x * Math.sin(radY) + relB.z * Math.cos(radY)
-                  };
-
-                  // X축 회전 적용 (상하 회전)
-                  const finalA = {
-                    x: rotatedA.x,
-                    y: rotatedA.y * Math.cos(radX) - rotatedA.z * Math.sin(radX),
-                    z: rotatedA.y * Math.sin(radX) + rotatedA.z * Math.cos(radX)
-                  };
-                  const finalB = {
-                    x: rotatedB.x,
-                    y: rotatedB.y * Math.cos(radX) - rotatedB.z * Math.sin(radX),
-                    z: rotatedB.y * Math.sin(radX) + rotatedB.z * Math.cos(radX)
-                  };
+                  const depthA = getClosestVertex(a);
+                  const depthB = getClosestVertex(b);
 
                   // Z 값이 작은 것(뒤쪽)부터 그리기
-                  return finalA.z - finalB.z;
+                  return depthA - depthB;
                 });
 
                 return sortedItems.map(item =>
@@ -798,185 +808,356 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
           </div>
 
           {/* 사이드 패널 */}
-          <div className="w-96 bg-white border-l border-slate-200 p-6 overflow-y-auto">
-            {/* 팔레트 설정 */}
-            <div className="space-y-4 mb-6">
-              <h3 className="text-sm font-bold text-slate-700">팔레트 설정</h3>
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  value={palletSize.length}
-                  onChange={(e) => setPalletSize({...palletSize, length: Number(e.target.value)})}
-                  className="px-2 py-2 bg-slate-50 rounded-lg text-sm text-center"
-                  placeholder="길이"
-                />
-                <input
-                  type="number"
-                  value={palletSize.width}
-                  onChange={(e) => setPalletSize({...palletSize, width: Number(e.target.value)})}
-                  className="px-2 py-2 bg-slate-50 rounded-lg text-sm text-center"
-                  placeholder="너비"
-                />
-                <input
-                  type="number"
-                  value={palletSize.height}
-                  onChange={(e) => setPalletSize({...palletSize, height: Number(e.target.value)})}
-                  className="px-2 py-2 bg-slate-50 rounded-lg text-sm text-center"
-                  placeholder="높이"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-600">최대 적재 높이: {maxHeight}mm</label>
-                <input
-                  type="range"
-                  value={maxHeight}
-                  onChange={(e) => setMaxHeight(Number(e.target.value))}
-                  min="500"
-                  max="3000"
-                  className="w-full"
-                />
-              </div>
-            </div>
+          <div className="w-96 bg-white border-l border-slate-200 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-hide">
 
-            {/* 화물 추가 */}
-            <div className="space-y-4 mb-6">
-              <h3 className="text-sm font-bold text-slate-700">화물 추가</h3>
-              <input
-                type="text"
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-                placeholder="화물 이름"
-                className="w-full px-3 py-2 bg-slate-50 rounded-lg text-sm"
-              />
-              <div className="grid grid-cols-3 gap-2">
-                <input
-                  type="number"
-                  value={newItemDims.length}
-                  onChange={(e) => setNewItemDims({...newItemDims, length: Number(e.target.value)})}
-                  className="px-2 py-2 bg-slate-50 rounded-lg text-sm text-center"
-                  placeholder="길이"
-                />
-                <input
-                  type="number"
-                  value={newItemDims.width}
-                  onChange={(e) => setNewItemDims({...newItemDims, width: Number(e.target.value)})}
-                  className="px-2 py-2 bg-slate-50 rounded-lg text-sm text-center"
-                  placeholder="너비"
-                />
-                <input
-                  type="number"
-                  value={newItemDims.height}
-                  onChange={(e) => setNewItemDims({...newItemDims, height: Number(e.target.value)})}
-                  className="px-2 py-2 bg-slate-50 rounded-lg text-sm text-center"
-                  placeholder="높이"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">수량</label>
-                <input
-                  type="number"
-                  value={newItemQuantity}
-                  onChange={(e) => setNewItemQuantity(Math.max(1, Number(e.target.value)))}
-                  min="1"
-                  className="w-full px-3 py-2 bg-slate-50 rounded-lg text-sm"
-                />
-              </div>
-              <button
-                onClick={addItem}
-                className="w-full py-2 bg-blue-600 text-white rounded-lg font-bold text-sm hover:bg-blue-700"
-              >
-                화물 추가 ({newItemQuantity}개)
-              </button>
-            </div>
+              {/* 팔레트 설정 */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">팔레트 설정</h3>
+                </div>
 
-            {/* 화물 리스트 */}
-            <div className="space-y-2 mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-sm font-bold text-slate-700">화물 리스트</h3>
-                {palletItems.length > 0 && (
-                  <button
-                    onClick={autoArrange}
-                    disabled={isArranging}
-                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 ${
-                      isArranging
-                        ? 'bg-green-500 text-white cursor-wait'
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                    }`}
-                  >
-                    {isArranging ? (
-                      <>
-                        <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        정렬 중...
-                      </>
-                    ) : (
-                      '자동 정렬'
-                    )}
-                  </button>
-                )}
-              </div>
-              {palletItems.map(item => (
-                <div
-                  key={item.id}
-                  className={`p-3 rounded-lg border ${selectedItemId === item.id ? 'border-blue-500 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}
-                >
+                <div className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <div>
-                      <p className="text-sm font-bold">{item.name}</p>
-                      <p className="text-xs text-slate-500">
-                        {item.dimensions.length}×{item.dimensions.width}×{item.dimensions.height}
-                      </p>
-                    </div>
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H mm)</label>
                     <button
-                      onClick={() => removeItem(item.id)}
-                      className="text-red-500 hover:bg-red-50 p-1 rounded"
+                      type="button"
+                      onClick={() => setPalletSize({ width: palletSize.length, height: palletSize.height, length: palletSize.width })}
+                      className="px-2 py-1 text-[8px] font-black text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
+                      title="90도 회전"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                       </svg>
+                      90°
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <input
+                      type="number"
+                      value={palletSize.length}
+                      onChange={(e) => setPalletSize({...palletSize, length: Number(e.target.value)})}
+                      className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                      min="100"
+                      placeholder="길이"
+                    />
+                    <input
+                      type="number"
+                      value={palletSize.width}
+                      onChange={(e) => setPalletSize({...palletSize, width: Number(e.target.value)})}
+                      className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                      min="100"
+                      placeholder="너비"
+                    />
+                    <input
+                      type="number"
+                      value={palletSize.height}
+                      onChange={(e) => setPalletSize({...palletSize, height: Number(e.target.value)})}
+                      className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                      min="50"
+                      placeholder="높이"
+                    />
+                  </div>
+
+                  {/* 프리셋 버튼들 */}
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => setPalletSize({ width: 1200, height: 150, length: 1000 })}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-amber-600 hover:border-amber-500 transition-all"
+                    >
+                      EUR 팔레트
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPalletSize({ width: 1100, height: 150, length: 1100 })}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-amber-600 hover:border-amber-500 transition-all"
+                    >
+                      KR 팔레트
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPalletSize({ width: 1200, height: 150, length: 800 })}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-amber-600 hover:border-amber-500 transition-all"
+                    >
+                      하프 팔레트
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
 
-            {/* 화물 설정 */}
-            <div className="space-y-3 border-t pt-4">
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">화물 이름</label>
-                <input
-                  type="text"
-                  value={compoundCargoName}
-                  onChange={(e) => setCompoundCargoName(e.target.value)}
-                  placeholder="화물 이름"
-                  className="w-full px-3 py-2 bg-slate-50 rounded-lg text-sm"
-                />
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                    최대 적재 높이: <span className="text-slate-700">{maxHeight}mm</span>
+                  </label>
+                  <input
+                    type="range"
+                    value={maxHeight}
+                    onChange={(e) => setMaxHeight(Number(e.target.value))}
+                    min="500"
+                    max="3000"
+                    className="w-full"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="text-xs font-bold text-slate-600 block mb-1">수량</label>
-                <input
-                  type="number"
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
-                  min="1"
-                  className="w-full px-3 py-2 bg-slate-50 rounded-lg text-sm"
-                />
+              {/* 화물 추가 */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                      <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                      <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <h3 className="text-base font-black text-slate-900 tracking-tight">화물 추가</h3>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">화물 식별명</label>
+                  <input
+                    type="text"
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                    placeholder="화물 이름"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H mm)</label>
+                    <button
+                      type="button"
+                      onClick={() => setNewItemDims({ width: newItemDims.length, height: newItemDims.height, length: newItemDims.width })}
+                      className="px-2 py-1 text-[8px] font-black text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
+                      title="90도 회전"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                      </svg>
+                      90°
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <input
+                      type="number"
+                      value={newItemDims.length}
+                      onChange={(e) => setNewItemDims({...newItemDims, length: Number(e.target.value)})}
+                      className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                      min="10"
+                      placeholder="길이"
+                    />
+                    <input
+                      type="number"
+                      value={newItemDims.width}
+                      onChange={(e) => setNewItemDims({...newItemDims, width: Number(e.target.value)})}
+                      className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                      min="10"
+                      placeholder="너비"
+                    />
+                    <input
+                      type="number"
+                      value={newItemDims.height}
+                      onChange={(e) => setNewItemDims({...newItemDims, height: Number(e.target.value)})}
+                      className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                      min="10"
+                      placeholder="높이"
+                    />
+                  </div>
+
+                  {/* 프리셋 버튼들 */}
+                  <div className="flex gap-2 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => { setNewItemDims({ width: 200, height: 200, length: 300 }); setNewItemName('XS박스'); }}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
+                    >
+                      XS박스
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setNewItemDims({ width: 300, height: 300, length: 400 }); setNewItemName('S박스'); }}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
+                    >
+                      S박스
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setNewItemDims({ width: 400, height: 400, length: 500 }); setNewItemName('M박스'); }}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
+                    >
+                      M박스
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setNewItemDims({ width: 500, height: 500, length: 600 }); setNewItemName('L박스'); }}
+                      className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
+                    >
+                      L박스
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량</label>
+                  <input
+                    type="number"
+                    value={newItemQuantity}
+                    onChange={(e) => setNewItemQuantity(Math.max(1, Number(e.target.value)))}
+                    className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
+                    min="1"
+                  />
+                </div>
+
+                <button
+                  onClick={addItem}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3 px-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-md flex items-center justify-center gap-2"
+                >
+                  화물 추가 ({newItemQuantity}개)
+                </button>
+              </div>
+
+              {/* 화물 리스트 */}
+              <div className="pt-6 border-t border-slate-100">
+                <div className="flex justify-between items-center mb-4 px-1">
+                  <h3 className="font-black text-slate-900 text-xs tracking-tight">
+                    화물 리스트 <span className="text-slate-300 font-bold ml-1">{palletItems.length}</span>
+                  </h3>
+                  {palletItems.length > 0 && (
+                    <button
+                      onClick={() => setPalletItems([])}
+                      className="text-[9px] text-slate-400 hover:text-red-500 font-black uppercase tracking-widest transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  {palletItems.length === 0 ? (
+                    <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      <p className="text-slate-300 text-[10px] font-bold">리스트가 비어있습니다.</p>
+                    </div>
+                  ) : (
+                    palletItems.map(item => (
+                      <div
+                        key={item.id}
+                        onClick={() => setSelectedItemId(item.id)}
+                        className={`group relative flex items-center p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
+                          selectedItemId === item.id
+                            ? 'bg-white border-slate-900 shadow-md translate-x-1'
+                            : 'bg-white border-slate-100 hover:border-slate-200'
+                        }`}
+                      >
+                        <div
+                          className="w-1.5 h-8 rounded-full mr-3 shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        ></div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`font-black text-[11px] truncate ${
+                            selectedItemId === item.id ? 'text-slate-900' : 'text-slate-700'
+                          }`}>
+                            {item.name}
+                          </p>
+                          <div className="flex items-center text-[9px] text-slate-400 font-bold">
+                            <span className="truncate opacity-60">
+                              {item.dimensions.length}×{item.dimensions.width}×{item.dimensions.height}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeItem(item.id);
+                          }}
+                          className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* 복합 화물 설정 */}
+              <div className="space-y-3 border-t pt-4">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">복합 화물 이름</label>
+                  <input
+                    type="text"
+                    value={compoundCargoName}
+                    onChange={(e) => setCompoundCargoName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
+                    placeholder="복합 화물 이름"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량</label>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                    className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
+                    min="1"
+                  />
+                </div>
               </div>
             </div>
+
+            {/* 자동 정렬 버튼 */}
+            {palletItems.length > 0 && (
+              <div className="p-3 bg-white border-t border-slate-100 shrink-0">
+                <button
+                  onClick={autoArrange}
+                  disabled={isArranging}
+                  className={`w-full py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group ${
+                    isArranging
+                      ? 'bg-blue-500 text-white cursor-wait'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-[0.98]'
+                  }`}
+                >
+                  {isArranging ? (
+                    <>
+                      <span className="text-[10px] font-black uppercase tracking-widest">최적화 중...</span>
+                      <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[10px] font-black uppercase tracking-widest">자동 최적화</span>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 group-hover:scale-125 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* 하단 액션 버튼 */}
         <div className="p-6 border-t border-slate-100 flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-sm hover:bg-slate-200"
-          >
-            취소
-          </button>
+          {!isStandalone && (
+            <button
+              onClick={onClose}
+              className="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-sm hover:bg-slate-200"
+            >
+              취소
+            </button>
+          )}
           <button
             onClick={() => {
               if (palletItems.length > 0) {
@@ -990,7 +1171,7 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
                   items: palletItems,
                   palletSize: palletSize
                 });
-                onClose();
+                if (onClose) onClose();
               }
             }}
             disabled={palletItems.length === 0}
@@ -1000,7 +1181,7 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
                 : 'bg-slate-200 text-slate-400 cursor-not-allowed'
             }`}
           >
-            {editingCargo ? '수정 완료' : `화물 리스트에 추가`} (수량: {quantity})
+            {editingCargo ? '수정 완료' : isStandalone ? '팔레트 생성' : '화물 리스트에 추가'} (수량: {quantity})
           </button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { DEFAULT_CARGO_COLORS } from '../constants';
 import PalletBuilder from './PalletBuilder';
 
 interface CargoControlsProps {
-  onAddCargo: (cargo: Omit<CargoItem, 'id'>) => void;
+  onAddCargo: (cargo: Omit<CargoItem, 'id'> | CargoItem) => void;
   cargoList: CargoItem[];
   onRemoveCargo: (id: string) => void;
   onClear: () => void;
@@ -14,6 +14,8 @@ interface CargoControlsProps {
   selectedGroupId: string | null;
   onSelectGroup: (id: string) => void;
   isArranging?: boolean;
+  packingMode: 'bottom-first' | 'inner-first';
+  onPackingModeChange: (mode: 'bottom-first' | 'inner-first') => void;
 }
 
 export const CargoControls: React.FC<CargoControlsProps> = ({
@@ -25,7 +27,9 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
   onAutoArrange,
   selectedGroupId,
   onSelectGroup,
-  isArranging = false
+  isArranging = false,
+  packingMode,
+  onPackingModeChange
 }) => {
   const [name, setName] = useState('New Item');
   const [dims, setDims] = useState<Dimensions>({ width: 1000, height: 1000, length: 1000 });
@@ -195,21 +199,57 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-               <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">컬러</label>
-               <div className="flex gap-2 flex-wrap">
-                 {DEFAULT_CARGO_COLORS.map(c => (
-                   <button
-                     key={c}
-                     type="button"
-                     onClick={() => setColor(c)}
-                     className={`w-6 h-6 rounded-lg shadow-sm transition-all hover:scale-110 flex items-center justify-center ${color === c ? 'ring-2 ring-offset-2 ring-slate-900' : ''}`}
-                     style={{ backgroundColor: c }}
-                   >
-                     {color === c && <div className="w-1 h-1 bg-white rounded-full" />}
-                   </button>
-                 ))}
-               </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">컬러</label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {DEFAULT_CARGO_COLORS.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setColor(c)}
+                    className={`w-full aspect-square rounded-lg shadow-sm transition-all hover:scale-110 flex items-center justify-center ${color === c ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`}
+                    style={{ backgroundColor: c }}
+                  >
+                    {color === c && <div className="w-1 h-1 bg-white rounded-full" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">정렬 방식</label>
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  onClick={() => onPackingModeChange('bottom-first')}
+                  className={`w-full px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 ${
+                    packingMode === 'bottom-first'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  </svg>
+                  바닥부터 채우기
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onPackingModeChange('inner-first')}
+                  className={`w-full px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 ${
+                    packingMode === 'inner-first'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                  </svg>
+                  안쪽부터 채우기
+                </button>
+              </div>
+            </div>
           </div>
 
           <button
@@ -339,7 +379,9 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                </>
              ) : (
                <>
-                 <span className="text-[10px] font-black uppercase tracking-widest">자동 최적화</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest">
+                   자동 최적화 ({packingMode === 'inner-first' ? '안쪽부터' : '바닥부터'})
+                 </span>
                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 group-hover:scale-125 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 10V3L4 14h7v7l9-11h-7z" />
                  </svg>
@@ -361,19 +403,31 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
           // 편집 모드인 경우 기존 항목 제거하고 새로 추가
           if (editingCargo) {
             onRemoveCargo(editingCargo.id);
+            // 편집 모드에서는 기존 ID를 유지
+            onAddCargo({
+              id: editingCargo.id, // 기존 ID 유지
+              name: compoundCargo.name,
+              dimensions: compoundCargo.dimensions,
+              quantity: compoundCargo.quantity,
+              weight: compoundCargo.weight,
+              color: '#8B4513',
+              isCompound: true,
+              items: compoundCargo.items,
+              palletSize: compoundCargo.palletSize
+            } as any); // 타입 캐스팅 (id 포함)
+          } else {
+            // 신규 추가인 경우
+            onAddCargo({
+              name: compoundCargo.name,
+              dimensions: compoundCargo.dimensions,
+              quantity: compoundCargo.quantity,
+              weight: compoundCargo.weight,
+              color: '#8B4513', // 복합 화물은 팔레트 색상 사용
+              isCompound: true,
+              items: compoundCargo.items,
+              palletSize: compoundCargo.palletSize
+            });
           }
-
-          // 복합 화물을 하나의 단위로 추가
-          onAddCargo({
-            name: compoundCargo.name,
-            dimensions: compoundCargo.dimensions,
-            quantity: compoundCargo.quantity,
-            weight: compoundCargo.weight,
-            color: '#8B4513', // 복합 화물은 팔레트 색상 사용
-            isCompound: true,
-            items: compoundCargo.items,
-            palletSize: compoundCargo.palletSize
-          });
           setShowPalletBuilder(false);
           setEditingCargo(undefined);
         }}

@@ -28,6 +28,7 @@ export interface CargoItem {
   color: string;
   quantity: number;
   weight?: number; // kg per item
+  packingMode?: 'bottom-first' | 'inner-first'; // 정렬 방식
   isCompound?: boolean; // 복합 화물 여부
   items?: Array<{ // 복합 화물의 개별 아이템들
     id: string;
