@@ -195,7 +195,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
               {
                 step: "03",
                 title: "결과 공유 및 최적화",
-                desc: "Gemini AI의 분석 보고서를 확인하고, 최적화된 적재 리스트를 현장에 공유하세요."
+                desc: "최적화된 적재 계획을 확인하고, 효율적인 적재 리스트를 현장에 공유하세요."
               }
             ].map((item, idx) => (
               <div key={idx} className="relative p-10 bg-slate-50 rounded-[24px] border border-slate-100">
