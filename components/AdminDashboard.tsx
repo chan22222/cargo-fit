@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
 import { db } from '../lib/supabase';
+import TiptapEditor from './TiptapEditor';
 
 interface AdminDashboardProps {
   onNavigateHome: () => void;
@@ -14,6 +15,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showInsightForm, setShowInsightForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<Insight | null>(null);
+  const [editingViewCount, setEditingViewCount] = useState<string | null>(null);
+  const [viewCountInput, setViewCountInput] = useState<number>(0);
   const [formData, setFormData] = useState<Partial<Insight>>({
     tag: 'Logistics',
     title: '',
@@ -52,7 +55,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
           imageUrl: item.image_url,
           content: item.content,
           author: item.author,
-          published: item.published
+          published: item.published,
+          viewCount: item.view_count || 0
         }));
         setInsights(formattedInsights);
         // Also save to localStorage as backup
@@ -177,6 +181,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     } catch (error) {
       console.error('Error toggling publish:', error);
       alert('상태 변경 중 오류가 발생했습니다.');
+    }
+  };
+
+  // Handle view count update
+  const handleUpdateViewCount = async (id: string) => {
+    try {
+      const { error } = await db.insights.setViewCount(id, viewCountInput);
+      if (error) {
+        console.error('Error updating view count:', error);
+        alert('조회수 업데이트 중 오류가 발생했습니다.');
+        return;
+      }
+      await loadInsights();
+      setEditingViewCount(null);
+      window.dispatchEvent(new Event('insightsUpdated'));
+    } catch (error) {
+      console.error('Error updating view count:', error);
+      alert('조회수 업데이트 중 오류가 발생했습니다.');
     }
   };
 
@@ -502,10 +524,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
 
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">내용</label>
-                          <textarea
-                            value={formData.content}
-                            onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
+                          <TiptapEditor
+                            value={formData.content || ''}
+                            onChange={(content) => setFormData({ ...formData, content })}
+                            placeholder="내용을 입력하세요..."
                           />
                         </div>
 
@@ -565,6 +587,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">카테고리</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">날짜</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">조회수</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작업</th>
                       </tr>
@@ -597,6 +620,44 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-500">
                             {insight.date}
+                          </td>
+                          <td className="px-6 py-4">
+                            {editingViewCount === insight.id ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  value={viewCountInput}
+                                  onChange={(e) => setViewCountInput(parseInt(e.target.value) || 0)}
+                                  className="w-20 px-2 py-1 text-sm border border-gray-300 rounded"
+                                  min="0"
+                                />
+                                <button
+                                  onClick={() => handleUpdateViewCount(insight.id)}
+                                  className="text-green-600 hover:text-green-700"
+                                  title="저장"
+                                >
+                                  ✓
+                                </button>
+                                <button
+                                  onClick={() => setEditingViewCount(null)}
+                                  className="text-red-600 hover:text-red-700"
+                                  title="취소"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setEditingViewCount(insight.id);
+                                  setViewCountInput(insight.viewCount || 0);
+                                }}
+                                className="text-sm text-gray-700 hover:text-blue-600 hover:underline"
+                                title="클릭하여 수정"
+                              >
+                                {insight.viewCount?.toLocaleString() || 0}
+                              </button>
+                            )}
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-2 py-1 text-xs font-medium rounded-full ${

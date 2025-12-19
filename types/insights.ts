@@ -7,6 +7,7 @@ export interface Insight {
   content?: string;
   author?: string;
   published: boolean;
+  viewCount?: number;
 }
 
 export interface InsightFormData {

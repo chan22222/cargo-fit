@@ -7,9 +7,11 @@ interface LandingPageProps {
   onStart: () => void;
   onPrivacy: () => void;
   onTerms: () => void;
+  onNavigateToInsights?: () => void;
+  onNavigateToInsight?: (id: string) => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
 
@@ -274,13 +276,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
                   <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Insights</h2>
                   <p className="text-4xl font-black text-slate-900 tracking-tight">글로벌 물류 트렌드</p>
                </div>
-               <button className="text-xs font-black text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest border-b border-slate-200 pb-1">View All News</button>
+               <button
+                 onClick={onNavigateToInsights}
+                 className="text-xs font-black text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest border-b border-slate-200 pb-1"
+               >
+                 View All News
+               </button>
             </div>
 
             <div className="grid md:grid-cols-3 gap-10">
                {insights.length > 0 ? (
                   insights.slice(0, 6).map((post) => (
-                     <div key={post.id} className="group cursor-pointer">
+                     <div
+                       key={post.id}
+                       className="group cursor-pointer"
+                       onClick={() => onNavigateToInsight && onNavigateToInsight(post.id)}
+                     >
                         <div className="aspect-[16/10] bg-slate-100 rounded-[24px] mb-6 overflow-hidden relative">
                            <img
                               src={post.imageUrl}

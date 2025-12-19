@@ -13,6 +13,8 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import AdminDashboard from './components/AdminDashboard';
 import AdminLogin from './components/AdminLogin';
+import InsightDetail from './components/InsightDetail';
+import InsightsList from './components/InsightsList';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -20,16 +22,39 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'pallet'>('home');
+  const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
 
-  // Check for admin route on mount and URL changes
+  // Check for route on mount and URL changes
   useEffect(() => {
-    const checkAdminRoute = () => {
+    const checkRoute = () => {
       const path = window.location.pathname;
       const hash = window.location.hash;
+
+      // Check admin route
       setIsAdminRoute(path === '/admin' || hash === '#/admin' || hash === '#admin');
+
+      // Check other routes
+      if (hash.startsWith('#/insight/')) {
+        const id = hash.split('/')[2];
+        setCurrentRoute('insight');
+        setCurrentInsightId(id);
+      } else if (hash === '#/insights') {
+        setCurrentRoute('insights');
+      } else if (hash === '#/privacy') {
+        setCurrentRoute('privacy');
+      } else if (hash === '#/terms') {
+        setCurrentRoute('terms');
+      } else if (hash === '#/pallet') {
+        setCurrentRoute('pallet');
+      } else if (path === '/admin' || hash === '#/admin' || hash === '#admin') {
+        setCurrentRoute('admin');
+      } else {
+        setCurrentRoute('home');
+      }
     };
 
-    checkAdminRoute();
+    checkRoute();
 
     // Check for saved authentication
     const savedAuth = localStorage.getItem('adminAuthenticated');
@@ -38,12 +63,12 @@ const App: React.FC = () => {
     }
 
     // Listen for hash changes
-    window.addEventListener('hashchange', checkAdminRoute);
-    window.addEventListener('popstate', checkAdminRoute);
+    window.addEventListener('hashchange', checkRoute);
+    window.addEventListener('popstate', checkRoute);
 
     return () => {
-      window.removeEventListener('hashchange', checkAdminRoute);
-      window.removeEventListener('popstate', checkAdminRoute);
+      window.removeEventListener('hashchange', checkRoute);
+      window.removeEventListener('popstate', checkRoute);
     };
   }, []);
 
@@ -475,6 +500,19 @@ const App: React.FC = () => {
 
   const currentContainer = CONTAINER_SPECS[containerType];
 
+  // Navigation handlers
+  const handleNavigateToInsights = () => {
+    window.location.hash = '#/insights';
+  };
+
+  const handleNavigateToInsight = (id: string) => {
+    window.location.hash = `#/insight/${id}`;
+  };
+
+  const handleNavigateBack = () => {
+    window.location.hash = '';
+  };
+
   // Handle navigation from admin to home
   const handleAdminToHome = () => {
     setIsAdminRoute(false);
@@ -512,8 +550,8 @@ const App: React.FC = () => {
     window.location.hash = '';
   };
 
-  // If admin route, show login or dashboard
-  if (isAdminRoute) {
+  // Handle routing
+  if (currentRoute === 'admin') {
     if (!isAuthenticated) {
       return (
         <>
@@ -531,6 +569,57 @@ const App: React.FC = () => {
         <AdminDashboard onNavigateHome={handleAdminToHome} />
       </>
     );
+  }
+
+  if (currentRoute === 'insights') {
+    return (
+      <>
+        <SpeedInsights />
+        <Analytics />
+        <InsightsList
+          onNavigateToInsight={handleNavigateToInsight}
+          onNavigateBack={handleNavigateBack}
+        />
+      </>
+    );
+  }
+
+  if (currentRoute === 'insight' && currentInsightId) {
+    return (
+      <>
+        <SpeedInsights />
+        <Analytics />
+        <InsightDetail
+          insightId={currentInsightId}
+          onNavigateBack={() => window.location.hash = '#/insights'}
+          onNavigateToInsight={handleNavigateToInsight}
+        />
+      </>
+    );
+  }
+
+  if (currentRoute === 'privacy') {
+    return (
+      <>
+        <SpeedInsights />
+        <Analytics />
+        <PrivacyPolicy />
+      </>
+    );
+  }
+
+  if (currentRoute === 'terms') {
+    return (
+      <>
+        <SpeedInsights />
+        <Analytics />
+        <TermsOfService />
+      </>
+    );
+  }
+
+  if (currentRoute === 'pallet') {
+    setActiveTab('pallet');
   }
 
   return (
@@ -643,6 +732,8 @@ const App: React.FC = () => {
           onStart={() => setActiveTab('container')}
           onPrivacy={() => setActiveTab('privacy')}
           onTerms={() => setActiveTab('terms')}
+          onNavigateToInsights={handleNavigateToInsights}
+          onNavigateToInsight={handleNavigateToInsight}
         />
       ) : activeTab === 'privacy' ? (
         <PrivacyPolicy />

@@ -117,6 +117,46 @@ export const db = {
         .eq('id', id)
         .select();
       return { data, error };
+    },
+
+    // ID로 특정 Insight 가져오기
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('insights')
+        .select('*')
+        .eq('id', id)
+        .single();
+      return { data, error };
+    },
+
+    // 조회수 증가
+    incrementViewCount: async (id: string) => {
+      // 먼저 현재 조회수 가져오기
+      const { data: current } = await supabase
+        .from('insights')
+        .select('view_count')
+        .eq('id', id)
+        .single();
+
+      const currentCount = current?.view_count || 0;
+
+      const { data, error } = await supabase
+        .from('insights')
+        .update({ view_count: currentCount + 1 })
+        .eq('id', id)
+        .select();
+
+      return { data, error };
+    },
+
+    // 조회수 직접 설정
+    setViewCount: async (id: string, viewCount: number) => {
+      const { data, error } = await supabase
+        .from('insights')
+        .update({ view_count: viewCount })
+        .eq('id', id)
+        .select();
+      return { data, error };
     }
   }
 };
