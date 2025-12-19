@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import { ContainerType, CargoItem, PackedItem, ContainerSpec } from './types';
@@ -11,10 +11,41 @@ import LandingPage from './components/LandingPage';
 import PalletSimulator from './components/PalletSimulator';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
+import AdminDashboard from './components/AdminDashboard';
+import AdminLogin from './components/AdminLogin';
+import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
   // Check if screen width is large enough
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
+  const [isAdminRoute, setIsAdminRoute] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Check for admin route on mount and URL changes
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const path = window.location.pathname;
+      const hash = window.location.hash;
+      setIsAdminRoute(path === '/admin' || hash === '#/admin' || hash === '#admin');
+    };
+
+    checkAdminRoute();
+
+    // Check for saved authentication
+    const savedAuth = localStorage.getItem('adminAuthenticated');
+    if (savedAuth === 'true') {
+      setIsAuthenticated(true);
+    }
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', checkAdminRoute);
+    window.addEventListener('popstate', checkAdminRoute);
+
+    return () => {
+      window.removeEventListener('hashchange', checkAdminRoute);
+      window.removeEventListener('popstate', checkAdminRoute);
+    };
+  }, []);
 
   // Listen for window resize
   React.useEffect(() => {
@@ -443,6 +474,64 @@ const App: React.FC = () => {
   };
 
   const currentContainer = CONTAINER_SPECS[containerType];
+
+  // Handle navigation from admin to home
+  const handleAdminToHome = () => {
+    setIsAdminRoute(false);
+    setIsAuthenticated(false);
+    localStorage.removeItem('adminAuthenticated');
+    window.location.hash = '';
+  };
+
+  // Handle login
+  const handleLogin = async (email: string, password: string): Promise<boolean> => {
+    // Supabase 인증
+    try {
+      const { data, error } = await auth.signIn(email, password);
+      if (error) {
+        console.error('Login error:', error.message);
+        return false;
+      }
+
+      if (data && data.user) {
+        setIsAuthenticated(true);
+        localStorage.setItem('adminAuthenticated', 'true');
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
+    }
+  };
+
+  // Handle logout from login page
+  const handleBackFromLogin = () => {
+    setIsAdminRoute(false);
+    window.location.hash = '';
+  };
+
+  // If admin route, show login or dashboard
+  if (isAdminRoute) {
+    if (!isAuthenticated) {
+      return (
+        <>
+          <SpeedInsights />
+          <Analytics />
+          <AdminLogin onLogin={handleLogin} onBack={handleBackFromLogin} />
+        </>
+      );
+    }
+
+    return (
+      <>
+        <SpeedInsights />
+        <Analytics />
+        <AdminDashboard onNavigateHome={handleAdminToHome} />
+      </>
+    );
+  }
 
   return (
     <>

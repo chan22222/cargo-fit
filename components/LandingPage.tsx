@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
+import { Insight } from '../types/insights';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -9,6 +10,67 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
+  const [insights, setInsights] = useState<Insight[]>([]);
+
+  // Load insights from localStorage
+  useEffect(() => {
+    const loadInsights = () => {
+      const savedInsights = localStorage.getItem('insights');
+      if (savedInsights) {
+        const parsed = JSON.parse(savedInsights);
+        // Filter only published insights for display
+        setInsights(parsed.filter((i: Insight) => i.published));
+      } else {
+        // Set default insights if none exist
+        const defaultInsights: Insight[] = [
+          {
+            id: '1',
+            tag: 'Logistics',
+            title: '2024년 해상 운임 전망 및 컨테이너 수급 분석',
+            date: '2024.05.24',
+            imageUrl: 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&q=80&w=400',
+            published: true
+          },
+          {
+            id: '2',
+            tag: 'Tech',
+            title: 'AI와 머신러닝이 바꾸는 창고 자동화 시스템의 미래',
+            date: '2024.05.20',
+            imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400',
+            published: true
+          },
+          {
+            id: '3',
+            tag: 'Sustainability',
+            title: '해운업계의 탄소 중립 실현을 위한 대체 연료 기술',
+            date: '2024.05.15',
+            imageUrl: 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?auto=format&fit=crop&q=80&w=400',
+            published: true
+          }
+        ];
+        localStorage.setItem('insights', JSON.stringify(defaultInsights));
+        setInsights(defaultInsights);
+      }
+    };
+
+    loadInsights();
+    // Listen for storage changes to update in real-time
+    const handleStorageChange = () => {
+      loadInsights();
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom event when admin panel updates
+    const handleInsightsUpdate = () => {
+      loadInsights();
+    };
+    window.addEventListener('insightsUpdated', handleInsightsUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('insightsUpdated', handleInsightsUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     const updateTimes = () => {
@@ -21,9 +83,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
       const now = new Date();
       const newTimes: Record<string, string> = {};
       hubs.forEach(hub => {
-        newTimes[hub.city] = now.toLocaleTimeString('ko-KR', { 
-          timeZone: hub.zone, 
-          hour: '2-digit', 
+        newTimes[hub.city] = now.toLocaleTimeString('ko-KR', {
+          timeZone: hub.zone,
+          hour: '2-digit',
           minute: '2-digit',
           hour12: false
         });
@@ -35,6 +97,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
     const timer = setInterval(updateTimes, 60000);
     return () => clearInterval(timer);
   }, []);
+
 
   return (
     <div className="flex-1 flex flex-col bg-white overflow-y-auto w-full relative">
@@ -220,37 +283,38 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
             </div>
 
             <div className="grid md:grid-cols-3 gap-10">
-               {[
-                  {
-                     tag: 'Logistics',
-                     title: '2024년 해상 운임 전망 및 컨테이너 수급 분석',
-                     date: '2024.05.24',
-                     img: 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&q=80&w=400'
-                  },
-                  {
-                     tag: 'Tech',
-                     title: 'AI와 머신러닝이 바꾸는 창고 자동화 시스템의 미래',
-                     date: '2024.05.20',
-                     img: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400'
-                  },
-                  {
-                     tag: 'Sustainability',
-                     title: '해운업계의 탄소 중립 실현을 위한 대체 연료 기술',
-                     date: '2024.05.15',
-                     img: 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?auto=format&fit=crop&q=80&w=400'
-                  }
-               ].map((post, i) => (
-                  <div key={i} className="group cursor-pointer">
-                     <div className="aspect-[16/10] bg-slate-100 rounded-[24px] mb-6 overflow-hidden relative">
-                        <img src={post.img} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100" />
-                        <div className="absolute top-6 left-6 px-3 py-1 bg-white/90 backdrop-blur text-[10px] font-black uppercase tracking-widest rounded-full">{post.tag}</div>
+               {insights.length > 0 ? (
+                  insights.slice(0, 6).map((post) => (
+                     <div key={post.id} className="group cursor-pointer">
+                        <div className="aspect-[16/10] bg-slate-100 rounded-[24px] mb-6 overflow-hidden relative">
+                           <img
+                              src={post.imageUrl}
+                              alt={post.title}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                              onError={(e) => {
+                                 (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&q=80&w=400';
+                              }}
+                           />
+                           <div className="absolute top-6 left-6 px-3 py-1 bg-white/90 backdrop-blur text-[10px] font-black uppercase tracking-widest rounded-full">
+                              {post.tag}
+                           </div>
+                        </div>
+                        <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-tight mb-3">
+                           {post.title}
+                        </h3>
+                        <div className="flex items-center justify-between">
+                           <p className="text-xs text-slate-400 font-bold">{post.date}</p>
+                           {post.author && (
+                              <p className="text-xs text-slate-500">by {post.author}</p>
+                           )}
+                        </div>
                      </div>
-                     <h3 className="text-xl font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-tight mb-3">
-                        {post.title}
-                     </h3>
-                     <p className="text-xs text-slate-400 font-bold">{post.date}</p>
+                  ))
+               ) : (
+                  <div className="col-span-3 text-center py-12">
+                     <p className="text-slate-400">아직 게시된 콘텐츠가 없습니다.</p>
                   </div>
-               ))}
+               )}
             </div>
          </div>
       </section>
@@ -321,7 +385,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
               </div>
            </div>
            <div className="pt-10 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-              <div>© 2025 SHIPDAGO. ALL RIGHTS RESERVED.</div>
+              <div className="flex items-center gap-2">
+                 <span>© 2025 SHIPDAGO. ALL RIGHTS RESERVED.</span>
+                 <a
+                   href="#/admin"
+                   className="opacity-0 hover:opacity-100 transition-opacity ml-4 text-slate-600"
+                   title="Admin Panel"
+                 >
+                   ⚙
+                 </a>
+              </div>
               <div className="flex gap-8">
                  <button onClick={onPrivacy} className="hover:text-slate-900 transition-colors">Privacy Policy</button>
                  <button onClick={onTerms} className="hover:text-slate-900 transition-colors">Terms of Service</button>
