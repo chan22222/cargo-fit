@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Insight } from '../types/insights';
+import { db } from '../lib/supabase';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -12,62 +13,56 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms }
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
 
-  // Load insights from localStorage
+  // Load insights from Supabase
   useEffect(() => {
-    const loadInsights = () => {
-      const savedInsights = localStorage.getItem('insights');
-      if (savedInsights) {
-        const parsed = JSON.parse(savedInsights);
-        // Filter only published insights for display
-        setInsights(parsed.filter((i: Insight) => i.published));
-      } else {
-        // Set default insights if none exist
-        const defaultInsights: Insight[] = [
-          {
-            id: '1',
-            tag: 'Logistics',
-            title: '2024년 해상 운임 전망 및 컨테이너 수급 분석',
-            date: '2024.05.24',
-            imageUrl: 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&q=80&w=400',
-            published: true
-          },
-          {
-            id: '2',
-            tag: 'Tech',
-            title: 'AI와 머신러닝이 바꾸는 창고 자동화 시스템의 미래',
-            date: '2024.05.20',
-            imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400',
-            published: true
-          },
-          {
-            id: '3',
-            tag: 'Sustainability',
-            title: '해운업계의 탄소 중립 실현을 위한 대체 연료 기술',
-            date: '2024.05.15',
-            imageUrl: 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?auto=format&fit=crop&q=80&w=400',
-            published: true
+    const loadInsights = async () => {
+      try {
+        const { data, error } = await db.insights.getPublished();
+        if (error) {
+          console.error('Error loading insights:', error);
+          // Fallback to localStorage if Supabase fails
+          const savedInsights = localStorage.getItem('insights');
+          if (savedInsights) {
+            const parsed = JSON.parse(savedInsights);
+            setInsights(parsed.filter((i: Insight) => i.published));
           }
-        ];
-        localStorage.setItem('insights', JSON.stringify(defaultInsights));
-        setInsights(defaultInsights);
+          return;
+        }
+
+        if (data) {
+          // Convert snake_case to camelCase
+          const formattedInsights = data.map((item: any) => ({
+            id: item.id,
+            tag: item.tag,
+            title: item.title,
+            date: item.date,
+            imageUrl: item.image_url,
+            content: item.content,
+            author: item.author,
+            published: item.published
+          }));
+          setInsights(formattedInsights);
+        }
+      } catch (error) {
+        console.error('Error loading insights:', error);
+        // Fallback to localStorage
+        const savedInsights = localStorage.getItem('insights');
+        if (savedInsights) {
+          const parsed = JSON.parse(savedInsights);
+          setInsights(parsed.filter((i: Insight) => i.published));
+        }
       }
     };
 
     loadInsights();
-    // Listen for storage changes to update in real-time
-    const handleStorageChange = () => {
-      loadInsights();
-    };
-    window.addEventListener('storage', handleStorageChange);
 
-    // Also listen for custom event when admin panel updates
+    // Listen for custom event when admin panel updates
     const handleInsightsUpdate = () => {
       loadInsights();
     };
     window.addEventListener('insightsUpdated', handleInsightsUpdate);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('insightsUpdated', handleInsightsUpdate);
     };
   }, []);

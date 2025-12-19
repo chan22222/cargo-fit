@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
+import { db } from '../lib/supabase';
 
 interface AdminDashboardProps {
   onNavigateHome: () => void;
@@ -23,98 +24,131 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     published: false
   });
 
-  // Load insights from localStorage
+  // Load insights from Supabase
   useEffect(() => {
     loadInsights();
   }, []);
 
-  const loadInsights = () => {
-    const savedInsights = localStorage.getItem('insights');
-    if (savedInsights) {
-      setInsights(JSON.parse(savedInsights));
-    } else {
-      // Initialize with default insights
-      const defaultInsights: Insight[] = [
-        {
-          id: '1',
-          tag: 'Logistics',
-          title: '2024년 해상 운임 전망 및 컨테이너 수급 분석',
-          date: '2024.05.24',
-          imageUrl: 'https://images.unsplash.com/photo-1577705998148-6da4f3963bc8?auto=format&fit=crop&q=80&w=400',
-          published: true
-        },
-        {
-          id: '2',
-          tag: 'Tech',
-          title: 'AI와 머신러닝이 바꾸는 창고 자동화 시스템의 미래',
-          date: '2024.05.20',
-          imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=400',
-          published: true
-        },
-        {
-          id: '3',
-          tag: 'Sustainability',
-          title: '해운업계의 탄소 중립 실현을 위한 대체 연료 기술',
-          date: '2024.05.15',
-          imageUrl: 'https://images.unsplash.com/photo-1494412519320-aa613dfb7738?auto=format&fit=crop&q=80&w=400',
-          published: true
+  const loadInsights = async () => {
+    try {
+      const { data, error } = await db.insights.getAll();
+      if (error) {
+        console.error('Error loading insights:', error);
+        // Fallback to localStorage if Supabase fails
+        const savedInsights = localStorage.getItem('insights');
+        if (savedInsights) {
+          setInsights(JSON.parse(savedInsights));
         }
-      ];
-      setInsights(defaultInsights);
-      localStorage.setItem('insights', JSON.stringify(defaultInsights));
+        return;
+      }
+
+      if (data) {
+        // Convert snake_case to camelCase
+        const formattedInsights = data.map((item: any) => ({
+          id: item.id,
+          tag: item.tag,
+          title: item.title,
+          date: item.date,
+          imageUrl: item.image_url,
+          content: item.content,
+          author: item.author,
+          published: item.published
+        }));
+        setInsights(formattedInsights);
+        // Also save to localStorage as backup
+        localStorage.setItem('insights', JSON.stringify(formattedInsights));
+      }
+    } catch (error) {
+      console.error('Error loading insights:', error);
+      // Fallback to localStorage
+      const savedInsights = localStorage.getItem('insights');
+      if (savedInsights) {
+        setInsights(JSON.parse(savedInsights));
+      }
     }
   };
 
-  const saveInsights = (newInsights: Insight[]) => {
-    localStorage.setItem('insights', JSON.stringify(newInsights));
-    setInsights(newInsights);
-    // Dispatch custom event for LandingPage to update
-    window.dispatchEvent(new Event('insightsUpdated'));
-  };
-
-  const handleInsightSubmit = (e: React.FormEvent) => {
+  const handleInsightSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (editingInsight) {
-      // Update existing insight
-      const updatedInsights = insights.map(insight =>
-        insight.id === editingInsight.id
-          ? { ...insight, ...formData, date: formData.date?.replace(/-/g, '.') }
-          : insight
-      );
-      saveInsights(updatedInsights);
-    } else {
-      // Add new insight
-      const newInsight: Insight = {
-        id: Date.now().toString(),
-        tag: formData.tag as Insight['tag'],
-        title: formData.title || '',
-        date: formData.date?.replace(/-/g, '.') || '',
-        imageUrl: formData.imageUrl || '',
-        content: formData.content,
-        author: formData.author,
-        published: formData.published || false
-      };
-      saveInsights([...insights, newInsight]);
-    }
+    try {
+      if (editingInsight) {
+        // Update existing insight in Supabase
+        const updates = {
+          tag: formData.tag,
+          title: formData.title,
+          date: formData.date?.replace(/-/g, '.'),
+          image_url: formData.imageUrl,
+          content: formData.content,
+          author: formData.author,
+          published: formData.published
+        };
 
-    // Reset form
-    setFormData({
-      tag: 'Logistics',
-      title: '',
-      date: new Date().toISOString().split('T')[0],
-      imageUrl: '',
-      content: '',
-      author: '',
-      published: false
-    });
-    setEditingInsight(null);
-    setShowInsightForm(false);
+        const { error } = await db.insights.update(editingInsight.id, updates);
+        if (error) {
+          console.error('Error updating insight:', error);
+          alert('수정 중 오류가 발생했습니다.');
+          return;
+        }
+      } else {
+        // Add new insight to Supabase
+        const newInsight = {
+          tag: formData.tag,
+          title: formData.title,
+          date: formData.date?.replace(/-/g, '.'),
+          image_url: formData.imageUrl,
+          content: formData.content,
+          author: formData.author,
+          published: formData.published
+        };
+
+        const { error } = await db.insights.create(newInsight);
+        if (error) {
+          console.error('Error creating insight:', error);
+          alert('추가 중 오류가 발생했습니다.');
+          return;
+        }
+      }
+
+      // Reload insights from Supabase
+      await loadInsights();
+
+      // Reset form
+      setFormData({
+        tag: 'Logistics',
+        title: '',
+        date: new Date().toISOString().split('T')[0],
+        imageUrl: '',
+        content: '',
+        author: '',
+        published: false
+      });
+      setEditingInsight(null);
+      setShowInsightForm(false);
+
+      // Notify other components
+      window.dispatchEvent(new Event('insightsUpdated'));
+    } catch (error) {
+      console.error('Error submitting insight:', error);
+      alert('저장 중 오류가 발생했습니다.');
+    }
   };
 
-  const handleDeleteInsight = (id: string) => {
+  const handleDeleteInsight = async (id: string) => {
     if (confirm('정말 이 콘텐츠를 삭제하시겠습니까?')) {
-      saveInsights(insights.filter(i => i.id !== id));
+      try {
+        const { error } = await db.insights.delete(id);
+        if (error) {
+          console.error('Error deleting insight:', error);
+          alert('삭제 중 오류가 발생했습니다.');
+          return;
+        }
+        await loadInsights();
+        window.dispatchEvent(new Event('insightsUpdated'));
+      } catch (error) {
+        console.error('Error deleting insight:', error);
+        alert('삭제 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -127,13 +161,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     setShowInsightForm(true);
   };
 
-  const handleTogglePublish = (id: string) => {
-    const updatedInsights = insights.map(insight =>
-      insight.id === id
-        ? { ...insight, published: !insight.published }
-        : insight
-    );
-    saveInsights(updatedInsights);
+  const handleTogglePublish = async (id: string) => {
+    try {
+      const insight = insights.find(i => i.id === id);
+      if (!insight) return;
+
+      const { error } = await db.insights.togglePublish(id, !insight.published);
+      if (error) {
+        console.error('Error toggling publish:', error);
+        alert('상태 변경 중 오류가 발생했습니다.');
+        return;
+      }
+      await loadInsights();
+      window.dispatchEvent(new Event('insightsUpdated'));
+    } catch (error) {
+      console.error('Error toggling publish:', error);
+      alert('상태 변경 중 오류가 발생했습니다.');
+    }
   };
 
   // Calculate statistics
