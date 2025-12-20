@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -6,6 +6,60 @@ import Link from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
+import { Extension } from '@tiptap/core';
+
+// Custom extension for text styling (letter-spacing and line-height)
+const TextStyle = Extension.create({
+  name: 'textStyle',
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['heading', 'paragraph'],
+        attributes: {
+          letterSpacing: {
+            default: null,
+            parseHTML: element => element.style.letterSpacing || null,
+            renderHTML: attributes => {
+              if (!attributes.letterSpacing) {
+                return {};
+              }
+              return {
+                style: `letter-spacing: ${attributes.letterSpacing}`,
+              };
+            },
+          },
+          lineHeight: {
+            default: null,
+            parseHTML: element => element.style.lineHeight || null,
+            renderHTML: attributes => {
+              if (!attributes.lineHeight) {
+                return {};
+              }
+              return {
+                style: `line-height: ${attributes.lineHeight}`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      setLetterSpacing: (spacing: string) => ({ commands, editor }) => {
+        return editor.chain().focus().updateAttributes('paragraph', { letterSpacing: spacing }).run();
+      },
+      setLineHeight: (height: string) => ({ commands, editor }) => {
+        return editor.chain().focus().updateAttributes('paragraph', { lineHeight: height }).run();
+      },
+      unsetTextStyle: () => ({ commands, editor }) => {
+        return editor.chain().focus().resetAttributes('paragraph', ['letterSpacing', 'lineHeight']).run();
+      },
+    };
+  },
+});
 
 interface TiptapEditorProps {
   value: string;
@@ -13,7 +67,11 @@ interface TiptapEditorProps {
   placeholder?: string;
 }
 
-const MenuBar = ({ editor }: { editor: any }) => {
+const MenuBar = ({ editor, isHtmlMode, onToggleHtmlMode }: {
+  editor: any;
+  isHtmlMode: boolean;
+  onToggleHtmlMode: () => void;
+}) => {
   if (!editor) {
     return null;
   }
@@ -239,6 +297,68 @@ const MenuBar = ({ editor }: { editor: any }) => {
 
       <div className="w-px h-6 bg-gray-300 mx-1" />
 
+      {/* Text Spacing */}
+      <div className="flex items-center gap-1">
+        <select
+          className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
+          onChange={(e) => {
+            e.preventDefault();
+            const value = e.target.value;
+            if (value === 'normal') {
+              editor.chain()
+                .focus()
+                .updateAttributes('paragraph', { letterSpacing: null })
+                .updateAttributes('heading', { letterSpacing: null })
+                .run();
+            } else {
+              editor.chain()
+                .focus()
+                .updateAttributes('paragraph', { letterSpacing: value })
+                .updateAttributes('heading', { letterSpacing: value })
+                .run();
+            }
+          }}
+          title="자간 (Letter Spacing)"
+        >
+          <option value="normal">자간</option>
+          <option value="-0.05em">좁게</option>
+          <option value="0.05em">약간 넓게</option>
+          <option value="0.1em">넓게</option>
+          <option value="0.2em">매우 넓게</option>
+        </select>
+
+        <select
+          className="px-2 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100"
+          onChange={(e) => {
+            e.preventDefault();
+            const value = e.target.value;
+            if (value === 'normal') {
+              editor.chain()
+                .focus()
+                .updateAttributes('paragraph', { lineHeight: null })
+                .updateAttributes('heading', { lineHeight: null })
+                .run();
+            } else {
+              editor.chain()
+                .focus()
+                .updateAttributes('paragraph', { lineHeight: value })
+                .updateAttributes('heading', { lineHeight: value })
+                .run();
+            }
+          }}
+          title="줄 높이 (Line Height)"
+        >
+          <option value="normal">줄높이</option>
+          <option value="1.2">좁게</option>
+          <option value="1.5">보통</option>
+          <option value="1.8">넓게</option>
+          <option value="2.0">더블</option>
+          <option value="2.5">매우 넓게</option>
+        </select>
+      </div>
+
+      <div className="w-px h-6 bg-gray-300 mx-1" />
+
       {/* Media */}
       <button
         type="button"
@@ -258,11 +378,33 @@ const MenuBar = ({ editor }: { editor: any }) => {
       >
         🔗
       </button>
+
+      <div className="w-px h-6 bg-gray-300 mx-1" />
+
+      {/* HTML Toggle */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          onToggleHtmlMode();
+        }}
+        className={`px-3 py-1 text-sm font-medium rounded ${
+          isHtmlMode
+            ? 'bg-gray-800 text-white'
+            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+        }`}
+        title="HTML 소스 편집"
+      >
+        &lt;/&gt; HTML
+      </button>
     </div>
   );
 };
 
 const TiptapEditor: React.FC<TiptapEditorProps> = ({ value, onChange, placeholder }) => {
+  const [isHtmlMode, setIsHtmlMode] = useState(false);
+  const [htmlContent, setHtmlContent] = useState(value);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -280,6 +422,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ value, onChange, placeholde
           keepMarks: true,
         },
       }),
+      TextStyle, // Add custom text styling extension
       Underline,
       Link.configure({
         openOnClick: false,
@@ -314,13 +457,47 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ value, onChange, placeholde
   React.useEffect(() => {
     if (editor && value !== editor.getHTML()) {
       editor.commands.setContent(value);
+      setHtmlContent(value);
     }
   }, [value, editor]);
 
+  // Handle toggling between WYSIWYG and HTML mode
+  const handleToggleHtmlMode = () => {
+    if (isHtmlMode) {
+      // Switch from HTML to WYSIWYG
+      if (editor) {
+        editor.commands.setContent(htmlContent);
+        onChange(htmlContent);
+      }
+    } else {
+      // Switch from WYSIWYG to HTML
+      if (editor) {
+        setHtmlContent(editor.getHTML());
+      }
+    }
+    setIsHtmlMode(!isHtmlMode);
+  };
+
+  // Handle HTML content changes
+  const handleHtmlChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newHtml = e.target.value;
+    setHtmlContent(newHtml);
+    onChange(newHtml);
+  };
+
   return (
     <div className="border border-gray-300 rounded-lg overflow-hidden">
-      <MenuBar editor={editor} />
-      <EditorContent editor={editor} />
+      <MenuBar editor={editor} isHtmlMode={isHtmlMode} onToggleHtmlMode={handleToggleHtmlMode} />
+      {isHtmlMode ? (
+        <textarea
+          className="w-full min-h-[400px] max-h-[600px] p-4 font-mono text-sm bg-gray-900 text-green-400 focus:outline-none resize-y"
+          value={htmlContent}
+          onChange={handleHtmlChange}
+          placeholder="HTML 소스 코드를 입력하세요..."
+        />
+      ) : (
+        <EditorContent editor={editor} />
+      )}
       <style>{`
         .ProseMirror {
           min-height: 200px;
