@@ -1,7 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <rect width="200" height="200" fill="#3b82f6"/>
-  <rect x="30" y="60" width="140" height="80" fill="white" rx="8"/>
-  <rect x="50" y="80" width="40" height="40" fill="#3b82f6" rx="4"/>
-  <rect x="100" y="80" width="50" height="20" fill="#e2e8f0" rx="2"/>
-  <rect x="100" y="105" width="50" height="15" fill="#cbd5e1" rx="2"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 200 200">
+  <!-- Generator: Adobe Illustrator 29.7.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 8)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #225ce5;
+      }
+
+      .st1 {
+        fill: #fff;
+      }
+    </style>
+  </defs>
+  <rect class="st0" width="200" height="200"/>
+  <g>
+    <rect class="st1" x="53.9" y="53.5" width="42.1" height="42.1"/>
+    <rect class="st1" x="104" y="53.5" width="42.1" height="42.1"/>
+    <rect class="st1" x="104" y="104.4" width="42.1" height="42.1"/>
+    <rect class="st1" x="53.9" y="104.4" width="42.1" height="42.1"/>
+  </g>
 </svg>
