@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Insight } from '../types/insights';
 import { db } from '../lib/supabase';
 import ContainerDemo from './ContainerDemo';
+import AdSense from './AdSense';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -15,6 +16,11 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
+  const [exchangeRates, setExchangeRates] = useState<Array<{ pair: string; rate: string }>>([
+    { pair: 'USD / KRW', rate: '-' },
+    { pair: 'EUR / KRW', rate: '-' },
+    { pair: 'CNY / KRW', rate: '-' }
+  ]);
 
   // Load insights from Supabase
   useEffect(() => {
@@ -96,6 +102,46 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     return () => clearInterval(timer);
   }, []);
 
+  // Fetch real exchange rates
+  useEffect(() => {
+    const fetchExchangeRates = async () => {
+      try {
+        // Using exchangerate-api.com free tier
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/KRW');
+        const data = await response.json();
+
+        // Calculate KRW per foreign currency (inverse of what API gives)
+        const usdRate = 1 / data.rates.USD;
+        const eurRate = 1 / data.rates.EUR;
+        const cnyRate = 1 / data.rates.CNY;
+
+        // Update state with exchange rates
+        setExchangeRates([
+          {
+            pair: 'USD / KRW',
+            rate: usdRate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          },
+          {
+            pair: 'EUR / KRW',
+            rate: eurRate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          },
+          {
+            pair: 'CNY / KRW',
+            rate: cnyRate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          }
+        ]);
+      } catch (error) {
+        console.error('Failed to fetch exchange rates:', error);
+        // Keep showing dash when API fails
+      }
+    };
+
+    fetchExchangeRates();
+    // Update every 5 minutes (free tier has limited requests)
+    const rateTimer = setInterval(fetchExchangeRates, 5 * 60 * 1000);
+    return () => clearInterval(rateTimer);
+  }, []);
+
 
   return (
     <div className="flex-1 flex flex-col bg-white overflow-y-auto w-full relative">
@@ -103,9 +149,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       {/* AdSense Placement Suggestion - Top Banner */}
       <div className="w-full bg-slate-50 border-b border-slate-100 py-3 text-center">
          <div className="max-w-7xl mx-auto px-10">
-            <div className="w-full h-12 bg-slate-200/50 rounded-lg flex items-center justify-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-               Advertisement Space
-            </div>
+            <AdSense
+               adSlot="1234567890"
+               adFormat="horizontal"
+               className="w-full h-12"
+               style={{ minHeight: '50px' }}
+            />
          </div>
       </div>
 
@@ -164,65 +213,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         </div>
       </section>
 
-      {/* Global Market Insight Dashboard */}
-      <section className="py-24 px-10 bg-slate-900 text-white overflow-hidden relative">
-         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/world-item.png')]"></div>
-         <div className="max-w-7xl mx-auto relative z-10">
-            <div className="grid lg:grid-cols-2 gap-20">
-               {/* Left: Exchange Rates */}
-               <div className="space-y-10">
-                  <div className="space-y-2">
-                     <h2 className="text-blue-500 text-xs font-black uppercase tracking-[0.3em]">Market Rates</h2>
-                     <p className="text-4xl font-black tracking-tight">실시간 물류 금융 정보</p>
-                  </div>
-                  <div className="grid sm:grid-cols-3 gap-6">
-                     {[
-                        { pair: 'USD / KRW', rate: '1,384.50', change: '+2.40', up: true },
-                        { pair: 'EUR / KRW', rate: '1,492.20', change: '-1.10', up: false },
-                        { pair: 'CNY / KRW', rate: '191.45', change: '+0.15', up: true }
-                     ].map((item, i) => (
-                        <div key={i} className="bg-white/5 backdrop-blur-md border border-white/10 p-6 rounded-[24px] hover:bg-white/10 transition-colors">
-                           <div className="text-[10px] text-slate-400 font-bold mb-3">{item.pair}</div>
-                           <div className="text-2xl font-black mb-1 tracking-tighter">{item.rate}</div>
-                           <div className={`text-[10px] font-bold ${item.up ? 'text-emerald-400' : 'text-rose-400'}`}>
-                              {item.change} ({item.up ? '▲' : '▼'})
-                           </div>
-                        </div>
-                     ))}
-                  </div>
-               </div>
-
-               {/* Right: World Clock */}
-               <div className="space-y-10">
-                  <div className="space-y-2">
-                     <h2 className="text-blue-500 text-xs font-black uppercase tracking-[0.3em]">Logistics Hub Clock</h2>
-                     <p className="text-4xl font-black tracking-tight">주요 거점 항만 시간</p>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                     {Object.entries(times).map(([city, time], i) => (
-                        <div key={i} className="flex flex-col items-center">
-                           <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mb-4 bg-white/5 relative">
-                              <div className="absolute inset-2 rounded-full border-t-2 border-blue-500 animate-[spin_4s_linear_infinite]"></div>
-                              <span className="text-xs font-black">{time.split(':')[0]}</span>
-                           </div>
-                           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{city}</div>
-                           <div className="text-sm font-bold mt-1 text-blue-400">{time}</div>
-                        </div>
-                     ))}
-                  </div>
-               </div>
-            </div>
-         </div>
-      </section>
-
       {/* How it Works Section */}
-      <section className="py-32 px-10 bg-white border-y border-slate-50">
-        <div className="max-w-7xl mx-auto">
+      <section className="pt-24 pb-32 px-10 bg-slate-900 text-white relative">
+         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/world-item.png')]"></div>
+        <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-20">
-             <h2 className="text-sm font-black text-blue-600 uppercase tracking-[0.3em]">How it works</h2>
-             <p className="text-4xl font-black text-slate-900 tracking-tight">SHIPDAGO를 통한 스마트한 적재 프로세스</p>
+             <h2 className="text-sm font-black text-blue-500 uppercase tracking-[0.3em]">How it works</h2>
+             <p className="text-4xl font-black text-white tracking-tight">SHIPDAGO를 통한 스마트한 적재 프로세스</p>
           </div>
-          
+
           <div className="grid md:grid-cols-3 gap-12">
             {[
               {
@@ -241,14 +240,60 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                 desc: "최적화된 적재 계획을 확인하고, 효율적인 적재 리스트를 현장에 공유하세요."
               }
             ].map((item, idx) => (
-              <div key={idx} className="relative p-10 bg-slate-50 rounded-[24px] border border-slate-100">
-                <div className="text-5xl font-black text-blue-600/10 absolute top-8 right-10">{item.step}</div>
-                <h3 className="text-2xl font-black text-slate-900 mb-4">{item.title}</h3>
-                <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
+              <div key={idx} className="relative p-10 bg-white/5 backdrop-blur-md rounded-[24px] border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="text-5xl font-black text-blue-500/20 absolute top-8 right-10">{item.step}</div>
+                <h3 className="text-2xl font-black text-white mb-4">{item.title}</h3>
+                <p className="text-slate-300 leading-relaxed font-medium">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
+      </section>
+
+      {/* Global Market Insight Dashboard */}
+      <section className="py-32 px-10 bg-white border-y border-slate-50">
+         <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-20">
+               {/* Left: Exchange Rates */}
+               <div className="space-y-10">
+                  <div className="space-y-2">
+                     <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Market Rates</h2>
+                     <p className="text-4xl font-black tracking-tight text-slate-900">실시간 환율 정보</p>
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-6">
+                     {exchangeRates.map((item, i) => (
+                        <div key={i} className="bg-slate-50 border border-slate-100 p-6 rounded-[24px] hover:bg-slate-100 transition-colors">
+                           <div className="text-[10px] text-slate-500 font-bold mb-3">{item.pair}</div>
+                           <div className="text-2xl font-black tracking-tighter text-slate-900">{item.rate}</div>
+                        </div>
+                     ))}
+                  </div>
+                  <div className="text-xs text-slate-300 mt-4">
+                     출처: ExchangeRate-API.com
+                  </div>
+               </div>
+
+               {/* Right: World Clock */}
+               <div className="space-y-10">
+                  <div className="space-y-2">
+                     <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Logistics Hub Clock</h2>
+                     <p className="text-4xl font-black tracking-tight text-slate-900">주요 거점 항만 시간</p>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                     {Object.entries(times).map(([city, time], i) => (
+                        <div key={i} className="flex flex-col items-center">
+                           <div className="w-20 h-20 rounded-full border border-slate-200 flex items-center justify-center mb-4 bg-slate-50 relative">
+                              <div className="absolute inset-2 rounded-full border-t-2 border-blue-500 animate-[spin_4s_linear_infinite]"></div>
+                              <span className="text-xs font-black text-slate-900">{time.split(':')[0]}</span>
+                           </div>
+                           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{city}</div>
+                           <div className="text-sm font-bold mt-1 text-blue-600">{time}</div>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
+         </div>
       </section>
 
       {/* Logistics News / Blog Section */}
@@ -311,10 +356,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       {/* AdSense Placement Suggestion - Inline Banner */}
       <div className="w-full py-16 text-center">
          <div className="max-w-4xl mx-auto px-10">
-            <div className="w-full h-48 bg-slate-50 border border-slate-100 rounded-[24px] flex flex-col items-center justify-center text-slate-300 gap-4">
-               <span className="text-[10px] font-black uppercase tracking-[0.3em]">Sponsored Content</span>
-               <div className="w-12 h-1 bg-slate-100 rounded-full"></div>
-            </div>
+            <AdSense
+               adSlot="0987654321"
+               adFormat="rectangle"
+               className="w-full"
+               style={{ minHeight: '200px' }}
+            />
          </div>
       </div>
 

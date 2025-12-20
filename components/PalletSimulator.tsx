@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Dimensions } from '../types';
+import AdSense from './AdSense';
 
 interface PalletItem {
   id: string;
@@ -405,8 +406,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       <div className="lg:col-span-3 flex h-full min-h-0 gap-4">
 
         {/* Vertical Ad Space */}
-        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest shrink-0 shadow-sm">
-          Ad Space - Vertical
+        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden">
+          <AdSense
+            adSlot="3333333333"
+            adFormat="vertical"
+            style={{ width: '160px', height: '600px' }}
+          />
         </div>
 
         {/* Pallet Builder Container */}
@@ -629,8 +634,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           </div>
 
           {/* Horizontal Ad Space */}
-          <div className="h-20 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest shrink-0 shadow-sm">
-            Ad Space - Horizontal
+          <div className="h-20 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+            <AdSense
+              adSlot="4444444444"
+              adFormat="horizontal"
+              className="w-full"
+              style={{ minHeight: '80px' }}
+            />
           </div>
         </div>
       </div>

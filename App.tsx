@@ -15,6 +15,8 @@ import AdminDashboard from './components/AdminDashboard';
 import AdminLogin from './components/AdminLogin';
 import InsightDetail from './components/InsightDetail';
 import InsightsList from './components/InsightsList';
+import SelectionModal from './components/SelectionModal';
+import AdSense from './components/AdSense';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -85,6 +87,7 @@ const App: React.FC = () => {
   // Navigation State
   const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'privacy' | 'terms'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
 
   // Container Simulator State
   const [containerType, setContainerType] = useState<ContainerType>(ContainerType.FT20);
@@ -729,7 +732,7 @@ const App: React.FC = () => {
       {/* Content Injection */}
       {activeTab === 'home' ? (
         <LandingPage
-          onStart={() => setActiveTab('container')}
+          onStart={() => setShowSelectionModal(true)}
           onPrivacy={() => setActiveTab('privacy')}
           onTerms={() => setActiveTab('terms')}
           onNavigateToInsights={handleNavigateToInsights}
@@ -803,8 +806,12 @@ const App: React.FC = () => {
           {/* Main Visualizer Area with Left Ad Space */}
           <div className="lg:col-span-3 flex h-full min-h-0 gap-4">
               {/* Left Vertical Ad Space */}
-              <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest shrink-0 shadow-sm">
-                Ad Space - Vertical
+              <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                <AdSense
+                  adSlot="1111111111"
+                  adFormat="vertical"
+                  style={{ width: '160px', height: '600px' }}
+                />
               </div>
 
               {/* Main Content */}
@@ -882,8 +889,13 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Simulator Horizontal Ad Space */}
-                <div className="h-20 bg-white border border-slate-200 rounded-2xl flex items-center justify-center text-[10px] text-slate-300 font-bold uppercase tracking-widest shrink-0 shadow-sm">
-                   Ad Space - Horizontal
+                <div className="h-20 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+                   <AdSense
+                     adSlot="2222222222"
+                     adFormat="horizontal"
+                     className="w-full"
+                     style={{ minHeight: '80px' }}
+                   />
                 </div>
               </div>
               </div>
@@ -910,6 +922,16 @@ const App: React.FC = () => {
         )
       )}
       </div>
+
+      {/* Selection Modal */}
+      <SelectionModal
+        isOpen={showSelectionModal}
+        onClose={() => setShowSelectionModal(false)}
+        onSelect={(type) => {
+          setActiveTab(type === 'container' ? 'container' : 'pallet');
+          setShowSelectionModal(false);
+        }}
+      />
     </>
   );
 };
