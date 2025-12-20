@@ -286,7 +286,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
 
             <div className="grid md:grid-cols-3 gap-10">
                {insights.length > 0 ? (
-                  insights.slice(0, 6).map((post) => (
+                  insights.slice(0, 3).map((post) => (
                      <div
                        key={post.id}
                        className="group cursor-pointer"

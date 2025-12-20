@@ -461,6 +461,31 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ value, onChange, placeholde
     }
   }, [value, editor]);
 
+  // Function to format HTML with proper indentation
+  const formatHtml = (html: string): string => {
+    let formatted = '';
+    let indent = 0;
+
+    // Split by tags and process each part
+    const parts = html.split(/(<[^>]+>)/);
+
+    parts.forEach(part => {
+      if (part.match(/^<\/\w/)) { // Closing tag
+        indent = Math.max(0, indent - 1);
+      }
+
+      if (part.trim()) {
+        formatted += '  '.repeat(indent) + part.trim() + '\n';
+      }
+
+      if (part.match(/^<\w[^>]*[^\/]>$/) && !part.match(/^<(br|hr|img|input|link|meta|area|base|col|embed|source|track|wbr)/)) { // Opening tag (not self-closing)
+        indent++;
+      }
+    });
+
+    return formatted.trim();
+  };
+
   // Handle toggling between WYSIWYG and HTML mode
   const handleToggleHtmlMode = () => {
     if (isHtmlMode) {
@@ -472,7 +497,8 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ value, onChange, placeholde
     } else {
       // Switch from WYSIWYG to HTML
       if (editor) {
-        setHtmlContent(editor.getHTML());
+        const formattedHtml = formatHtml(editor.getHTML());
+        setHtmlContent(formattedHtml);
       }
     }
     setIsHtmlMode(!isHtmlMode);
