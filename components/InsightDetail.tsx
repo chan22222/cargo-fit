@@ -249,7 +249,7 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
 
             {/* Content - Render HTML content */}
             <div
-              className="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-slate-900 prose-p:text-slate-700 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-lg"
+              className="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:mb-4 prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl prose-img:shadow-lg prose-blockquote:border-l-4 prose-blockquote:border-blue-600 prose-blockquote:pl-4 prose-ul:list-disc prose-ol:list-decimal"
               dangerouslySetInnerHTML={{ __html: insight.content || '' }}
             />
 
