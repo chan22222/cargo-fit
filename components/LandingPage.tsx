@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Insight } from '../types/insights';
 import { db } from '../lib/supabase';
+import ContainerDemo from './ContainerDemo';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -154,27 +155,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           </div>
 
           <div className="flex-1 relative w-full lg:w-auto">
-             <div className="relative aspect-square max-w-[600px] mx-auto animate-float">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[32px] shadow-[0_64px_128px_-32px_rgba(37,99,235,0.4)] rotate-3 overflow-hidden">
-                   <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
-                   <div className="absolute inset-0 p-12 flex flex-col justify-end text-white">
-                      <div className="p-8 bg-white/10 backdrop-blur-3xl rounded-[24px] border border-white/20 space-y-4">
-                         <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Global Port Tracking</span>
-                            <div className="px-2 py-1 bg-emerald-400/20 text-emerald-400 text-[8px] font-black rounded uppercase">Online</div>
-                         </div>
-                         <div className="flex gap-4">
-                            <div className="flex-1 h-32 bg-white/5 rounded-xl flex flex-col items-center justify-center border border-white/5">
-                               <div className="text-[10px] opacity-50 mb-2">BUSAN</div>
-                               <div className="text-xl font-black">ACTIVE</div>
-                            </div>
-                            <div className="flex-1 h-32 bg-white/5 rounded-xl flex flex-col items-center justify-center border border-white/5">
-                               <div className="text-[10px] opacity-50 mb-2">SHA</div>
-                               <div className="text-xl font-black">DELAY</div>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
+             <div className="relative aspect-[4/5] sm:aspect-square max-w-[600px] mx-auto">
+                <div className="absolute inset-0 rounded-[32px] shadow-[0_64px_128px_-32px_rgba(37,99,235,0.4)] overflow-hidden">
+                   <ContainerDemo />
                 </div>
              </div>
           </div>
@@ -340,12 +323,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
          <div className="max-w-5xl mx-auto bg-slate-900 rounded-[32px] p-16 md:p-24 text-center relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.2),transparent)]"></div>
             <div className="relative z-10 space-y-10">
-               <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight">
-                  물류의 디지털 전환,<br/>지금 바로 SHIPDAGO와 함께하세요.
+               <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tight">
+                  물류의 디지털 전환,<br/>SHIPDAGO와 시작하세요.
                </h2>
-               <button 
+               <button
                  onClick={onStart}
-                 className="px-14 py-6 bg-white text-slate-900 font-black rounded-2xl text-lg hover:scale-105 transition-all shadow-2xl"
+                 className="px-6 sm:px-10 md:px-14 py-4 sm:py-5 md:py-6 bg-white text-slate-900 font-black rounded-2xl text-base sm:text-lg hover:scale-105 transition-all shadow-2xl"
                >
                  무료 시뮬레이션 시작
                </button>
