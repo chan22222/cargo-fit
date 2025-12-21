@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
+import { Feedback } from '../types/feedback';
 import { db } from '../lib/supabase';
 import TiptapEditor from './TiptapEditor';
 
@@ -7,11 +8,13 @@ interface AdminDashboardProps {
   onNavigateHome: () => void;
 }
 
-type MenuSection = 'dashboard' | 'insights' | 'analytics' | 'settings';
+type MenuSection = 'dashboard' | 'insights' | 'feedbacks' | 'analytics' | 'settings';
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [activeSection, setActiveSection] = useState<MenuSection>('dashboard');
   const [insights, setInsights] = useState<Insight[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [unreadFeedbackCount, setUnreadFeedbackCount] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showInsightForm, setShowInsightForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<Insight | null>(null);
@@ -27,9 +30,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     published: false
   });
 
-  // Load insights from Supabase
+  // Load insights and feedbacks from Supabase
   useEffect(() => {
     loadInsights();
+    loadFeedbacks();
   }, []);
 
   const loadInsights = async () => {
@@ -69,6 +73,88 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
       if (savedInsights) {
         setInsights(JSON.parse(savedInsights));
       }
+    }
+  };
+
+  const loadFeedbacks = async () => {
+    try {
+      const { data, error } = await db.feedbacks.getAll();
+      if (error) {
+        console.error('Error loading feedbacks:', error);
+        // Fallback to localStorage if Supabase fails
+        const savedFeedbacks = localStorage.getItem('feedbacks');
+        if (savedFeedbacks) {
+          setFeedbacks(JSON.parse(savedFeedbacks));
+        }
+        return;
+      }
+
+      if (data) {
+        setFeedbacks(data);
+        // Count unread feedbacks
+        const unreadCount = data.filter(f => !f.read).length;
+        setUnreadFeedbackCount(unreadCount);
+        // Also save to localStorage as backup
+        localStorage.setItem('feedbacks', JSON.stringify(data));
+      }
+    } catch (error) {
+      console.error('Error loading feedbacks:', error);
+      // Fallback to localStorage
+      const savedFeedbacks = localStorage.getItem('feedbacks');
+      if (savedFeedbacks) {
+        const parsedFeedbacks = JSON.parse(savedFeedbacks);
+        setFeedbacks(parsedFeedbacks);
+        const unreadCount = parsedFeedbacks.filter((f: Feedback) => !f.read).length;
+        setUnreadFeedbackCount(unreadCount);
+      }
+    }
+  };
+
+  const markFeedbackAsRead = async (id: string) => {
+    try {
+      const { error } = await db.feedbacks.markAsRead(id);
+      if (!error) {
+        loadFeedbacks();
+      } else {
+        // Fallback to localStorage
+        const savedFeedbacks = localStorage.getItem('feedbacks');
+        if (savedFeedbacks) {
+          const feedbacks = JSON.parse(savedFeedbacks);
+          const updatedFeedbacks = feedbacks.map((f: Feedback) =>
+            f.id === id ? { ...f, read: true } : f
+          );
+          localStorage.setItem('feedbacks', JSON.stringify(updatedFeedbacks));
+          setFeedbacks(updatedFeedbacks);
+          const unreadCount = updatedFeedbacks.filter((f: Feedback) => !f.read).length;
+          setUnreadFeedbackCount(unreadCount);
+        }
+      }
+    } catch (error) {
+      console.error('Error marking feedback as read:', error);
+    }
+  };
+
+  const deleteFeedback = async (id: string) => {
+    if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
+
+    try {
+      const { error } = await db.feedbacks.delete(id);
+      if (!error) {
+        loadFeedbacks();
+      } else {
+        // Fallback to localStorage
+        const savedFeedbacks = localStorage.getItem('feedbacks');
+        if (savedFeedbacks) {
+          const feedbacks = JSON.parse(savedFeedbacks);
+          const updatedFeedbacks = feedbacks.filter((f: Feedback) => f.id !== id);
+          localStorage.setItem('feedbacks', JSON.stringify(updatedFeedbacks));
+          setFeedbacks(updatedFeedbacks);
+          const unreadCount = updatedFeedbacks.filter((f: Feedback) => !f.read).length;
+          setUnreadFeedbackCount(unreadCount);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
     }
   };
 
@@ -265,6 +351,24 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
             </li>
             <li>
               <button
+                onClick={() => setActiveSection('feedbacks')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors relative ${
+                  activeSection === 'feedbacks' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                {!sidebarCollapsed && <span className="font-medium">피드백</span>}
+                {unreadFeedbackCount > 0 && !sidebarCollapsed && (
+                  <span className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                    {unreadFeedbackCount}
+                  </span>
+                )}
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={() => setActiveSection('analytics')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   activeSection === 'analytics' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700'
@@ -316,6 +420,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
               <h1 className="text-2xl font-bold text-gray-900">
                 {activeSection === 'dashboard' && '대시보드'}
                 {activeSection === 'insights' && '콘텐츠 관리'}
+                {activeSection === 'feedbacks' && '피드백 관리'}
                 {activeSection === 'analytics' && '분석'}
                 {activeSection === 'settings' && '설정'}
               </h1>
@@ -710,6 +815,134 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 'feedbacks' && (
+            <div>
+              {/* Feedback Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">전체</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{feedbacks.length}</div>
+                  <div className="text-xs text-gray-500 mt-1">총 피드백</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-red-50 rounded-lg">
+                      <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">미확인</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{unreadFeedbackCount}</div>
+                  <div className="text-xs text-gray-500 mt-1">읽지 않은 피드백</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-green-50 rounded-lg">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">확인</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{feedbacks.length - unreadFeedbackCount}</div>
+                  <div className="text-xs text-gray-500 mt-1">확인된 피드백</div>
+                </div>
+              </div>
+
+              {/* Feedback List */}
+              <div className="bg-white rounded-xl border border-gray-200">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-lg font-bold text-gray-900">피드백 목록</h2>
+                  <p className="text-sm text-gray-500 mt-1">사용자들이 남긴 피드백과 제안사항</p>
+                </div>
+                <div className="divide-y divide-gray-200">
+                  {feedbacks.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">아직 피드백이 없습니다</h3>
+                      <p className="text-sm text-gray-500">사용자들의 피드백이 여기에 표시됩니다</p>
+                    </div>
+                  ) : (
+                    feedbacks.map((feedback) => (
+                      <div key={feedback.id} className={`p-6 ${!feedback.read ? 'bg-blue-50' : ''}`}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                              <h3 className="font-semibold text-gray-900">{feedback.name}</h3>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                feedback.type === 'suggestion' ? 'bg-purple-100 text-purple-700' :
+                                feedback.type === 'bug' ? 'bg-red-100 text-red-700' :
+                                feedback.type === 'feature' ? 'bg-green-100 text-green-700' :
+                                feedback.type === 'question' ? 'bg-yellow-100 text-yellow-700' :
+                                feedback.type === 'partnership' ? 'bg-indigo-100 text-indigo-700' :
+                                feedback.type === 'other' ? 'bg-gray-100 text-gray-700' :
+                                'bg-blue-100 text-blue-700'
+                              }`}>
+                                {feedback.type === 'suggestion' ? '기능 제안' :
+                                 feedback.type === 'bug' ? '버그 신고' :
+                                 feedback.type === 'feature' ? '기능 요청' :
+                                 feedback.type === 'question' ? '문의사항' :
+                                 feedback.type === 'partnership' ? '제휴/협업' :
+                                 feedback.type === 'other' ? '기타' :
+                                 '일반 피드백'}
+                              </span>
+                              {!feedback.read && (
+                                <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                                  NEW
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-3 text-sm text-gray-500 mb-2">
+                              {feedback.email && <span>📧 {feedback.email}</span>}
+                              {feedback.contact && <span>📱 {feedback.contact}</span>}
+                              {feedback.organization && <span>🏢 {feedback.organization}</span>}
+                            </div>
+                            <p className="text-gray-700 whitespace-pre-wrap">{feedback.message}</p>
+                            <p className="text-xs text-gray-500 mt-3">
+                              {new Date(feedback.created_at).toLocaleString('ko-KR')}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 ml-4">
+                            {!feedback.read && (
+                              <button
+                                onClick={() => markFeedbackAsRead(feedback.id)}
+                                className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                title="읽음 표시"
+                              >
+                                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => deleteFeedback(feedback.id)}
+                              className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors"
+                              title="삭제"
+                            >
+                              <svg className="w-4 h-4 text-gray-600 hover:text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface AdSenseProps {
   adSlot: string;
@@ -15,20 +15,36 @@ const AdSense: React.FC<AdSenseProps> = ({
   className = '',
   fullWidthResponsive = true
 }) => {
+  const adRef = useRef<HTMLModElement>(null);
+  const isAdLoaded = useRef(false);
+
   useEffect(() => {
+    // 광고가 이미 로드되었거나 AdSense가 없으면 skip
+    if (isAdLoaded.current) return;
+
     try {
       // @ts-ignore
-      if (window.adsbygoogle) {
-        // @ts-ignore
-        window.adsbygoogle.push({});
+      if (window.adsbygoogle && adRef.current) {
+        // 이 요소에 이미 광고가 있는지 확인
+        const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
+
+        if (!hasAd) {
+          // @ts-ignore
+          window.adsbygoogle.push({});
+          isAdLoaded.current = true;
+        }
       }
     } catch (err) {
-      console.error('AdSense error:', err);
+      // 광고 차단기나 중복 광고 오류는 무시
+      if (err.message && !err.message.includes('adsbygoogle')) {
+        console.error('AdSense error:', err);
+      }
     }
   }, []);
 
   return (
     <ins
+      ref={adRef}
       className={`adsbygoogle ${className}`}
       style={style || { display: 'block' }}
       data-ad-client="ca-pub-6070760100543970"

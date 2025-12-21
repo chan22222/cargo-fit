@@ -4,6 +4,8 @@ import { Insight } from '../types/insights';
 import { db } from '../lib/supabase';
 import ContainerDemo from './ContainerDemo';
 import AdSense from './AdSense';
+import FeedbackModal from './FeedbackModal';
+import CoffeeDonationModal from './CoffeeDonationModal';
 
 interface LandingPageProps {
   onStart: () => void;
@@ -11,9 +13,11 @@ interface LandingPageProps {
   onTerms: () => void;
   onNavigateToInsights?: () => void;
   onNavigateToInsight?: (id: string) => void;
+  onNavigateToContainer?: () => void;
+  onNavigateToPallet?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
   const [exchangeRates, setExchangeRates] = useState<Array<{ pair: string; rate: string }>>([
@@ -21,6 +25,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     { pair: 'EUR / KRW', rate: '-' },
     { pair: 'CNY / KRW', rate: '-' }
   ]);
+
+  // Modal states
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
 
   // Load insights from Supabase
   useEffect(() => {
@@ -141,6 +149,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     const rateTimer = setInterval(fetchExchangeRates, 5 * 60 * 1000);
     return () => clearInterval(rateTimer);
   }, []);
+
 
 
   return (
@@ -383,61 +392,135 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
          </div>
       </section>
 
-      {/* Enterprise Footer */}
-      <footer className="bg-slate-50 border-t border-slate-100 py-24 px-10">
+      {/* Balanced Footer */}
+      <footer className="bg-gradient-to-b from-white to-slate-50 border-t border-slate-200 pt-16 pb-10 px-6 md:px-10">
         <div className="max-w-7xl mx-auto">
-           <div className="grid md:grid-cols-4 gap-16 mb-20">
-              <div className="space-y-6">
+           <div className="grid grid-cols-1 md:grid-cols-[0.8fr_1fr_1.2fr] gap-12 md:gap-6 mb-12">
+              {/* Logo & Description */}
+              <div className="space-y-4 flex flex-col items-center md:items-start">
                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center font-black text-white text-xl">S</div>
-                    <span className="text-xl font-black tracking-tight text-slate-900">SHIPDAGO</span>
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z" stroke="white" strokeWidth="2" fill="white" opacity="0.9"/>
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black tracking-tight bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">SHIPDAGO</h3>
+                    </div>
                  </div>
-                 <p className="text-slate-400 text-sm leading-relaxed">
-                    디지털 기술로 수출입 물류의 고도화를 꿈꾸는 혁신 솔루션입니다.
+                 <p className="text-xs text-slate-600 leading-relaxed text-center md:text-left">
+                    물류의 디지털 혁신을 선도하는<br/>
+                    스마트 포워딩 솔루션
                  </p>
+                 <div className="flex gap-3">
+                    <div className="w-9 h-9 bg-slate-100 hover:bg-blue-50 rounded-lg flex items-center justify-center cursor-pointer transition-colors group">
+                      <svg className="w-4 h-4 text-slate-500 group-hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                      </svg>
+                    </div>
+                    <div className="w-9 h-9 bg-slate-100 hover:bg-blue-50 rounded-lg flex items-center justify-center cursor-pointer transition-colors group">
+                      <svg className="w-4 h-4 text-slate-500 group-hover:text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                      </svg>
+                    </div>
+                 </div>
               </div>
-              <div className="space-y-6">
-                 <h4 className="font-black text-slate-900 text-xs uppercase tracking-widest">Solutions</h4>
-                 <ul className="space-y-4 text-slate-400 text-sm font-medium">
-                    <li><a href="#" className="hover:text-blue-600 transition-colors">Digital Forwarding</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition-colors">3D Simulation</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition-colors">Cloud Logistics</a></li>
-                 </ul>
+
+              {/* Quick Links - Expandable */}
+              <div className="space-y-5 text-center md:text-left">
+                 <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">Quick Links</h4>
+                 <div className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-xs mx-auto md:max-w-none md:mx-0">
+                    <button onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      HOME
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToContainer?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      컨테이너 시뮬레이터
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToPallet?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      팔레트 시뮬레이터
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      물류 인사이트
+                    </button>
+                 </div>
               </div>
-              <div className="space-y-6">
-                 <h4 className="font-black text-slate-900 text-xs uppercase tracking-widest">Support</h4>
-                 <ul className="space-y-4 text-slate-400 text-sm font-medium">
-                    <li><a href="#" className="hover:text-blue-600 transition-colors">User Guide</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition-colors">API Docs</a></li>
-                    <li><a href="#" className="hover:text-blue-600 transition-colors">Customer Center</a></li>
-                 </ul>
-              </div>
-              <div className="space-y-6">
-                 <h4 className="font-black text-slate-900 text-xs uppercase tracking-widest">Connect</h4>
-                 <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-600 transition-colors text-slate-400 font-bold">In</div>
-                    <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-600 transition-colors text-slate-400 font-bold">Tw</div>
+
+              {/* Contact Info */}
+              <div className="space-y-4 text-center md:text-left md:pl-20">
+                 <p className="text-sm text-slate-600 leading-relaxed">
+                   SHIPDAGO 서비스에 대한 문의사항이나<br/>
+                   제안사항이 있으시면 언제든 연락주세요.
+                 </p>
+                 <div className="space-y-3 flex flex-col items-center md:items-start">
+                   <button
+                     onClick={() => setIsFeedbackModalOpen(true)}
+                     className="flex items-center gap-3 group"
+                   >
+                     <div className="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
+                       <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                       </svg>
+                     </div>
+                     <div className="text-left">
+                       <p className="text-xs text-slate-500">피드백 & 제안</p>
+                       <p className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">메시지 남기기</p>
+                     </div>
+                   </button>
+                   <button
+                     onClick={() => setIsCoffeeModalOpen(true)}
+                     className="flex items-center gap-3 group"
+                   >
+                     <div className="w-8 h-8 bg-blue-50 group-hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
+                       <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                         <path d="M2 21h18v-2H2M20 8h-2V5h2m0-2H4v10a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4v-3h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/>
+                       </svg>
+                     </div>
+                     <div className="text-left">
+                       <p className="text-xs text-slate-500">개발자 후원</p>
+                       <p className="text-sm font-medium text-slate-700 group-hover:text-blue-600 transition-colors">커피 한 잔 사기</p>
+                     </div>
+                   </button>
                  </div>
               </div>
            </div>
-           <div className="pt-10 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
-              <div className="flex items-center gap-2">
-                 <span>© 2025 SHIPDAGO. ALL RIGHTS RESERVED.</span>
-                 <a
-                   href="#/admin"
-                   className="opacity-0 hover:opacity-100 transition-opacity ml-4 text-slate-600"
-                   title="Admin Panel"
-                 >
-                   ⚙
-                 </a>
-              </div>
-              <div className="flex gap-8">
-                 <button onClick={onPrivacy} className="hover:text-slate-900 transition-colors">Privacy Policy</button>
-                 <button onClick={onTerms} className="hover:text-slate-900 transition-colors">Terms of Service</button>
+
+           {/* Bottom Bar */}
+           <div className="pt-8 border-t border-slate-200">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+                 <div className="text-xs text-slate-500">
+                    © 2025 SHIPDAGO. All Rights Reserved.
+                    <a
+                      href="#/admin"
+                      className="opacity-0 hover:opacity-100 transition-opacity ml-3 text-slate-600"
+                      title="Admin"
+                    >
+                      ⚙
+                    </a>
+                 </div>
+                 <div className="flex gap-6 text-xs">
+                    <button onClick={onPrivacy} className="text-slate-500 hover:text-slate-700 transition-colors">
+                      개인정보처리방침
+                    </button>
+                    <button onClick={onTerms} className="text-slate-500 hover:text-slate-700 transition-colors">
+                      이용약관
+                    </button>
+                 </div>
               </div>
            </div>
         </div>
       </footer>
+
+      {/* Feedback Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
+
+      {/* Coffee Donation Modal */}
+      <CoffeeDonationModal
+        isOpen={isCoffeeModalOpen}
+        onClose={() => setIsCoffeeModalOpen(false)}
+      />
     </div>
   );
 };

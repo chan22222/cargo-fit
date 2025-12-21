@@ -158,5 +158,57 @@ export const db = {
         .select();
       return { data, error };
     }
+  },
+
+  feedbacks: {
+    // 모든 피드백 가져오기
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('feedbacks')
+        .select('*')
+        .order('created_at', { ascending: false });
+      return { data, error };
+    },
+
+    // 피드백 생성
+    create: async (feedback: { name: string; email: string; contact?: string; organization?: string; message: string; type: string }) => {
+      const { data, error } = await supabase
+        .from('feedbacks')
+        .insert([{
+          ...feedback,
+          created_at: new Date().toISOString(),
+          read: false
+        }])
+        .select();
+      return { data, error };
+    },
+
+    // 피드백 읽음 처리
+    markAsRead: async (id: string) => {
+      const { data, error } = await supabase
+        .from('feedbacks')
+        .update({ read: true })
+        .eq('id', id)
+        .select();
+      return { data, error };
+    },
+
+    // 피드백 삭제
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('feedbacks')
+        .delete()
+        .eq('id', id);
+      return { error };
+    },
+
+    // 읽지 않은 피드백 수 가져오기
+    getUnreadCount: async () => {
+      const { count, error } = await supabase
+        .from('feedbacks')
+        .select('*', { count: 'exact', head: true })
+        .eq('read', false);
+      return { count, error };
+    }
   }
 };

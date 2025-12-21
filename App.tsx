@@ -737,6 +737,8 @@ const App: React.FC = () => {
           onTerms={() => setActiveTab('terms')}
           onNavigateToInsights={handleNavigateToInsights}
           onNavigateToInsight={handleNavigateToInsight}
+          onNavigateToContainer={() => setActiveTab('container')}
+          onNavigateToPallet={() => setActiveTab('pallet')}
         />
       ) : activeTab === 'privacy' ? (
         <PrivacyPolicy />
