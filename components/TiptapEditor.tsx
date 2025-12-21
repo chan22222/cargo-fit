@@ -9,8 +9,8 @@ import Placeholder from '@tiptap/extension-placeholder';
 import { Extension } from '@tiptap/core';
 
 // Custom extension for text styling (letter-spacing and line-height)
-const TextStyle = Extension.create({
-  name: 'textStyle',
+const CustomTextStyle = Extension.create({
+  name: 'customTextStyle',
 
   addGlobalAttributes() {
     return [
@@ -405,43 +405,52 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({ value, onChange, placeholde
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [htmlContent, setHtmlContent] = useState(value);
 
+  // extensions를 useMemo로 메모이제이션하여 중복 생성 방지
+  const extensions = React.useMemo(() => [
+    StarterKit.configure({
+      // StarterKit에 포함된 extensions 중 일부를 비활성화
+      dropcursor: false,
+      gapcursor: false,
+      // Paragraph 설정 추가
+      paragraph: {
+        HTMLAttributes: {
+          class: 'mb-4',
+        },
+      },
+      // Hard break 설정 (Shift+Enter)
+      hardBreak: {
+        keepMarks: true,
+      },
+    }),
+    CustomTextStyle, // Add custom text styling extension
+    // Underline와 Link는 StarterKit에 포함되지 않으므로 별도로 추가
+    Underline.configure({
+      HTMLAttributes: {
+        class: 'underline',
+      },
+    }),
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-blue-600 underline hover:text-blue-800',
+      },
+      validate: href => /^https?:\/\//.test(href),
+    }),
+    Image.configure({
+      HTMLAttributes: {
+        class: 'max-w-full h-auto rounded-lg',
+      },
+    }),
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
+    Placeholder.configure({
+      placeholder: placeholder || '내용을 입력하세요...',
+    }),
+  ], [placeholder]);
+
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        // StarterKit에 포함된 extensions 중 일부를 비활성화
-        dropcursor: false,
-        gapcursor: false,
-        // Paragraph 설정 추가
-        paragraph: {
-          HTMLAttributes: {
-            class: 'mb-4',
-          },
-        },
-        // Hard break 설정 (Shift+Enter)
-        hardBreak: {
-          keepMarks: true,
-        },
-      }),
-      TextStyle, // Add custom text styling extension
-      Underline,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-blue-600 underline hover:text-blue-800',
-        },
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg',
-        },
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Placeholder.configure({
-        placeholder: placeholder || '내용을 입력하세요...',
-      }),
-    ],
+    extensions,
     content: value,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());

@@ -170,14 +170,58 @@ export const db = {
       return { data, error };
     },
 
-    // 피드백 생성
+    // 피드백 생성 (IP 기반 체크 포함)
     create: async (feedback: { name: string; email: string; contact?: string; organization?: string; message: string; type: string }) => {
+      // 먼저 최근 제출 확인 (email 기반으로 체크)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { data: recentSubmissions, error: checkError } = await supabase
+        .from('feedbacks')
+        .select('created_at')
+        .eq('email', feedback.email)
+        .gte('created_at', oneHourAgo)
+        .order('created_at', { ascending: false });
+
+      if (checkError) {
+        console.error('Error checking recent submissions:', checkError);
+      }
+
+      // 시간당 3개 이상 제출 방지
+      if (recentSubmissions && recentSubmissions.length >= 3) {
+        return {
+          data: null,
+          error: {
+            message: '너무 많은 요청입니다. 1시간 후에 다시 시도해주세요.',
+            code: 'RATE_LIMIT_EXCEEDED'
+          }
+        };
+      }
+
+      // 마지막 제출 후 5분 cooldown
+      if (recentSubmissions && recentSubmissions.length > 0) {
+        const lastSubmission = new Date(recentSubmissions[0].created_at);
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+        if (lastSubmission > fiveMinutesAgo) {
+          const remainingSeconds = Math.ceil((lastSubmission.getTime() + 5 * 60 * 1000 - Date.now()) / 1000);
+          return {
+            data: null,
+            error: {
+              message: `잠시 후 다시 시도해주세요. (${Math.floor(remainingSeconds / 60)}분 ${remainingSeconds % 60}초 남음)`,
+              code: 'COOLDOWN_ACTIVE'
+            }
+          };
+        }
+      }
+
+      // 피드백 저장
       const { data, error } = await supabase
         .from('feedbacks')
         .insert([{
           ...feedback,
           created_at: new Date().toISOString(),
-          read: false
+          read: false,
+          // IP는 클라이언트에서 얻을 수 없으므로 생략
+          user_agent: navigator.userAgent
         }])
         .select();
       return { data, error };
