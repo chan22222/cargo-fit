@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /#/admin
+
+# Google AdSense
+User-agent: Mediapartners-Google
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.shipdago.com/sitemap.xml
+
+# Crawl delay (초 단위)
+Crawl-delay: 1

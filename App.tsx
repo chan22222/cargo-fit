@@ -47,6 +47,8 @@ const App: React.FC = () => {
         setCurrentRoute('privacy');
       } else if (hash === '#/terms') {
         setCurrentRoute('terms');
+      } else if (hash === '#/container') {
+        setCurrentRoute('container');
       } else if (hash === '#/pallet') {
         setCurrentRoute('pallet');
       } else if (path === '/admin' || hash === '#/admin' || hash === '#admin') {
@@ -579,6 +581,17 @@ const App: React.FC = () => {
     window.location.hash = '';
   };
 
+  // URL 라우트에 따라 activeTab 설정 - 모든 훅은 조건부 렌더링 전에 호출되어야 함
+  React.useEffect(() => {
+    if (currentRoute === 'container') {
+      setActiveTab('container');
+    } else if (currentRoute === 'pallet') {
+      setActiveTab('pallet');
+    } else if (currentRoute === 'home') {
+      setActiveTab('home');
+    }
+  }, [currentRoute]);
+
   // Handle routing
   if (currentRoute === 'admin') {
     if (!isAuthenticated) {
@@ -647,10 +660,6 @@ const App: React.FC = () => {
     );
   }
 
-  if (currentRoute === 'pallet') {
-    setActiveTab('pallet');
-  }
-
   return (
     <>
       <SpeedInsights />
@@ -660,7 +669,10 @@ const App: React.FC = () => {
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 flex justify-between items-center shrink-0 z-50 h-[60px] md:h-[80px] relative">
         <div
           className="flex items-center gap-2 md:gap-4 cursor-pointer group"
-          onClick={() => setActiveTab('home')}
+          onClick={() => {
+            setActiveTab('home');
+            window.location.hash = '';
+          }}
         >
           <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center font-black text-white text-xl md:text-2xl shadow-md group-hover:shadow-lg transition-all duration-300">
             <svg width="20" height="20" className="md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -679,19 +691,28 @@ const App: React.FC = () => {
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
            <button
-             onClick={() => setActiveTab('home')}
+             onClick={() => {
+               setActiveTab('home');
+               window.location.hash = '';
+             }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'home' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
              HOME
            </button>
            <button
-             onClick={() => setActiveTab('container')}
+             onClick={() => {
+               setActiveTab('container');
+               window.location.hash = '#/container';
+             }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'container' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
              컨테이너
            </button>
            <button
-             onClick={() => setActiveTab('pallet')}
+             onClick={() => {
+               setActiveTab('pallet');
+               window.location.hash = '#/pallet';
+             }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'pallet' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
              팔레트
@@ -720,6 +741,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('home');
+                  window.location.hash = '';
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -731,6 +753,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('container');
+                  window.location.hash = '#/container';
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -742,6 +765,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('pallet');
+                  window.location.hash = '#/pallet';
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -956,7 +980,13 @@ const App: React.FC = () => {
         isOpen={showSelectionModal}
         onClose={() => setShowSelectionModal(false)}
         onSelect={(type) => {
-          setActiveTab(type === 'container' ? 'container' : 'pallet');
+          if (type === 'container') {
+            setActiveTab('container');
+            window.location.hash = '#/container';
+          } else {
+            setActiveTab('pallet');
+            window.location.hash = '#/pallet';
+          }
           setShowSelectionModal(false);
         }}
       />
