@@ -56,8 +56,8 @@ const PalletViewer: React.FC<PalletViewerProps> = ({
 
     if (dragMode === 'rotate') {
       setRotation(prev => ({
-        x: prev.x + deltaY * 0.5,
-        y: prev.y + deltaX * 0.5
+        x: prev.x + deltaY * 0.5,  // 원래 방향으로 복구
+        y: prev.y + deltaX * 0.5   // 원래 방향으로 복구
       }));
     } else if (dragMode === 'pan') {
       setPan(prev => ({

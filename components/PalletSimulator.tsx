@@ -55,6 +55,22 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedItemId]);
 
+  // Non-passive wheel event listener to prevent scroll warning
+  useEffect(() => {
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault();
+      setScale(prev => Math.max(0.1, Math.min(3, prev - e.deltaY * 0.001)));
+    };
+
+    const svgElement = svgRef.current;
+    if (svgElement) {
+      svgElement.addEventListener('wheel', handleWheelNative, { passive: false });
+      return () => {
+        svgElement.removeEventListener('wheel', handleWheelNative);
+      };
+    }
+  }, []);
+
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
     lastMousePos.current = { x: e.clientX, y: e.clientY };
@@ -94,10 +110,6 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     setDragMode(null);
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    setScale(prev => Math.max(0.1, Math.min(3, prev - e.deltaY * 0.001)));
-  };
 
   // 모든 회전 방향 가져오기
   const getAllOrientations = (dims: Dimensions) => {
@@ -495,7 +507,6 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
-              onWheel={handleWheel}
               onContextMenu={(e) => e.preventDefault()}
             >
               {/* 깊이 정렬된 렌더링 */}
