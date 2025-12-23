@@ -64,16 +64,19 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 flex flex-col h-full overflow-hidden">
-      
-      <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-6 scrollbar-hide">
-        
+
+      {/* Fixed Header Only */}
+      <div className="p-5 pb-3 shrink-0 border-b border-slate-100">
         <div className="flex items-center gap-3">
            <div className="w-8 h-8 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" /><path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2 2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" /></svg>
            </div>
            <h2 className="text-base font-black text-slate-900 tracking-tight">화물 추가</h2>
         </div>
+      </div>
 
+      {/* Scrollable Content (Form + List) */}
+      <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-6 scrollbar-hide">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">화물 식별명</label>
@@ -355,7 +358,6 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
             )}
           </div>
         </div>
-
       </div>
       
       {onAutoArrange && cargoList.length > 0 && (

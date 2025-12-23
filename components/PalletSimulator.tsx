@@ -400,13 +400,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   }, [palletItems, palletSize, maxHeight]);
 
   return (
-    <main className="flex-1 p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden min-h-0 bg-slate-50/50">
+    <main className="p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden bg-slate-50/50" style={{ height: 'calc(100vh - 80px)' }}>
 
       {/* Main Pallet Area with Left Ad Space */}
-      <div className="lg:col-span-3 flex h-full min-h-0 gap-4">
+      <div className="lg:col-span-3 flex gap-4" style={{ height: 'calc(100vh - 135px)' }}>
 
         {/* Vertical Ad Space */}
-        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden">
+        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm" style={{ height: 'calc(100vh - 135px)' }}>
           <AdSense
             adSlot="3333333333"
             adFormat="vertical"
@@ -415,7 +415,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         </div>
 
         {/* Pallet Builder Container */}
-        <div className="flex-1 flex flex-col gap-4 min-h-0">
+        <div className="flex-1 flex flex-col gap-4" style={{ height: 'calc(100vh - 135px)' }}>
           {/* Title Section with Pallet Type Selection */}
           <div className="flex justify-between items-end px-2 shrink-0">
             <div className="flex items-center gap-3">
@@ -486,7 +486,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
             </div>
           </div>
 
-          <div className="relative flex-1 bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200/50 min-h-0">
+          <div className="relative bg-slate-900 rounded-2xl overflow-hidden shadow-lg border border-slate-200/50" style={{ height: 'calc(100vh - 310px)' }}>
             <svg
               ref={svgRef}
               className="w-full h-full cursor-move"
@@ -646,20 +646,25 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       </div>
 
       {/* Sidebar Controls */}
-      <div className="lg:col-span-1 h-full min-h-0">
+      <div className="lg:col-span-1 overflow-hidden" style={{ height: 'calc(100vh - 135px)' }}>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 h-full overflow-hidden flex flex-col">
-          <div className="flex-1 overflow-y-auto p-5 space-y-6 scrollbar-hide">
 
+          {/* Fixed Header Only */}
+          <div className="p-5 pb-3 shrink-0 border-b border-slate-100">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z" />
+                </svg>
+              </div>
+              <h3 className="text-base font-black text-slate-900 tracking-tight">팔레트 시뮬레이터</h3>
+            </div>
+          </div>
+
+          {/* Scrollable Content (Settings + Form + List) */}
+          <div className="flex-1 overflow-y-auto min-h-0 p-5 space-y-6 scrollbar-hide">
             {/* 팔레트 설정 */}
             <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z" />
-                  </svg>
-                </div>
-                <h3 className="text-base font-black text-slate-900 tracking-tight">팔레트 설정</h3>
-              </div>
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
