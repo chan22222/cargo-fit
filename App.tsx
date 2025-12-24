@@ -9,6 +9,7 @@ import ContainerVisualizer from './components/ContainerVisualizer';
 import { CargoControls } from './components/CargoControls';
 import LandingPage from './components/LandingPage';
 import PalletSimulator from './components/PalletSimulator';
+import CurrencyCalculator from './components/CurrencyCalculator';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import AdminDashboard from './components/AdminDashboard';
@@ -24,7 +25,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'pallet'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'pallet' | 'currency'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
 
   // Check for route on mount and URL changes
@@ -51,6 +52,8 @@ const App: React.FC = () => {
         setCurrentRoute('container');
       } else if (hash === '#/pallet') {
         setCurrentRoute('pallet');
+      } else if (hash === '#/currency') {
+        setCurrentRoute('currency');
       } else if (path === '/admin' || hash === '#/admin' || hash === '#admin') {
         setCurrentRoute('admin');
       } else {
@@ -87,7 +90,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'privacy' | 'terms'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'privacy' | 'terms'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
 
@@ -562,6 +565,8 @@ const App: React.FC = () => {
       setActiveTab('container');
     } else if (currentRoute === 'pallet') {
       setActiveTab('pallet');
+    } else if (currentRoute === 'currency') {
+      setActiveTab('currency');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -683,7 +688,7 @@ const App: React.FC = () => {
              }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'container' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
-             컨테이너
+             컨테이너 3D
            </button>
            <button
              onClick={() => {
@@ -692,7 +697,16 @@ const App: React.FC = () => {
              }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'pallet' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
-             팔레트
+             팔레트 3D
+           </button>
+           <button
+             onClick={() => {
+               setActiveTab('currency');
+               window.location.hash = '#/currency';
+             }}
+             className={`text-sm font-bold transition-all duration-300 ${activeTab === 'currency' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
+           >
+             환율 계산기
            </button>
         </nav>
 
@@ -737,7 +751,7 @@ const App: React.FC = () => {
                   activeTab === 'container' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                컨테이너
+                컨테이너 3D
               </button>
               <button
                 onClick={() => {
@@ -749,7 +763,19 @@ const App: React.FC = () => {
                   activeTab === 'pallet' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                팔레트
+                팔레트 3D
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('currency');
+                  window.location.hash = '#/currency';
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'currency' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                환율 계산기
               </button>
             </nav>
           </div>
@@ -771,6 +797,8 @@ const App: React.FC = () => {
         <PrivacyPolicy />
       ) : activeTab === 'terms' ? (
         <TermsOfService />
+      ) : activeTab === 'currency' ? (
+        <CurrencyCalculator />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
