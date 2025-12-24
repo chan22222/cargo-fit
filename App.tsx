@@ -91,31 +91,6 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
 
-  // Manage body overflow based on active tab and current route
-  React.useEffect(() => {
-    // 통합된 스크롤 관리 로직
-    const shouldHideOverflow =
-      (currentRoute === 'home' && (activeTab === 'container' || activeTab === 'pallet')) ||
-      currentRoute === 'container' ||
-      currentRoute === 'pallet';
-
-    if (shouldHideOverflow) {
-      // 시뮬레이터 화면에서는 overflow hidden
-      document.body.style.overflow = 'hidden';
-    } else {
-      // 그 외 모든 경우 스크롤 허용 (가로 스크롤 방지 포함)
-      document.body.style.overflow = '';
-      document.body.style.overflowY = 'auto';
-      document.body.style.overflowX = 'hidden';  // 가로 스크롤 방지
-    }
-
-    // Cleanup function - 컴포넌트 언마운트 시 스크롤 복원
-    return () => {
-      document.body.style.overflow = '';
-      document.body.style.overflowY = 'auto';
-      document.body.style.overflowX = 'hidden';
-    };
-  }, [activeTab, currentRoute]);
 
   // Container Simulator State
   const [containerType, setContainerType] = useState<ContainerType>(ContainerType.FT20);
@@ -664,7 +639,9 @@ const App: React.FC = () => {
     <>
       <SpeedInsights />
       <Analytics />
-      <div className="h-screen w-screen bg-white flex flex-col font-sans overflow-hidden text-slate-900">
+      {/* Tailwind CDN safelist - 시뮬레이터에서 사용하는 클래스를 미리 로드 */}
+      <div className="hidden lg:grid lg:grid-cols-4 lg:col-span-3 lg:col-span-1 lg:flex lg:flex-row lg:h-auto grid-cols-1" aria-hidden="true" />
+      <div className="h-screen w-full bg-white flex flex-col font-sans overflow-hidden text-slate-900">
       {/* Premium Navigation Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 flex justify-between items-center shrink-0 z-50 h-[60px] md:h-[80px] relative">
         <div
@@ -821,6 +798,7 @@ const App: React.FC = () => {
           </div>
         ) : (
           <PalletSimulator
+            key="pallet-simulator"
             palletItems={palletItems}
             setPalletItems={setPalletItems}
             palletSize={palletSize}

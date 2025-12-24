@@ -64,6 +64,31 @@
       .animate-float {
         animation: float 3s ease-in-out infinite;
       }
+
+      /* Tailwind CDN safelist - 시뮬레이터 레이아웃에 필요한 클래스 */
+      @media (min-width: 1024px) {
+        .lg\:grid {
+          display: grid;
+        }
+        .lg\:grid-cols-4 {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .lg\:col-span-3 {
+          grid-column: span 3 / span 3;
+        }
+        .lg\:col-span-1 {
+          grid-column: span 1 / span 1;
+        }
+        .lg\:flex {
+          display: flex;
+        }
+        .lg\:h-auto {
+          height: auto;
+        }
+        .lg\:flex-row {
+          flex-direction: row;
+        }
+      }
     </style>
   <script type="importmap">
 {
