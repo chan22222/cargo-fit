@@ -65,7 +65,25 @@
         animation: float 3s ease-in-out infinite;
       }
 
-      /* Tailwind CDN safelist - 시뮬레이터 레이아웃에 필요한 클래스 */
+      /* Tailwind CDN safelist - 시뮬레이터 레이아웃에 필요한 클래스 (모든 breakpoint) */
+      .grid {
+        display: grid;
+      }
+      .grid-cols-1 {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+      }
+      .flex-1 {
+        flex: 1 1 0%;
+      }
+      .flex-col {
+        flex-direction: column;
+      }
+      .gap-4 {
+        gap: 1rem;
+      }
+      .gap-6 {
+        gap: 1.5rem;
+      }
       @media (min-width: 1024px) {
         .lg\:grid {
           display: grid;
@@ -87,6 +105,18 @@
         }
         .lg\:flex-row {
           flex-direction: row;
+        }
+        .lg\:hidden {
+          display: none;
+        }
+      }
+      @media (max-width: 1023px) {
+        .lg\:grid-cols-4 {
+          grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        .lg\:col-span-3,
+        .lg\:col-span-1 {
+          grid-column: span 1 / span 1;
         }
       }
     </style>

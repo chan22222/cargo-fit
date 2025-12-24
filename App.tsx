@@ -834,7 +834,7 @@ const App: React.FC = () => {
         <main className="flex-1 p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden bg-slate-50/50" style={{ height: 'calc(100vh - 80px)' }}>
 
           {/* Main Visualizer Area with Left Ad Space */}
-          <div className="lg:col-span-3 flex h-full gap-4">
+          <div className="lg:col-span-3 flex h-full gap-4 min-w-0">
               {/* Left Vertical Ad Space */}
               <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm" style={{ height: 'calc(100vh - 135px)' }}>
                 <AdSense
@@ -845,7 +845,7 @@ const App: React.FC = () => {
               </div>
 
               {/* Main Content */}
-              <div className="flex-1 flex flex-col gap-4" style={{ height: 'calc(100vh - 135px)' }}>
+              <div className="flex-1 flex flex-col gap-4 min-w-0" style={{ height: 'calc(100vh - 135px)' }}>
               <div className="flex justify-between items-end px-2 shrink-0">
                  <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg">
