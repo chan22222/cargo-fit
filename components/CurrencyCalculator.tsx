@@ -139,7 +139,7 @@ const CurrencyCalculator: React.FC = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Draggable calculator event handlers
+  // Draggable calculator event handlers (mouse + touch)
   useEffect(() => {
     if (!isDragging) return;
 
@@ -150,16 +150,34 @@ const CurrencyCalculator: React.FC = () => {
       });
     };
 
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        setCalcPosition({
+          x: touch.clientX - dragOffset.x,
+          y: touch.clientY - dragOffset.y
+        });
+      }
+    };
+
     const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    const handleTouchEnd = () => {
       setIsDragging(false);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDragging, dragOffset]);
 
@@ -169,6 +187,23 @@ const CurrencyCalculator: React.FC = () => {
       setDragOffset({
         x: e.clientX - rect.left,
         y: e.clientY - rect.top
+      });
+      setIsDragging(true);
+      setHasBeenDragged(true);
+      setCalcPosition({
+        x: rect.left,
+        y: rect.top
+      });
+    }
+  };
+
+  const handleCalcTouchStart = (e: React.TouchEvent) => {
+    if (calcRef.current && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const rect = calcRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
       });
       setIsDragging(true);
       setHasBeenDragged(true);
@@ -1165,13 +1200,14 @@ const CurrencyCalculator: React.FC = () => {
         </div>
       )}
 
-      {/* Floating Calculator Button */}
+      {/* Floating Calculator Button - Toggle on/off */}
       <button
-        onClick={() => setShowCalculator(true)}
-        className="fixed bottom-6 right-6 px-5 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all z-40 flex items-center gap-2"
+        onClick={() => setShowCalculator(prev => !prev)}
+        className={`fixed bottom-6 right-6 px-5 py-3 bg-gradient-to-r ${showCalculator ? 'from-gray-500 to-gray-600' : 'from-orange-500 to-orange-600'} text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all z-[60] flex items-center gap-2`}
       >
         <span>🔢</span> 계산기 (₩)
       </button>
+
 
       {/* Calculator Widget - Original Design (Draggable) */}
       {showCalculator && (
@@ -1228,8 +1264,9 @@ const CurrencyCalculator: React.FC = () => {
           >
             {/* Header - Draggable Area */}
             <div
-              className="flex gap-2 items-center select-none mb-1 cursor-grab active:cursor-grabbing"
+              className="flex gap-2 items-center select-none mb-1 cursor-grab active:cursor-grabbing touch-none"
               onMouseDown={handleCalcMouseDown}
+              onTouchStart={handleCalcTouchStart}
             >
               <div className="w-2.5 h-2.5 rounded-full bg-red-500 cursor-pointer hover:brightness-110" onClick={(e) => { e.stopPropagation(); setShowCalculator(false); }}></div>
               <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
