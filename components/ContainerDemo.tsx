@@ -34,30 +34,38 @@ const ContainerDemo: React.FC = () => {
   const cVisualDepth = container.width * PIXEL_SCALE;
 
   // Demo items with tight packing and varied sizes
+  // 색상: 세련된 블루톤 + 포인트 (반투명)
+  const colors = {
+    blue: 'rgba(37, 99, 235, 0.75)',      // 진한 블루
+    cyan: 'rgba(6, 182, 212, 0.75)',      // 시안/청록
+    slate: 'rgba(100, 116, 139, 0.75)',   // 슬레이트 그레이
+    orange: 'rgba(249, 115, 22, 0.75)',   // 포인트 주황
+  };
+
   const demoItems: DemoItem[] = [
     // Bottom Layer - Base foundation
-    { id: '1', name: 'Heavy Machine', color: '#3b82f6', position: { x: 0, y: 0, z: 0 }, dimensions: { width: 1500, height: 1200, length: 2000 }, delay: 500, weight: 3500 },
-    { id: '2', name: 'Electronics', color: '#10b981', position: { x: 1500, y: 0, z: 0 }, dimensions: { width: 800, height: 900, length: 1200 }, delay: 650, weight: 850 },
-    { id: '3', name: 'Furniture Set', color: '#8b5cf6', position: { x: 1500, y: 0, z: 1200 }, dimensions: { width: 800, height: 900, length: 800 }, delay: 800, weight: 720 },
-    { id: '4', name: 'Steel Coils', color: '#f97316', position: { x: 0, y: 0, z: 2000 }, dimensions: { width: 1150, height: 1100, length: 1200 }, delay: 950, weight: 4800 },
-    { id: '5', name: 'Textiles', color: '#ec4899', position: { x: 1150, y: 0, z: 2000 }, dimensions: { width: 1150, height: 700, length: 1200 }, delay: 1100, weight: 650 },
-    { id: '6', name: 'Machinery', color: '#06b6d4', position: { x: 0, y: 0, z: 3200 }, dimensions: { width: 2300, height: 800, length: 2700 }, delay: 1250, weight: 3200 },
+    { id: '1', name: 'Heavy Machine', color: colors.blue, position: { x: 0, y: 0, z: 0 }, dimensions: { width: 1500, height: 1200, length: 2000 }, delay: 500, weight: 3500 },
+    { id: '2', name: 'Electronics', color: colors.cyan, position: { x: 1500, y: 0, z: 0 }, dimensions: { width: 800, height: 900, length: 1200 }, delay: 650, weight: 850 },
+    { id: '3', name: 'Furniture Set', color: colors.slate, position: { x: 1500, y: 0, z: 1200 }, dimensions: { width: 800, height: 900, length: 800 }, delay: 800, weight: 720 },
+    { id: '4', name: 'Steel Coils', color: colors.orange, position: { x: 0, y: 0, z: 2000 }, dimensions: { width: 1150, height: 1100, length: 1200 }, delay: 950, weight: 4800 },
+    { id: '5', name: 'Textiles', color: colors.blue, position: { x: 1150, y: 0, z: 2000 }, dimensions: { width: 1150, height: 700, length: 1200 }, delay: 1100, weight: 650 },
+    { id: '6', name: 'Machinery', color: colors.cyan, position: { x: 0, y: 0, z: 3200 }, dimensions: { width: 2300, height: 800, length: 2700 }, delay: 1250, weight: 3200 },
 
     // Second Layer - Fill tightly
-    { id: '7', name: 'Toys', color: '#6366f1', position: { x: 1500, y: 900, z: 0 }, dimensions: { width: 800, height: 600, length: 2000 }, delay: 1400, weight: 320 },
-    { id: '8', name: 'Books', color: '#ef4444', position: { x: 0, y: 1200, z: 0 }, dimensions: { width: 1500, height: 700, length: 2000 }, delay: 1550, weight: 1600 },
-    { id: '9', name: 'Glass Items', color: '#22c55e', position: { x: 1150, y: 700, z: 2000 }, dimensions: { width: 1150, height: 1000, length: 1200 }, delay: 1700, weight: 450 },
-    { id: '10', name: 'Plastics', color: '#fbbf24', position: { x: 0, y: 1100, z: 2000 }, dimensions: { width: 1150, height: 600, length: 1200 }, delay: 1850, weight: 280 },
-    { id: '11', name: 'Metal Parts', color: '#a855f7', position: { x: 0, y: 800, z: 3200 }, dimensions: { width: 1150, height: 900, length: 2700 }, delay: 2000, weight: 2100 },
-    { id: '12', name: 'Chemicals', color: '#14b8a6', position: { x: 1150, y: 800, z: 3200 }, dimensions: { width: 1150, height: 900, length: 2700 }, delay: 2150, weight: 890 },
+    { id: '7', name: 'Toys', color: colors.slate, position: { x: 1500, y: 900, z: 0 }, dimensions: { width: 800, height: 600, length: 2000 }, delay: 1400, weight: 320 },
+    { id: '8', name: 'Books', color: colors.blue, position: { x: 0, y: 1200, z: 0 }, dimensions: { width: 1500, height: 700, length: 2000 }, delay: 1550, weight: 1600 },
+    { id: '9', name: 'Glass Items', color: colors.cyan, position: { x: 1150, y: 700, z: 2000 }, dimensions: { width: 1150, height: 1000, length: 1200 }, delay: 1700, weight: 450 },
+    { id: '10', name: 'Plastics', color: colors.blue, position: { x: 0, y: 1100, z: 2000 }, dimensions: { width: 1150, height: 600, length: 1200 }, delay: 1850, weight: 280 },
+    { id: '11', name: 'Metal Parts', color: colors.slate, position: { x: 0, y: 800, z: 3200 }, dimensions: { width: 1150, height: 900, length: 2700 }, delay: 2000, weight: 2100 },
+    { id: '12', name: 'Chemicals', color: colors.orange, position: { x: 1150, y: 800, z: 3200 }, dimensions: { width: 1150, height: 900, length: 2700 }, delay: 2150, weight: 890 },
 
     // Upper Layer - Smaller items filling remaining space
-    { id: '13', name: 'Tools', color: '#f59e0b', position: { x: 1500, y: 1500, z: 0 }, dimensions: { width: 800, height: 600, length: 1200 }, delay: 2300, weight: 680 },
-    { id: '14', name: 'Samples', color: '#84cc16', position: { x: 1500, y: 1500, z: 1200 }, dimensions: { width: 800, height: 600, length: 800 }, delay: 2450, weight: 150 },
-    { id: '15', name: 'Documents', color: '#0891b2', position: { x: 0, y: 1700, z: 2000 }, dimensions: { width: 2300, height: 500, length: 1200 }, delay: 2600, weight: 45 },
-    { id: '16', name: 'Spare Parts', color: '#dc2626', position: { x: 0, y: 1700, z: 3200 }, dimensions: { width: 1150, height: 500, length: 2700 }, delay: 2750, weight: 520 },
-    { id: '17', name: 'Express', color: '#7c3aed', position: { x: 1150, y: 1700, z: 3200 }, dimensions: { width: 1150, height: 500, length: 2700 }, delay: 2900, weight: 95 },
-    { id: '18', name: 'Priority', color: '#c026d3', position: { x: 0, y: 1900, z: 0 }, dimensions: { width: 1500, height: 400, length: 2000 }, delay: 3050, weight: 210 },
+    { id: '13', name: 'Tools', color: colors.cyan, position: { x: 1500, y: 1500, z: 0 }, dimensions: { width: 800, height: 600, length: 1200 }, delay: 2300, weight: 680 },
+    { id: '14', name: 'Samples', color: colors.blue, position: { x: 1500, y: 1500, z: 1200 }, dimensions: { width: 800, height: 600, length: 800 }, delay: 2450, weight: 150 },
+    { id: '15', name: 'Documents', color: colors.slate, position: { x: 0, y: 1700, z: 2000 }, dimensions: { width: 2300, height: 500, length: 1200 }, delay: 2600, weight: 45 },
+    { id: '16', name: 'Spare Parts', color: colors.blue, position: { x: 0, y: 1700, z: 3200 }, dimensions: { width: 1150, height: 500, length: 2700 }, delay: 2750, weight: 520 },
+    { id: '17', name: 'Express', color: colors.cyan, position: { x: 1150, y: 1700, z: 3200 }, dimensions: { width: 1150, height: 500, length: 2700 }, delay: 2900, weight: 95 },
+    { id: '18', name: 'Priority', color: colors.slate, position: { x: 0, y: 1900, z: 0 }, dimensions: { width: 1500, height: 400, length: 2000 }, delay: 3050, weight: 210 },
   ];
 
   // Calculate efficiency based on loaded items
@@ -124,51 +132,92 @@ const ContainerDemo: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto rotation - front view only (oscillating between -30 to 30 degrees)
+  // Staged loading with rotation
+  const [currentStage, setCurrentStage] = useState(0);
+  const [targetRotation, setTargetRotation] = useState(25);
+
+  // Stage configuration: each stage has rotation angle and items to load
+  // 앞쪽으로 회전 (양수에서 음수 방향)
+  const stages = useMemo(() => [
+    { rotation: 25, itemCount: 9 },     // Stage 1: 25도 → 9개 쌓기
+    { rotation: 0, itemCount: 5 },      // Stage 2: 25도 앞으로 회전 → 5개 쌓기
+    { rotation: -25, itemCount: 4 },    // Stage 3: 25도 앞으로 회전 → 4개 쌓기
+  ], []);
+
+  // Smooth rotation animation
   useEffect(() => {
     if (!isPlaying) return;
 
-    let angle = 25;
-    let direction = 1;
-
     const interval = setInterval(() => {
-      angle += direction * 0.3;
-
-      if (angle > 45 || angle < -5) {
-        direction *= -1;
-      }
-
-      setRotation(prev => ({ ...prev, y: angle }));
-    }, 50);
+      setRotation(prev => {
+        const diff = targetRotation - prev.y;
+        if (Math.abs(diff) < 0.5) {
+          return { ...prev, y: targetRotation };
+        }
+        return { ...prev, y: prev.y + diff * 0.12 };
+      });
+    }, 16);
 
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, targetRotation]);
 
-  // Load items with delay
+  // Staged loading logic
   useEffect(() => {
-    const timers: NodeJS.Timeout[] = [];
+    let timers: NodeJS.Timeout[] = [];
+    let isCancelled = false;
 
-    // Reset and replay
-    const startDemo = () => {
-      setLoadedItems([]);
+    const runStage = (stageIndex: number, startItemIndex: number) => {
+      if (isCancelled || stageIndex >= stages.length) {
+        // All stages complete, reset after delay
+        const resetTimer = setTimeout(() => {
+          if (!isCancelled) {
+            setLoadedItems([]);
+            setCurrentStage(0);
+            setTargetRotation(25);
+            runStage(0, 0);
+          }
+        }, 1500);
+        timers.push(resetTimer);
+        return;
+      }
 
-      demoItems.forEach(item => {
-        const timer = setTimeout(() => {
-          setLoadedItems(prev => [...prev, item.id]);
-        }, item.delay);
-        timers.push(timer);
-      });
+      const stage = stages[stageIndex];
+      setCurrentStage(stageIndex);
+      setTargetRotation(stage.rotation);
 
-      // Reset after all items are loaded
-      const resetTimer = setTimeout(() => {
-        startDemo();
-      }, 10000);
-      timers.push(resetTimer);
+      // Wait for rotation to complete, then load items
+      const rotationDelay = setTimeout(() => {
+        if (isCancelled) return;
+
+        // Load items one by one
+        for (let i = 0; i < stage.itemCount; i++) {
+          const itemIndex = startItemIndex + i;
+          if (itemIndex < demoItems.length) {
+            const loadTimer = setTimeout(() => {
+              if (!isCancelled) {
+                setLoadedItems(prev => [...prev, demoItems[itemIndex].id]);
+              }
+            }, i * 120); // 120ms delay between each item
+            timers.push(loadTimer);
+          }
+        }
+
+        // Move to next stage
+        const nextStageTimer = setTimeout(() => {
+          if (!isCancelled) {
+            runStage(stageIndex + 1, startItemIndex + stage.itemCount);
+          }
+        }, stage.itemCount * 120 + 500); // Wait for all items + extra delay
+        timers.push(nextStageTimer);
+      }, 600); // Wait 0.6s for rotation
+
+      timers.push(rotationDelay);
     };
 
-    startDemo();
+    runStage(0, 0);
 
     return () => {
+      isCancelled = true;
       timers.forEach(timer => clearTimeout(timer));
     };
   }, []);
