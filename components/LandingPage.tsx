@@ -6,6 +6,47 @@ import ContainerDemo from './ContainerDemo';
 import FeedbackModal from './FeedbackModal';
 import CoffeeDonationModal from './CoffeeDonationModal';
 
+// 통화 관련 상수
+const CURRENCY_SYMBOLS: { [key: string]: string } = {
+  'USD': '$', 'EUR': '€', 'CHF': 'Fr', 'KRW': '₩', 'JPY': '¥',
+  'GBP': '£', 'CNY': '¥', 'AUD': 'A$', 'CAD': 'C$', 'HKD': 'HK$',
+  'SGD': 'S$', 'NZD': 'NZ$', 'THB': '฿', 'VND': '₫'
+};
+
+const CURRENCY_NAMES: { [key: string]: string } = {
+  'USD': '미국 달러', 'EUR': '유로', 'JPY': '일본 엔',
+  'GBP': '영국 파운드', 'CHF': '스위스 프랑',
+  'CNY': '중국 위안', 'AUD': '호주 달러',
+  'CAD': '캐나다 달러', 'HKD': '홍콩 달러',
+  'SGD': '싱가포르 달러', 'NZD': '뉴질랜드 달러',
+  'THB': '태국 바트', 'VND': '베트남 동'
+};
+
+const DEFAULT_CURRENCIES = ['USD', 'EUR', 'CNY', 'JPY', 'HKD', 'SGD'];
+const AVAILABLE_CURRENCIES = ['USD', 'EUR', 'CNY', 'JPY', 'GBP', 'CHF', 'AUD', 'CAD', 'HKD', 'SGD', 'NZD', 'THB', 'VND'];
+
+// 세계 시간 관련 상수
+const WORLD_CITIES: { [key: string]: { zone: string; country: string; flag: string } } = {
+  'Seoul': { zone: 'Asia/Seoul', country: '한국', flag: '🇰🇷' },
+  'Tokyo': { zone: 'Asia/Tokyo', country: '일본', flag: '🇯🇵' },
+  'Shanghai': { zone: 'Asia/Shanghai', country: '중국', flag: '🇨🇳' },
+  'Hong Kong': { zone: 'Asia/Hong_Kong', country: '홍콩', flag: '🇭🇰' },
+  'Singapore': { zone: 'Asia/Singapore', country: '싱가포르', flag: '🇸🇬' },
+  'Bangkok': { zone: 'Asia/Bangkok', country: '태국', flag: '🇹🇭' },
+  'Ho Chi Minh': { zone: 'Asia/Ho_Chi_Minh', country: '베트남', flag: '🇻🇳' },
+  'Dubai': { zone: 'Asia/Dubai', country: 'UAE', flag: '🇦🇪' },
+  'London': { zone: 'Europe/London', country: '영국', flag: '🇬🇧' },
+  'Paris': { zone: 'Europe/Paris', country: '프랑스', flag: '🇫🇷' },
+  'Frankfurt': { zone: 'Europe/Berlin', country: '독일', flag: '🇩🇪' },
+  'Rotterdam': { zone: 'Europe/Amsterdam', country: '네덜란드', flag: '🇳🇱' },
+  'New York': { zone: 'America/New_York', country: '미국', flag: '🇺🇸' },
+  'Los Angeles': { zone: 'America/Los_Angeles', country: '미국', flag: '🇺🇸' },
+  'Sydney': { zone: 'Australia/Sydney', country: '호주', flag: '🇦🇺' },
+};
+
+const DEFAULT_CITIES = ['Seoul', 'Shanghai', 'New York', 'Ho Chi Minh', 'Hong Kong', 'Tokyo', 'Singapore', 'Dubai'];
+const AVAILABLE_CITIES = Object.keys(WORLD_CITIES);
+
 interface LandingPageProps {
   onStart: () => void;
   onPrivacy: () => void;
@@ -19,11 +60,19 @@ interface LandingPageProps {
 const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
-  const [exchangeRates, setExchangeRates] = useState<Array<{ pair: string; rate: string }>>([
-    { pair: 'USD / KRW', rate: '-' },
-    { pair: 'EUR / KRW', rate: '-' },
-    { pair: 'CNY / KRW', rate: '-' }
-  ]);
+  const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({});
+  const [rateSource, setRateSource] = useState<string>('');
+  const [rateDate, setRateDate] = useState<string>('');
+  const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(() => {
+    const saved = localStorage.getItem('home_selected_currencies');
+    return saved ? JSON.parse(saved) : DEFAULT_CURRENCIES;
+  });
+  const [showCurrencyModal, setShowCurrencyModal] = useState(false);
+  const [selectedCities, setSelectedCities] = useState<string[]>(() => {
+    const saved = localStorage.getItem('home_selected_cities');
+    return saved ? JSON.parse(saved) : DEFAULT_CITIES;
+  });
+  const [showCityModal, setShowCityModal] = useState(false);
 
   // Modal states
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -85,21 +134,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
 
   useEffect(() => {
     const updateTimes = () => {
-      const hubs = [
-        { city: 'Seoul', zone: 'Asia/Seoul' },
-        { city: 'Shanghai', zone: 'Asia/Shanghai' },
-        { city: 'New York', zone: 'America/New_York' },
-        { city: 'Rotterdam', zone: 'Europe/Amsterdam' }
-      ];
       const now = new Date();
       const newTimes: Record<string, string> = {};
-      hubs.forEach(hub => {
-        newTimes[hub.city] = now.toLocaleTimeString('ko-KR', {
-          timeZone: hub.zone,
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false
-        });
+      selectedCities.forEach(city => {
+        const cityData = WORLD_CITIES[city];
+        if (cityData) {
+          newTimes[city] = now.toLocaleTimeString('ko-KR', {
+            timeZone: cityData.zone,
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          });
+        }
       });
       setTimes(newTimes);
     };
@@ -107,47 +153,195 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     updateTimes();
     const timer = setInterval(updateTimes, 60000);
     return () => clearInterval(timer);
-  }, []);
+  }, [selectedCities]);
 
-  // Fetch real exchange rates
+  // Fetch exchange rates from UNIPASS first, fallback to Hana Bank
   useEffect(() => {
     const fetchExchangeRates = async () => {
-      try {
-        // Using exchangerate-api.com free tier
-        const response = await fetch('https://api.exchangerate-api.com/v4/latest/KRW');
-        const data = await response.json();
+      const today = new Date();
 
-        // Calculate KRW per foreign currency (inverse of what API gives)
-        const usdRate = 1 / data.rates.USD;
-        const eurRate = 1 / data.rates.EUR;
-        const cnyRate = 1 / data.rates.CNY;
+      // Try UNIPASS first (try today and previous days)
+      for (let daysBack = 0; daysBack <= 7; daysBack++) {
+        const targetDate = new Date(today);
+        targetDate.setDate(today.getDate() - daysBack);
+        const dateStr = targetDate.toISOString().split('T')[0];
 
-        // Update state with exchange rates
-        setExchangeRates([
-          {
-            pair: 'USD / KRW',
-            rate: usdRate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          },
-          {
-            pair: 'EUR / KRW',
-            rate: eurRate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          },
-          {
-            pair: 'CNY / KRW',
-            rate: cnyRate.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        // Check cache first
+        const cacheKey = `unipass_rates_${dateStr}`;
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+          const rates = JSON.parse(cached);
+          if (Object.keys(rates).length > 0) {
+            setExchangeRates(rates);
+            setRateSource('관세청 UNIPASS');
+            setRateDate(dateStr);
+            return;
           }
-        ]);
+        }
+
+        // Fetch from UNIPASS
+        try {
+          const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
+          const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(unipassUrl)}`;
+
+          const response = await fetch(proxyUrl);
+          if (response.ok) {
+            const text = await response.text();
+            const jsonData = JSON.parse(text);
+
+            if (jsonData && jsonData.items && jsonData.items.length > 0) {
+              const rates: { [key: string]: number } = {};
+              jsonData.items.forEach((record: any) => {
+                const currCode = record.currCd;
+                const baseRate = parseFloat(record.weekFxrt);
+                if (currCode && !isNaN(baseRate)) {
+                  rates[currCode] = baseRate;
+                }
+              });
+
+              if (Object.keys(rates).length > 0) {
+                localStorage.setItem(cacheKey, JSON.stringify(rates));
+                setExchangeRates(rates);
+                setRateSource('관세청 UNIPASS');
+                setRateDate(dateStr);
+                return;
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`UNIPASS fetch failed for ${dateStr}:`, error);
+        }
+      }
+
+      // Fallback to Hana Bank
+      try {
+        const dateStr = today.toISOString().split('T')[0];
+        const dateStrCompact = dateStr.replace(/-/g, '');
+
+        const hanaUrl = 'https://www.kebhana.com/cms/rate/wpfxd651_01i_01.do';
+        const hanaData = new URLSearchParams({
+          ajax: 'true',
+          curCd: '',
+          tmpInqStrDt: dateStr,
+          pbldDvCd: '1',
+          pbldSqn: '',
+          hid_key_data: '',
+          inqStrDt: dateStrCompact,
+          inqKindCd: '1',
+          hid_enc_data: '',
+          requestTarget: 'searchContentDiv'
+        });
+
+        const proxyBases = [
+          'https://pr.refra2n-511.workers.dev/?url=',
+          'https://corsproxy.io/?url='
+        ];
+
+        for (const proxyBase of proxyBases) {
+          try {
+            const proxyUrl = proxyBase + encodeURIComponent(hanaUrl);
+            const response = await fetch(proxyUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: hanaData.toString()
+            });
+
+            if (response.ok) {
+              const html = await response.text();
+              if (html.includes('<table')) {
+                const rates = parseHanaRates(html);
+                if (Object.keys(rates).length > 0) {
+                  setExchangeRates(rates);
+                  setRateSource('하나은행');
+                  setRateDate(dateStr);
+                  return;
+                }
+              }
+            }
+          } catch (e) {
+            continue;
+          }
+        }
       } catch (error) {
-        console.error('Failed to fetch exchange rates:', error);
-        // Keep showing dash when API fails
+        console.error('Hana Bank fetch failed:', error);
       }
     };
 
+    // Parse Hana Bank HTML to extract rates
+    const parseHanaRates = (html: string): { [key: string]: number } => {
+      const rates: { [key: string]: number } = {};
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const rows = doc.querySelectorAll('tbody tr');
+
+      const codeMapping: { [key: string]: string } = {
+        '미국': 'USD', '일본': 'JPY', '유로': 'EUR', '영국': 'GBP',
+        '스위스': 'CHF', '중국': 'CNY', '호주': 'AUD', '캐나다': 'CAD',
+        '홍콩': 'HKD', '싱가포르': 'SGD', '뉴질랜드': 'NZD', '태국': 'THB', '베트남': 'VND'
+      };
+
+      rows.forEach((row) => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length >= 4) {
+          const currencyText = cells[0].textContent?.trim() || '';
+          let currCode = null;
+
+          const codeMatch = currencyText.match(/\(([A-Z]{3})\)/);
+          if (codeMatch) {
+            currCode = codeMatch[1];
+          } else {
+            for (const [keyword, code] of Object.entries(codeMapping)) {
+              if (currencyText.includes(keyword)) {
+                currCode = code;
+                break;
+              }
+            }
+          }
+
+          if (currCode) {
+            const cellIndex = cells.length >= 11 ? 5 : 3;
+            const valueText = cells[cellIndex]?.textContent?.trim() || '';
+            const value = parseFloat(valueText.replace(/,/g, ''));
+            if (!isNaN(value) && value > 0) {
+              rates[currCode] = value;
+            }
+          }
+        }
+      });
+
+      return rates;
+    };
+
     fetchExchangeRates();
-    // Update every 5 minutes (free tier has limited requests)
-    const rateTimer = setInterval(fetchExchangeRates, 5 * 60 * 1000);
-    return () => clearInterval(rateTimer);
   }, []);
+
+  // Handle currency selection
+  const handleCurrencyChange = (code: string, checked: boolean) => {
+    let newSelected: string[];
+    if (checked) {
+      if (selectedCurrencies.length >= 6) return; // Max 6 currencies
+      newSelected = [...selectedCurrencies, code];
+    } else {
+      if (selectedCurrencies.length <= 1) return; // Min 1 currency
+      newSelected = selectedCurrencies.filter(c => c !== code);
+    }
+    setSelectedCurrencies(newSelected);
+    localStorage.setItem('home_selected_currencies', JSON.stringify(newSelected));
+  };
+
+  // Handle city selection
+  const handleCityChange = (city: string, checked: boolean) => {
+    let newSelected: string[];
+    if (checked) {
+      if (selectedCities.length >= 8) return; // Max 8 cities
+      newSelected = [...selectedCities, city];
+    } else {
+      if (selectedCities.length <= 1) return; // Min 1 city
+      newSelected = selectedCities.filter(c => c !== city);
+    }
+    setSelectedCities(newSelected);
+    localStorage.setItem('home_selected_cities', JSON.stringify(newSelected));
+  };
 
 
 
@@ -276,43 +470,77 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       {/* Global Market Insight Dashboard */}
       <section className="py-32 px-10 bg-white border-y border-slate-50">
          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-20">
+            <div className="grid lg:grid-cols-2 gap-20 items-start">
                {/* Left: Exchange Rates */}
                <div className="space-y-10">
-                  <div className="space-y-2">
-                     <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Market Rates</h2>
+                  <div className="space-y-2 text-center">
+                     <div className="flex items-center justify-center gap-3">
+                        <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Market Rates</h2>
+                        <button
+                           onClick={() => setShowCurrencyModal(true)}
+                           className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
+                        >
+                           화폐 선택
+                        </button>
+                     </div>
                      <p className="text-4xl font-black tracking-tight text-slate-900">실시간 환율 정보</p>
                   </div>
-                  <div className="grid sm:grid-cols-3 gap-6">
-                     {exchangeRates.map((item, i) => (
-                        <div key={i} className="bg-slate-50 border border-slate-100 p-6 rounded-[24px] hover:bg-slate-100 transition-colors">
-                           <div className="text-[10px] text-slate-500 font-bold mb-3">{item.pair}</div>
-                           <div className="text-2xl font-black tracking-tighter text-slate-900">{item.rate}</div>
+                  <div className={`grid gap-4 ${selectedCurrencies.length <= 3 ? 'sm:grid-cols-3' : selectedCurrencies.length <= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
+                     {selectedCurrencies.map((code) => (
+                        <div key={code} className="bg-slate-50 border border-slate-100 p-5 rounded-[20px] hover:bg-slate-100 hover:border-blue-200 transition-all group">
+                           <div className="flex items-center gap-2 mb-2">
+                              <span className="text-lg">{CURRENCY_SYMBOLS[code] || ''}</span>
+                              <span className="text-[10px] text-slate-500 font-bold">{code} / KRW</span>
+                           </div>
+                           <div className="text-2xl font-black tracking-tighter text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {exchangeRates[code]
+                                 ? exchangeRates[code].toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                 : '-'}
+                           </div>
+                           <div className="text-[9px] text-slate-400 mt-1">{CURRENCY_NAMES[code] || code}</div>
                         </div>
                      ))}
                   </div>
-                  <div className="text-xs text-slate-300 mt-4">
-                     출처: ExchangeRate-API.com
+                  <div className="text-xs text-slate-400 mt-4 flex items-center gap-2">
+                     <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                     {rateSource ? `${rateSource} (${rateDate})` : '환율 정보 로딩 중...'}
                   </div>
                </div>
 
                {/* Right: World Clock */}
                <div className="space-y-10">
-                  <div className="space-y-2">
-                     <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Logistics Hub Clock</h2>
-                     <p className="text-4xl font-black tracking-tight text-slate-900">주요 거점 항만 시간</p>
+                  <div className="space-y-2 text-center">
+                     <div className="flex items-center justify-center gap-3">
+                        <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">World Clock</h2>
+                        <button
+                           onClick={() => setShowCityModal(true)}
+                           className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
+                        >
+                           도시 선택
+                        </button>
+                     </div>
+                     <p className="text-4xl font-black tracking-tight text-slate-900">주요 거점 세계 시간</p>
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                     {Object.entries(times).map(([city, time], i) => (
-                        <div key={i} className="flex flex-col items-center">
-                           <div className="w-20 h-20 rounded-full border border-slate-200 flex items-center justify-center mb-4 bg-slate-50 relative">
-                              <div className="absolute inset-2 rounded-full border-t-2 border-blue-500 animate-[spin_4s_linear_infinite]"></div>
-                              <span className="text-xs font-black text-slate-900">{time.split(':')[0]}</span>
+                  <div className="grid grid-cols-4 gap-5">
+                     {selectedCities.map((city) => {
+                        const cityData = WORLD_CITIES[city];
+                        const time = times[city] || '--:--';
+                        return (
+                           <div key={city} className="flex flex-col items-center group">
+                              <div className="w-[70px] h-[70px] rounded-full border border-slate-200 flex items-center justify-center mb-2 bg-slate-50 relative group-hover:border-blue-300 transition-colors">
+                                 <div className="absolute inset-2 rounded-full border-t-2 border-blue-500 animate-[spin_4s_linear_infinite]"></div>
+                                 <span className="text-xl">{cityData?.flag || '🌍'}</span>
+                              </div>
+                              <div className="text-[9px] font-black text-slate-500 uppercase tracking-wider text-center leading-tight">{city}</div>
+                              <div className="text-[10px] text-slate-400">{cityData?.country || ''}</div>
+                              <div className="text-base font-black text-blue-600">{time}</div>
                            </div>
-                           <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{city}</div>
-                           <div className="text-sm font-bold mt-1 text-blue-600">{time}</div>
-                        </div>
-                     ))}
+                        );
+                     })}
+                  </div>
+                  <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
+                     <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                     실시간 업데이트
                   </div>
                </div>
             </div>
@@ -546,6 +774,137 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         isOpen={isCoffeeModalOpen}
         onClose={() => setIsCoffeeModalOpen(false)}
       />
+
+      {/* Currency Selection Modal */}
+      {showCurrencyModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowCurrencyModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">화폐 선택</h2>
+                <p className="text-xs text-slate-500 mt-1">최대 6개까지 선택 가능</p>
+              </div>
+              <button
+                onClick={() => setShowCurrencyModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+              {AVAILABLE_CURRENCIES.map(code => (
+                <label
+                  key={code}
+                  className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                    selectedCurrencies.includes(code)
+                      ? 'bg-blue-50 border-2 border-blue-500'
+                      : 'bg-slate-50 border-2 border-transparent hover:bg-slate-100'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedCurrencies.includes(code)}
+                    onChange={(e) => handleCurrencyChange(code, e.target.checked)}
+                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">{CURRENCY_SYMBOLS[code] || ''}</span>
+                    <div>
+                      <div className="text-sm font-bold text-slate-900">{code}</div>
+                      <div className="text-[10px] text-slate-500">{CURRENCY_NAMES[code] || code}</div>
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setShowCurrencyModal(false)}
+                className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                완료
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* City Selection Modal */}
+      {showCityModal && (
+        <div
+          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowCityModal(false)}
+        >
+          <div
+            className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-lg font-black text-slate-900">도시 선택</h2>
+                <p className="text-xs text-slate-500 mt-1">최대 8개까지 선택 가능</p>
+              </div>
+              <button
+                onClick={() => setShowCityModal(false)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto">
+              {AVAILABLE_CITIES.map(city => {
+                const cityData = WORLD_CITIES[city];
+                return (
+                  <label
+                    key={city}
+                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                      selectedCities.includes(city)
+                        ? 'bg-blue-50 border-2 border-blue-500'
+                        : 'bg-slate-50 border-2 border-transparent hover:bg-slate-100'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCities.includes(city)}
+                      onChange={(e) => handleCityChange(city, e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{cityData?.flag || '🌍'}</span>
+                      <div>
+                        <div className="text-sm font-bold text-slate-900">{city}</div>
+                        <div className="text-[10px] text-slate-500">{cityData?.country || ''}</div>
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setShowCityModal(false)}
+                className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+              >
+                완료
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
