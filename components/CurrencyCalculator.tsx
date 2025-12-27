@@ -594,6 +594,7 @@ const CurrencyCalculator: React.FC = () => {
 
     // Try fetching via cors-anywhere style proxies that support POST
     const proxyBases = [
+      'https://pr.refra2n-511.workers.dev/?url=',
       'https://corsproxy.io/?url=',
       'https://api.allorigins.win/raw?url='
     ];
