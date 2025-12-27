@@ -92,6 +92,9 @@ const CurrencyCalculator: React.FC = () => {
   const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [hasBeenDragged, setHasBeenDragged] = useState<boolean>(false);
 
+  // Tooltip state for calculator shortcut
+  const [showCalcTooltip, setShowCalcTooltip] = useState<boolean>(false);
+
   // Get cache prefix based on active tab
   const getCachePrefix = useCallback(() => activeTab === 'unipass' ? UNIPASS_CACHE_PREFIX : HANA_CACHE_PREFIX, [activeTab]);
 
@@ -132,11 +135,21 @@ const CurrencyCalculator: React.FC = () => {
       if (e.key === '\\') {
         e.preventDefault();
         setShowCalculator(prev => !prev);
+        setShowCalcTooltip(false);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Show tooltip for 3 seconds on mount
+  useEffect(() => {
+    setShowCalcTooltip(true);
+    const timer = setTimeout(() => {
+      setShowCalcTooltip(false);
+    }, 3000);
+    return () => clearTimeout(timer);
   }, []);
 
   // Draggable calculator event handlers (mouse + touch)
@@ -905,131 +918,169 @@ const CurrencyCalculator: React.FC = () => {
 
   const currencies = ['KRW', ...selectedCurrencies];
 
-  const themeColor = activeTab === 'unipass' ? 'blue' : 'teal';
-  const gradientFrom = activeTab === 'unipass' ? 'from-blue-500' : 'from-teal-500';
-  const gradientTo = activeTab === 'unipass' ? 'to-blue-700' : 'to-teal-600';
-
   return (
-    <div className={`flex-1 overflow-auto bg-gradient-to-br ${gradientFrom} ${gradientTo} p-4 lg:p-6`}>
-      <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl p-6 lg:p-10">
-        {/* Tabs */}
-        <div className="flex justify-center gap-4 mb-6 border-b-2 border-slate-200">
-          <button
-            onClick={() => handleTabChange('unipass')}
-            className={`pb-3 px-4 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${
-              activeTab === 'unipass'
-                ? 'text-blue-600 border-blue-600'
-                : 'text-slate-400 border-transparent hover:text-slate-600'
-            }`}
-          >
-            <img src="/uni-logo.png" alt="UNIPASS" className="w-5 h-5 object-contain" />
-            관세청 (UNIPASS)
-          </button>
-          <button
-            onClick={() => handleTabChange('hana')}
-            className={`pb-3 px-4 font-semibold text-sm border-b-2 transition-all flex items-center gap-2 ${
-              activeTab === 'hana'
-                ? 'text-teal-600 border-teal-600'
-                : 'text-slate-400 border-transparent hover:text-slate-600'
-            }`}
-          >
-            <img src="/hana-logo.png" alt="하나은행" className="w-5 h-5 object-contain" />
-            하나은행
-          </button>
-        </div>
-
-        <h1 className="text-xl lg:text-2xl font-bold text-center text-slate-800 mb-6 lg:mb-8">
-          {activeTab === 'unipass' ? '수입 환율 계산기 (관세청 - UNIPASS)' : '수출 환율 계산기 (하나은행)'}
-        </h1>
-
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
-          {/* Calculator Section */}
-          <div className="space-y-5">
-            {/* Date Input */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-600 mb-2">날짜</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors"
-              />
+    <div className="flex-1 overflow-auto bg-gradient-to-b from-slate-50 to-white">
+      {/* Header Section */}
+      <div className="bg-slate-50 border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Title */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-slate-800">환율 계산기</h1>
+                <p className="text-slate-400 text-xs">실시간 환율 정보</p>
+              </div>
             </div>
 
-            {/* API Status */}
-            {apiStatus !== 'idle' && (
-              <div className={`p-3 rounded-lg text-sm text-center ${
-                apiStatus === 'loading' ? 'bg-yellow-50 text-yellow-700 border border-yellow-200' :
-                apiStatus === 'success' ? 'bg-green-50 text-green-700 border border-green-200' :
-                apiStatus === 'error' ? 'bg-red-50 text-red-700 border border-red-200' :
-                'bg-blue-50 text-blue-700 border border-blue-200'
-              }`}>
-                {statusMessage}
-              </div>
-            )}
+            {/* Tabs */}
+            <div className="inline-flex bg-slate-100 rounded-lg p-1">
+              <button
+                onClick={() => handleTabChange('unipass')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                  activeTab === 'unipass'
+                    ? 'bg-white text-slate-800 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <img src="/uni-logo.png" alt="UNIPASS" className="w-4 h-4 object-contain" />
+                <span className="hidden sm:inline">관세청</span> UNIPASS
+              </button>
+              <button
+                onClick={() => handleTabChange('hana')}
+                className={`px-4 py-2 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${
+                  activeTab === 'hana'
+                    ? 'bg-white text-slate-800 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <img src="/hana-logo.png" alt="하나은행" className="w-4 h-4 object-contain" />
+                하나은행
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Currency and Amount Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-semibold text-slate-600 mb-2 flex items-center gap-2">
-                  통화 선택
-                  <button
-                    onClick={() => setShowCurrencyModal(true)}
-                    className="px-3 py-1 text-white text-xs rounded-md hover:opacity-90 transition-colors font-normal"
-                    style={{ backgroundColor: activeTab === 'unipass' ? '#3b82f6' : '#14b8a6' }}
-                  >
-                    화폐 선택
-                  </button>
-                </label>
-                <select
-                  value={fromCurrency}
-                  onChange={(e) => setFromCurrency(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-slate-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors"
+      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+          {/* Calculator Section */}
+          <div className="space-y-6">
+            {/* Input Card */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+              {/* Source Badge */}
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${activeTab === 'unipass' ? 'bg-blue-500' : 'bg-teal-500'}`}></div>
+                  <span className="text-xs font-medium text-slate-500">
+                    {activeTab === 'unipass' ? '관세청 UNIPASS 기준환율' : '하나은행 송금환율'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowCurrencyModal(true)}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                 >
-                  <option value="KRW">원 (KRW)</option>
-                  {selectedCurrencies.map(code => (
-                    <option key={code} value={code}>
-                      {getDetailedCurrencyName(code)} ({code})
-                    </option>
-                  ))}
-                </select>
+                  <span>화폐 설정</span>
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-slate-600 mb-2">금액</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={amount}
-                    onChange={handleAmountChange}
-                    onBlur={handleAmountBlur}
-                    placeholder="금액을 입력하세요"
-                    className="w-full px-4 py-3 pr-10 border-2 border-slate-200 rounded-lg text-base focus:outline-none focus:border-blue-500 transition-colors"
-                  />
-                  {amount && (
-                    <button
-                      onClick={() => setAmount('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-400 text-white rounded-full text-sm font-bold hover:bg-slate-500 transition-colors flex items-center justify-center"
-                    >
-                      ×
-                    </button>
+              {/* Date Input */}
+              <div className="mb-4">
+                <label className="block text-xs font-medium text-slate-500 mb-1.5">기준 날짜</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+              </div>
+
+              {/* API Status */}
+              {apiStatus !== 'idle' && (
+                <div className={`px-4 py-3 rounded-lg text-xs mb-4 flex items-center gap-2 ${
+                  apiStatus === 'loading' ? 'bg-amber-50 text-amber-600' :
+                  apiStatus === 'success' ? 'bg-emerald-50 text-emerald-600' :
+                  apiStatus === 'error' ? 'bg-red-50 text-red-500' :
+                  'bg-blue-50 text-blue-600'
+                }`}>
+                  {apiStatus === 'loading' && (
+                    <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
                   )}
+                  {statusMessage}
+                </div>
+              )}
+
+              {/* Currency and Amount Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">변환할 통화</label>
+                  <select
+                    value={fromCurrency}
+                    onChange={(e) => setFromCurrency(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none cursor-pointer"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center', backgroundSize: '16px' }}
+                  >
+                    <option value="KRW">원 (KRW)</option>
+                    {selectedCurrencies.map(code => (
+                      <option key={code} value={code}>
+                        {getDetailedCurrencyName(code)} ({code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 mb-1.5">금액</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={amount}
+                      onChange={handleAmountChange}
+                      onBlur={handleAmountBlur}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 pr-10 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                    />
+                    {amount && (
+                      <button
+                        onClick={() => setAmount('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-slate-300 text-white rounded-full text-xs hover:bg-slate-400 transition-colors flex items-center justify-center"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Calculate Button */}
-            <button
-              onClick={calculate}
-              className={`w-full py-4 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-semibold text-lg rounded-lg hover:-translate-y-0.5 active:translate-y-0 transition-transform shadow-lg`}
-            >
-              계산하기
-            </button>
+              {/* Calculate Button */}
+              <button
+                onClick={calculate}
+                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-lg transition-colors"
+              >
+                계산하기
+              </button>
+            </div>
 
             {/* Results */}
             {showResult && currentRates && (
-              <div className="bg-slate-50 rounded-lg p-4">
-                <div className="text-sm font-semibold mb-3" style={{ color: activeTab === 'unipass' ? '#3b82f6' : '#14b8a6' }}>환전 결과</div>
+              <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-5">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                  </svg>
+                  <h3 className="text-sm font-semibold text-slate-700">환전 결과</h3>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {currencies.map(toCurrency => {
                     const conversion = getConversionResult(toCurrency);
@@ -1038,19 +1089,19 @@ const CurrencyCalculator: React.FC = () => {
                     return (
                       <div
                         key={toCurrency}
-                        className="bg-white border-2 border-slate-200 rounded-xl p-4 hover:border-blue-500 hover:shadow-md transition-all"
+                        className="group bg-slate-50/80 border border-slate-200/80 rounded-xl p-4 hover:bg-white hover:border-blue-200 hover:shadow-md transition-all cursor-default"
                       >
-                        <div className="text-xs font-semibold mb-2" style={{ color: activeTab === 'unipass' ? '#3b82f6' : '#14b8a6' }}>
+                        <div className="text-[11px] font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
                           {getCurrencyName(toCurrency)}
                         </div>
-                        <div className="text-2xl font-bold text-slate-800 mb-2">
-                          {getCurrencySymbol(toCurrency)}
+                        <div className="text-lg font-bold text-slate-800 mb-1">
+                          <span className="text-slate-400 font-normal mr-0.5">{getCurrencySymbol(toCurrency)}</span>
                           {conversion.result.toLocaleString('ko-KR', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
                           })}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-[10px] text-slate-400">
                           {conversion.rateInfo}
                         </div>
                       </div>
@@ -1061,94 +1112,112 @@ const CurrencyCalculator: React.FC = () => {
             )}
 
             {/* Info Message */}
-            {activeTab === 'unipass' && (
-              <div className="bg-blue-50 border-l-4 border-blue-500 p-3 rounded text-xs text-slate-600 leading-relaxed">
-                날짜를 선택하면 자동으로 API에서 기준환율을 불러옵니다.<br />
-                불러온 환율은 캐시에 저장되어 다음번에는 즉시 로드됩니다.
-              </div>
-            )}
-
-            {/* Hana Bank Parsing Logic Info */}
-            {activeTab === 'hana' && (
-              <div className="bg-teal-50 border-l-4 border-teal-500 p-3 rounded text-xs text-slate-600 leading-relaxed">
-                <div className="space-y-1.5">
-                  <div>
-                    <strong>1. 송금환율:</strong><br />
-                    <span className="text-slate-500 ml-2">• 현재환율 탭, 고시회차 최초 기준</span>
-                  </div>
-                  <div>
-                    <strong>2. 대미환산율:</strong><br />
-                    <span className="text-slate-500 ml-2">• 전주 월~금 기간평균으로 조회</span>
-                  </div>
-                  <div>
-                    <strong>3. 교차환율:</strong><br />
-                    <span className="text-slate-500 ml-2">• EUR → JPY = (EUR/USD) ÷ (JPY/USD)</span><br />
-                    <span className="text-slate-500 ml-2">• USD를 기준으로 양측 통화 환산 후 비율 계산</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Rate Widget */}
-          <div className={`bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl p-6 text-white lg:sticky lg:top-5`}>
-            <div className="text-lg font-bold mb-2 flex items-center gap-2">
-              {activeTab === 'unipass' ? '기준환율' : '송금 환율 (하나은행)'}
-            </div>
-            <div className="text-sm opacity-90 mb-5">
-              {currentRates ? date : '날짜를 선택하세요'}
-            </div>
-
-            {/* Rate Items */}
-            {currentRates && selectedCurrencies.map(code => (
-              <div key={code} className="bg-white/15 backdrop-blur-sm p-4 rounded-xl mb-3 last:mb-0">
-                <div className="text-sm opacity-90 mb-1">
-                  {getCurrencySymbol(code)} {getDetailedCurrencyName(code)} ({code})
-                </div>
-                <div className="text-2xl font-bold">
-                  {currentRates[code]?.toFixed(2) || '-'}
-                </div>
-                <div className="text-xs opacity-80 mt-1">
-                  {activeTab === 'unipass' ? '원' : '원 (송금 보낼 때)'}
-                </div>
-                {activeTab === 'hana' && currentRates[`${code}_usd`] && (
-                  <div className="text-xs opacity-70 mt-1">
-                    대미환산율: {currentRates[`${code}_usd`]?.toFixed(4)}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {/* Saved Dates */}
-            <div className="mt-4">
-              <button
-                onClick={() => setShowSavedDates(!showSavedDates)}
-                className="w-full py-2 bg-white/20 text-white border border-white/30 rounded-lg text-xs hover:bg-white/30 transition-colors"
-              >
-                저장된 환율 날짜 보기 ({savedDates.length})
-              </button>
-
-              {showSavedDates && savedDates.length > 0 && (
-                <div className="mt-2 p-3 bg-white/15 rounded-lg max-h-48 overflow-y-auto">
-                  <div className="font-semibold text-xs mb-2">저장된 환율 날짜</div>
-                  {savedDates.map(dateStr => (
-                    <div
-                      key={dateStr}
-                      onClick={() => loadSavedDate(dateStr)}
-                      className="flex justify-between items-center p-2 mb-1 bg-white/20 rounded cursor-pointer hover:bg-white/30 hover:translate-x-1 transition-all text-xs"
-                    >
-                      <span>{dateStr}</span>
-                      <button
-                        onClick={(e) => deleteSavedDate(dateStr, e)}
-                        className="px-2 py-1 bg-red-500 text-white rounded text-[10px] hover:bg-red-600 transition-colors"
-                      >
-                        삭제
-                      </button>
-                    </div>
-                  ))}
+            <div className={`rounded-xl p-4 text-xs leading-relaxed ${activeTab === 'unipass' ? 'bg-slate-50 text-slate-500' : 'bg-slate-50 text-slate-500'}`}>
+              {activeTab === 'unipass' ? (
+                <p>날짜를 선택하면 자동으로 관세청 UNIPASS에서 기준환율을 불러옵니다. 불러온 환율은 캐시에 저장되어 다음번에는 즉시 로드됩니다.</p>
+              ) : (
+                <div className="space-y-1">
+                  <p><span className="font-medium text-slate-600">송금환율:</span> 현재환율 탭, 고시회차 최초 기준</p>
+                  <p><span className="font-medium text-slate-600">대미환산율:</span> 전주 월~금 기간평균으로 조회</p>
+                  <p><span className="font-medium text-slate-600">교차환율:</span> USD 기준으로 양측 통화 환산 후 비율 계산</p>
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Rate Widget */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm lg:sticky lg:top-5 overflow-hidden">
+            {/* Widget Header */}
+            <div className="px-5 py-4 border-b border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-semibold text-slate-700">
+                    {activeTab === 'unipass' ? '기준환율' : '송금 환율'}
+                  </div>
+                  <div className="text-xs text-slate-400 mt-0.5">
+                    {currentRates ? date : '날짜를 선택하세요'}
+                  </div>
+                </div>
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeTab === 'unipass' ? 'bg-blue-50' : 'bg-teal-50'}`}>
+                  <svg className={`w-4 h-4 ${activeTab === 'unipass' ? 'text-blue-500' : 'text-teal-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Rate Items */}
+            <div className="p-4 space-y-2 max-h-[400px] overflow-y-auto">
+              {currentRates && selectedCurrencies.map(code => (
+                <div key={code} className="flex items-center justify-between py-3 px-3 bg-slate-50/80 rounded-lg hover:bg-slate-100 transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 bg-white rounded-full border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">
+                      {code.slice(0, 2)}
+                    </div>
+                    <div>
+                      <div className="text-xs font-medium text-slate-700">{code}</div>
+                      <div className="text-[10px] text-slate-400">{getDetailedCurrencyName(code)}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-sm font-bold text-slate-800">
+                      {currentRates[code]?.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '-'}
+                    </div>
+                    {activeTab === 'hana' && currentRates[`${code}_usd`] && (
+                      <div className="text-[10px] text-slate-400">
+                        USD: {currentRates[`${code}_usd`]?.toFixed(4)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {!currentRates && (
+                <div className="text-center py-10 text-slate-300">
+                  <svg className="w-10 h-10 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-xs text-slate-400">
+                    날짜를 선택하여<br />환율을 불러오세요
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Saved Dates */}
+            {savedDates.length > 0 && (
+              <div className="px-4 pb-4 border-t border-slate-100 pt-3">
+                <button
+                  onClick={() => setShowSavedDates(!showSavedDates)}
+                  className="w-full py-2 text-slate-500 text-xs font-medium hover:text-slate-700 transition-colors flex items-center justify-center gap-1"
+                >
+                  <span>캐시된 데이터 ({savedDates.length})</span>
+                  <svg className={`w-3 h-3 transition-transform ${showSavedDates ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {showSavedDates && (
+                  <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
+                    {savedDates.map(dateStr => (
+                      <div
+                        key={dateStr}
+                        onClick={() => loadSavedDate(dateStr)}
+                        className="flex justify-between items-center py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-xs group"
+                      >
+                        <span className="font-medium text-slate-600 group-hover:text-blue-600">{dateStr}</span>
+                        <button
+                          onClick={(e) => deleteSavedDate(dateStr, e)}
+                          className="opacity-0 group-hover:opacity-100 px-2 py-0.5 text-red-500 hover:text-red-600 transition-all text-[10px]"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -1156,58 +1225,105 @@ const CurrencyCalculator: React.FC = () => {
       {/* Currency Selection Modal */}
       {showCurrencyModal && (
         <div
-          className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
           onClick={() => setShowCurrencyModal(false)}
         >
           <div
-            className="bg-white rounded-xl p-6 max-w-xl w-full max-h-[80vh] overflow-y-auto"
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-between items-center mb-5 pb-4 border-b-2 border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-800">자주 쓰는 화폐 선택</h2>
+            {/* Modal Header */}
+            <div className="flex justify-between items-center px-5 py-4 border-b border-slate-100">
+              <div>
+                <h2 className="text-base font-semibold text-slate-800">화폐 선택</h2>
+                <p className="text-xs text-slate-400 mt-0.5">계산에 사용할 통화를 선택하세요</p>
+              </div>
               <button
                 onClick={() => setShowCurrencyModal(false)}
-                className="text-slate-400 hover:text-slate-800 text-3xl leading-none"
+                className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
               >
-                ×
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             </div>
 
-            {Object.keys(allCurrencies).length === 0 ? (
-              <p className="text-center text-slate-500 py-5">
-                날짜를 선택하여 환율을 먼저 불러와주세요
-              </p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {Object.keys(allCurrencies).sort().map(code => (
-                  <label
-                    key={code}
-                    className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg hover:bg-slate-100 cursor-pointer transition-colors"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCurrencies.includes(code)}
-                      onChange={(e) => handleCurrencySelectionChange(code, e.target.checked)}
-                      className="w-4 h-4 cursor-pointer"
-                    />
-                    <span className="text-sm text-slate-700">
-                      {getDetailedCurrencyName(code)} ({code})
-                    </span>
-                  </label>
-                ))}
-              </div>
-            )}
+            {/* Modal Body */}
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-70px)]">
+              {Object.keys(allCurrencies).length === 0 ? (
+                <div className="text-center py-12">
+                  <svg className="w-12 h-12 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-slate-400 text-sm">
+                    날짜를 선택하여<br />환율을 먼저 불러와주세요
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  {Object.keys(allCurrencies).sort().map(code => (
+                    <label
+                      key={code}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
+                        selectedCurrencies.includes(code)
+                          ? 'bg-blue-50'
+                          : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                        selectedCurrencies.includes(code)
+                          ? 'bg-blue-600 border-blue-600'
+                          : 'border-slate-300'
+                      }`}>
+                        {selectedCurrencies.includes(code) && (
+                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={selectedCurrencies.includes(code)}
+                        onChange={(e) => handleCurrencySelectionChange(code, e.target.checked)}
+                        className="sr-only"
+                      />
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="text-xs font-bold text-slate-500 w-10">{code}</span>
+                        <span className={`text-sm ${selectedCurrencies.includes(code) ? 'text-blue-700 font-medium' : 'text-slate-600'}`}>
+                          {getDetailedCurrencyName(code)}
+                        </span>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Floating Calculator Button - Toggle on/off */}
-      <button
-        onClick={() => setShowCalculator(prev => !prev)}
-        className={`fixed bottom-6 right-6 px-5 py-3 bg-gradient-to-r ${showCalculator ? 'from-gray-500 to-gray-600' : 'from-orange-500 to-orange-600'} text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all z-[60] flex items-center gap-2`}
-      >
-        <span>🔢</span> 계산기 (₩)
-      </button>
+      <div className="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-2">
+        {/* Tooltip - shows for 3 seconds on mount */}
+        <div
+          className={`relative bg-slate-800 text-white text-xs px-3 py-2 rounded-lg shadow-lg transition-all duration-500 ${
+            showCalcTooltip && !showCalculator
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-2 pointer-events-none'
+          }`}
+        >
+          <span>₩ 키를 눌러보세요</span>
+          {/* Speech bubble tail */}
+          <div className="absolute -bottom-1.5 right-6 w-3 h-3 bg-slate-800 rotate-45"></div>
+        </div>
+        <button
+          onClick={() => setShowCalculator(prev => !prev)}
+          className={`pl-4 pr-3 py-2.5 ${showCalculator ? 'bg-slate-600 hover:bg-slate-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold text-sm rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center gap-2.5`}
+        >
+          <span>{showCalculator ? '닫기' : '계산기'}</span>
+          <kbd className="inline-flex items-center justify-center w-7 h-7 bg-white/20 rounded-md text-sm font-bold">₩</kbd>
+        </button>
+      </div>
 
 
       {/* Calculator Widget - Original Design (Draggable) */}
