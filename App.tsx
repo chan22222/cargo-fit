@@ -32,29 +32,28 @@ const App: React.FC = () => {
   useEffect(() => {
     const checkRoute = () => {
       const path = window.location.pathname;
-      const hash = window.location.hash;
 
       // Check admin route
-      setIsAdminRoute(path === '/admin' || hash === '#/admin' || hash === '#admin');
+      setIsAdminRoute(path === '/admin');
 
       // Check other routes
-      if (hash.startsWith('#/insight/')) {
-        const id = hash.split('/')[2];
+      if (path.startsWith('/insight/')) {
+        const id = path.split('/')[2];
         setCurrentRoute('insight');
         setCurrentInsightId(id);
-      } else if (hash === '#/insights') {
+      } else if (path === '/insights') {
         setCurrentRoute('insights');
-      } else if (hash === '#/privacy') {
+      } else if (path === '/privacy') {
         setCurrentRoute('privacy');
-      } else if (hash === '#/terms') {
+      } else if (path === '/terms') {
         setCurrentRoute('terms');
-      } else if (hash === '#/container') {
+      } else if (path === '/container') {
         setCurrentRoute('container');
-      } else if (hash === '#/pallet') {
+      } else if (path === '/pallet') {
         setCurrentRoute('pallet');
-      } else if (hash === '#/currency') {
+      } else if (path === '/currency') {
         setCurrentRoute('currency');
-      } else if (path === '/admin' || hash === '#/admin' || hash === '#admin') {
+      } else if (path === '/admin') {
         setCurrentRoute('admin');
       } else {
         setCurrentRoute('home');
@@ -69,12 +68,10 @@ const App: React.FC = () => {
       setIsAuthenticated(true);
     }
 
-    // Listen for hash changes
-    window.addEventListener('hashchange', checkRoute);
+    // Listen for popstate (browser back/forward)
     window.addEventListener('popstate', checkRoute);
 
     return () => {
-      window.removeEventListener('hashchange', checkRoute);
       window.removeEventListener('popstate', checkRoute);
     };
   }, []);
@@ -510,16 +507,21 @@ const App: React.FC = () => {
   const currentContainer = CONTAINER_SPECS[containerType];
 
   // Navigation handlers
+  const navigate = (path: string) => {
+    window.history.pushState({}, '', path);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   const handleNavigateToInsights = () => {
-    window.location.hash = '#/insights';
+    navigate('/insights');
   };
 
   const handleNavigateToInsight = (id: string) => {
-    window.location.hash = `#/insight/${id}`;
+    navigate(`/insight/${id}`);
   };
 
   const handleNavigateBack = () => {
-    window.location.hash = '';
+    navigate('/');
   };
 
   // Handle navigation from admin to home
@@ -527,7 +529,7 @@ const App: React.FC = () => {
     setIsAdminRoute(false);
     setIsAuthenticated(false);
     localStorage.removeItem('adminAuthenticated');
-    window.location.hash = '';
+    navigate('/');
   };
 
   // Handle login
@@ -556,7 +558,7 @@ const App: React.FC = () => {
   // Handle logout from login page
   const handleBackFromLogin = () => {
     setIsAdminRoute(false);
-    window.location.hash = '';
+    navigate('/');
   };
 
   // URL 라우트에 따라 activeTab 설정 - 모든 훅은 조건부 렌더링 전에 호출되어야 함
@@ -613,7 +615,7 @@ const App: React.FC = () => {
         <Analytics />
         <InsightDetail
           insightId={currentInsightId}
-          onNavigateBack={() => window.location.hash = '#/insights'}
+          onNavigateBack={() => navigate('/insights')}
           onNavigateToInsight={handleNavigateToInsight}
         />
       </>
@@ -653,7 +655,7 @@ const App: React.FC = () => {
           className="flex items-center gap-2 md:gap-4 cursor-pointer group"
           onClick={() => {
             setActiveTab('home');
-            window.location.hash = '';
+            navigate('/');
           }}
         >
           <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center font-black text-white text-xl md:text-2xl shadow-md group-hover:shadow-lg transition-all duration-300">
@@ -675,7 +677,7 @@ const App: React.FC = () => {
            <button
              onClick={() => {
                setActiveTab('home');
-               window.location.hash = '';
+               navigate('/');
              }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'home' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
@@ -684,7 +686,7 @@ const App: React.FC = () => {
            <button
              onClick={() => {
                setActiveTab('container');
-               window.location.hash = '#/container';
+               navigate('/container');
              }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'container' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
@@ -693,7 +695,7 @@ const App: React.FC = () => {
            <button
              onClick={() => {
                setActiveTab('pallet');
-               window.location.hash = '#/pallet';
+               navigate('/pallet');
              }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'pallet' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
@@ -702,7 +704,7 @@ const App: React.FC = () => {
            <button
              onClick={() => {
                setActiveTab('currency');
-               window.location.hash = '#/currency';
+               navigate('/currency');
              }}
              className={`text-sm font-bold transition-all duration-300 ${activeTab === 'currency' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
            >
@@ -732,7 +734,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('home');
-                  window.location.hash = '';
+                  navigate('/');
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -744,7 +746,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('container');
-                  window.location.hash = '#/container';
+                  navigate('/container');
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -756,7 +758,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('pallet');
-                  window.location.hash = '#/pallet';
+                  navigate('/pallet');
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -768,7 +770,7 @@ const App: React.FC = () => {
               <button
                 onClick={() => {
                   setActiveTab('currency');
-                  window.location.hash = '#/currency';
+                  navigate('/currency');
                   setMobileMenuOpen(false);
                 }}
                 className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
@@ -988,10 +990,10 @@ const App: React.FC = () => {
         onSelect={(type) => {
           if (type === 'container') {
             setActiveTab('container');
-            window.location.hash = '#/container';
+            navigate('/container');
           } else {
             setActiveTab('pallet');
-            window.location.hash = '#/pallet';
+            navigate('/pallet');
           }
           setShowSelectionModal(false);
         }}

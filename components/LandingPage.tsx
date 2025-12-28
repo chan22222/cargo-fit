@@ -743,7 +743,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                  <div className="text-xs text-slate-500">
                     © 2025 SHIPDAGO. All Rights Reserved.
                     <a
-                      href="#/admin"
+                      href="/admin"
                       className="opacity-0 hover:opacity-100 transition-opacity ml-3 text-slate-600"
                       title="Admin"
                     >
