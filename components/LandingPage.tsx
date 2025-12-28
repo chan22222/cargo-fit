@@ -389,8 +389,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                 <span className="text-blue-600">Ship Faster.</span>
               </h1>
               <p className="text-base md:text-xl text-slate-500 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium px-4 md:px-0">
-                SHIPDAGO는 복잡한 물류 프로세스를 데이터와 AI로 혁신합니다.
-                정밀한 3D 시뮬레이션으로 적재 효율을 극대화하고 운송 비용을 절감하세요.
+                쉽다고는 복잡한 물류 프로세스를 데이터와 AI로 혁신합니다.
+                컨테이너 3D 시뮬레이션을 가입 없이 무료로 이용해보세요.
               </p>
             </div>
 
