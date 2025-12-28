@@ -1,11 +1,15 @@
 {
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/sitemap.xml"
+    },
+    {
       "source": "/ads.txt",
       "destination": "/ads.txt"
     },
     {
-      "source": "/((?!.*\\.).*)",
+      "source": "/:path((?!.*\\.).*)",
       "destination": "/index.html"
     }
   ],
