@@ -522,9 +522,30 @@ const App: React.FC = () => {
   const currentContainer = CONTAINER_SPECS[containerType];
 
   // Navigation handlers
-  const navigate = (path: string) => {
+  const navigate = (path: string, skipStateUpdate = false) => {
     window.history.pushState({}, '', path);
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    if (!skipStateUpdate) {
+      // Directly update route state instead of dispatching popstate
+      const routeMap: Record<string, typeof currentRoute> = {
+        '/': 'home',
+        '/insights': 'insights',
+        '/privacy': 'privacy',
+        '/terms': 'terms',
+        '/container': 'container',
+        '/pallet': 'pallet',
+        '/currency': 'currency',
+        '/incoterms': 'incoterms',
+        '/holidays': 'holidays',
+        '/cbm': 'cbm',
+        '/regulations': 'regulations',
+        '/hscode': 'hscode',
+        '/admin': 'admin',
+      };
+      const route = routeMap[path];
+      if (route) {
+        setCurrentRoute(route);
+      }
+    }
   };
 
   const handleNavigateToInsights = () => {
