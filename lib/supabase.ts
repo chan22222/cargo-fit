@@ -131,22 +131,42 @@ export const db = {
 
     // 조회수 증가
     incrementViewCount: async (id: string) => {
-      // 먼저 현재 조회수 가져오기
-      const { data: current } = await supabase
-        .from('insights')
-        .select('view_count')
-        .eq('id', id)
-        .single();
+      try {
+        // RPC 함수 사용 시도 (서버 측에서 권한 체크 없이 실행)
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('increment_view_count', { insight_id: id });
 
-      const currentCount = current?.view_count || 0;
+        if (!rpcError) {
+          return { data: rpcData, error: null };
+        }
 
-      const { data, error } = await supabase
-        .from('insights')
-        .update({ view_count: currentCount + 1 })
-        .eq('id', id)
-        .select();
+        // RPC 실패 시 직접 업데이트 시도
+        console.log('RPC failed, trying direct update:', rpcError.message);
 
-      return { data, error };
+        // 먼저 현재 조회수 가져오기
+        const { data: current } = await supabase
+          .from('insights')
+          .select('view_count')
+          .eq('id', id)
+          .single();
+
+        const currentCount = current?.view_count || 0;
+
+        const { data, error } = await supabase
+          .from('insights')
+          .update({ view_count: currentCount + 1 })
+          .eq('id', id)
+          .select();
+
+        if (error) {
+          console.error('Failed to increment view count:', error.message);
+        }
+
+        return { data, error };
+      } catch (err) {
+        console.error('Error in incrementViewCount:', err);
+        return { data: null, error: err };
+      }
     },
 
     // 조회수 직접 설정
