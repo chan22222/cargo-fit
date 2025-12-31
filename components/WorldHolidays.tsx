@@ -1210,14 +1210,14 @@ const WorldHolidays: React.FC = () => {
                       {holidays.slice(0, 3).map((h, hIdx) => {
                         const country = COUNTRIES.find(c => c.code === h.countryCode);
                         return (
-                          <div key={hIdx} className="text-[9px] sm:text-[10px] truncate flex items-center gap-0.5">
-                            <span className="text-[11px] leading-none">{country?.flag}</span>
+                          <div key={hIdx} className="text-[10px] sm:text-[11px] truncate flex items-center gap-0.5">
+                            <span className="text-xs leading-none">{country?.flag}</span>
                             <span className="text-slate-700 font-bold truncate hidden sm:inline leading-none">{h.nameKr}</span>
                           </div>
                         );
                       })}
                       {holidays.length > 3 && (
-                        <div className="text-[9px] text-slate-400">+{holidays.length - 3}개</div>
+                        <div className="text-[10px] text-slate-400">+{holidays.length - 3}개</div>
                       )}
                     </div>
                   </div>
