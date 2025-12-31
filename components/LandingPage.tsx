@@ -57,9 +57,12 @@ interface LandingPageProps {
   onNavigateToPallet?: () => void;
   onNavigateToIncoterms?: () => void;
   onNavigateToHolidays?: () => void;
+  onNavigateToCbm?: () => void;
+  onNavigateToCurrency?: () => void;
+  onNavigateToRegulations?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({});
@@ -845,23 +848,29 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               <div className="space-y-5 text-center md:text-left">
                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">Quick Links</h4>
                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-xs mx-auto md:max-w-none md:mx-0">
-                    <button onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
-                      HOME
-                    </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToContainer?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       컨테이너 시뮬레이터
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToPallet?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       팔레트 시뮬레이터
                     </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
-                      물류 인사이트
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToCbm?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      CBM 계산기
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToCurrency?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      환율 계산기
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToIncoterms?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       인코텀즈 가이드
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       세계 공휴일
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToRegulations?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      수입규제 정보
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      물류 인사이트
                     </button>
                  </div>
               </div>

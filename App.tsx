@@ -916,10 +916,13 @@ const App: React.FC = () => {
           onTerms={() => setActiveTab('terms')}
           onNavigateToInsights={handleNavigateToInsights}
           onNavigateToInsight={handleNavigateToInsight}
-          onNavigateToContainer={() => setActiveTab('container')}
-          onNavigateToPallet={() => setActiveTab('pallet')}
+          onNavigateToContainer={() => { setActiveTab('container'); navigate('/container'); }}
+          onNavigateToPallet={() => { setActiveTab('pallet'); navigate('/pallet'); }}
           onNavigateToIncoterms={() => { setActiveTab('incoterms'); navigate('/incoterms'); }}
           onNavigateToHolidays={() => { setActiveTab('holidays'); navigate('/holidays'); }}
+          onNavigateToCbm={() => { setActiveTab('cbm'); navigate('/cbm'); }}
+          onNavigateToCurrency={() => { setActiveTab('currency'); navigate('/currency'); }}
+          onNavigateToRegulations={() => { setActiveTab('regulations'); navigate('/regulations'); }}
         />
       ) : activeTab === 'privacy' ? (
         <PrivacyPolicy />
