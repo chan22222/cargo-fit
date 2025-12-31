@@ -203,7 +203,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     return supportedArea / itemArea;
   };
 
-  const MIN_SUPPORT_RATIO = 0.90; // 최소 90% 지지 필요
+  const MIN_SUPPORT_RATIO = 1.0; // 최소 100% 지지 필요
 
   // 최적 위치 찾기 함수 (ignoreHeightLimit: true면 높이 제한 무시)
   const findBestPosition = (existingItems: PalletItem[], dims: Dimensions, ignoreHeightLimit = false): { x: number; y: number; z: number } | null => {

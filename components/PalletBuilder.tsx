@@ -607,7 +607,7 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
     return supportedArea / itemArea;
   };
 
-  const MIN_SUPPORT_RATIO = 0.90; // 최소 90% 지지 필요
+  const MIN_SUPPORT_RATIO = 1.0; // 최소 100% 지지 필요
 
   // 패킹 효율성 계산
   const calculatePackingEfficiency = (items: PalletItem[]): number => {
