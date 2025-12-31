@@ -55,9 +55,11 @@ interface LandingPageProps {
   onNavigateToInsight?: (id: string) => void;
   onNavigateToContainer?: () => void;
   onNavigateToPallet?: () => void;
+  onNavigateToIncoterms?: () => void;
+  onNavigateToHolidays?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({});
@@ -547,6 +549,114 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
          </div>
       </section>
 
+      {/* Incoterms & World Holidays Preview */}
+      <section className="py-20 px-10 bg-slate-50">
+         <div className="max-w-7xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-10">
+               {/* Incoterms Preview */}
+               <div className="bg-white rounded-[24px] p-8 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                     <div>
+                        <h3 className="text-xs font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Incoterms 2020</h3>
+                        <p className="text-2xl font-black text-slate-900">인코텀즈 가이드</p>
+                     </div>
+                     <button
+                        onClick={onNavigateToIncoterms}
+                        className="text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1"
+                     >
+                        자세히 보기
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                     </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                     {[
+                        { code: 'EXW', name: '공장인도', desc: '매도인 의무 최소' },
+                        { code: 'FOB', name: '본선인도', desc: '해상운송 대표조건' },
+                        { code: 'CIF', name: '운임보험료포함인도', desc: '보험료 포함' },
+                        { code: 'DDP', name: '관세지급인도', desc: '매도인 의무 최대' },
+                     ].map((term) => (
+                        <div
+                           key={term.code}
+                           className="p-4 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors cursor-pointer group"
+                           onClick={onNavigateToIncoterms}
+                        >
+                           <div className="text-lg font-black text-emerald-600 group-hover:text-emerald-700">{term.code}</div>
+                           <div className="text-sm font-bold text-slate-700">{term.name}</div>
+                           <div className="text-[10px] text-slate-500 mt-1">{term.desc}</div>
+                        </div>
+                     ))}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-4 text-center">11개 조건 비용/위험 비교표 제공</p>
+               </div>
+
+               {/* World Holidays Preview */}
+               <div className="bg-white rounded-[24px] p-8 border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between mb-6">
+                     <div>
+                        <h3 className="text-xs font-black text-blue-600 uppercase tracking-[0.2em] mb-1">World Holidays</h3>
+                        <p className="text-2xl font-black text-slate-900">세계 공휴일 달력</p>
+                     </div>
+                     <button
+                        onClick={onNavigateToHolidays}
+                        className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1"
+                     >
+                        자세히 보기
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                     </button>
+                  </div>
+                  <div className="space-y-3">
+                     {(() => {
+                        const today = new Date();
+                        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                        const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+                        // 간단한 한국 공휴일 데이터 (2025년 기준)
+                        const upcomingHolidays = [
+                           { date: '2025-01-01', name: '신정', flag: '🇰🇷' },
+                           { date: '2025-01-28', name: '설날 연휴', flag: '🇰🇷' },
+                           { date: '2025-01-29', name: '설날', flag: '🇰🇷' },
+                           { date: '2025-01-30', name: '설날 연휴', flag: '🇰🇷' },
+                           { date: '2025-03-01', name: '삼일절', flag: '🇰🇷' },
+                           { date: '2025-05-05', name: '어린이날', flag: '🇰🇷' },
+                           { date: '2025-06-06', name: '현충일', flag: '🇰🇷' },
+                           { date: '2025-08-15', name: '광복절', flag: '🇰🇷' },
+                           { date: '2025-10-03', name: '개천절', flag: '🇰🇷' },
+                           { date: '2025-10-06', name: '추석', flag: '🇰🇷' },
+                           { date: '2025-10-09', name: '한글날', flag: '🇰🇷' },
+                           { date: '2025-12-25', name: '크리스마스', flag: '🇰🇷' },
+                           { date: '2026-01-01', name: '신정', flag: '🇰🇷' },
+                        ].filter(h => h.date >= todayStr).slice(0, 4);
+
+                        return upcomingHolidays.map((h, idx) => {
+                           const [year, month, day] = h.date.split('-');
+                           const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                           const dayOfWeek = WEEKDAYS[dateObj.getDay()];
+                           const isNextYear = parseInt(year) > today.getFullYear();
+                           return (
+                              <div key={idx} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer" onClick={onNavigateToHolidays}>
+                                 <span className="text-2xl">{h.flag}</span>
+                                 <div className="flex-1">
+                                    <div className="text-sm font-bold text-slate-800">{h.name}</div>
+                                    <div className="text-xs text-slate-500">
+                                       {isNextYear && <span className="text-blue-500">{year}. </span>}
+                                       {parseInt(month)}/{parseInt(day)} ({dayOfWeek})
+                                    </div>
+                                 </div>
+                              </div>
+                           );
+                        });
+                     })()}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-4 text-center">48개국 공휴일 자동 계산 달력</p>
+               </div>
+            </div>
+         </div>
+      </section>
+
       {/* Logistics News / Blog Section */}
       <section className="py-32 px-10 bg-white">
          <div className="max-w-7xl mx-auto">
@@ -694,6 +804,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       물류 인사이트
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToIncoterms?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      인코텀즈 가이드
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      세계 공휴일
                     </button>
                  </div>
               </div>

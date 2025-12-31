@@ -846,6 +846,8 @@ const App: React.FC = () => {
           onNavigateToInsight={handleNavigateToInsight}
           onNavigateToContainer={() => setActiveTab('container')}
           onNavigateToPallet={() => setActiveTab('pallet')}
+          onNavigateToIncoterms={() => { setActiveTab('incoterms'); navigate('/incoterms'); }}
+          onNavigateToHolidays={() => { setActiveTab('holidays'); navigate('/holidays'); }}
         />
       ) : activeTab === 'privacy' ? (
         <PrivacyPolicy />
