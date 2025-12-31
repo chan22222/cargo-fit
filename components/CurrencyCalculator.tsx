@@ -75,6 +75,7 @@ const CurrencyCalculator: React.FC = () => {
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [showResult, setShowResult] = useState<boolean>(false);
   const [showCurrencyModal, setShowCurrencyModal] = useState<boolean>(false);
+  const [currencySearch, setCurrencySearch] = useState<string>('');
   const [showSavedDates, setShowSavedDates] = useState<boolean>(false);
   const [savedDates, setSavedDates] = useState<string[]>([]);
 
@@ -386,7 +387,9 @@ const CurrencyCalculator: React.FC = () => {
       '대만': 'TWD', '몽골': 'MNT', '파키스탄': 'PKR', '방글라데시': 'BDT'
     };
 
-    for (const [keyword, code] of Object.entries(mapping)) {
+    // Sort by keyword length (longest first) to avoid partial matches (e.g., "인도" matching "인도네시아")
+    const sortedEntries = Object.entries(mapping).sort((a, b) => b[0].length - a[0].length);
+    for (const [keyword, code] of sortedEntries) {
       if (currencyText.includes(keyword)) return code;
     }
 
@@ -453,6 +456,9 @@ const CurrencyCalculator: React.FC = () => {
   // Currencies that Hana Bank displays in 100-unit basis (e.g., 100 JPY = 957.88 KRW)
   const HANA_100_UNIT_CURRENCIES = ['JPY', 'IDR', 'VND'];
 
+  // Currencies with very low exchange rates that need 4 decimal places
+  const LOW_RATE_CURRENCIES = ['IDR', 'VND', 'KHR', 'COP', 'UZS', 'LAK', 'MMK', 'MNT', 'KZT', 'HUF', 'CLP'];
+
   const processHanaData = (mall1501Html: string, mall1502Html: string, dateStr: string): boolean => {
     const sendingResult = extractRatesFromHtml(mall1501Html, 'rate');
     const usdResult = extractRatesFromHtml(mall1502Html, 'usd');
@@ -474,7 +480,12 @@ const CurrencyCalculator: React.FC = () => {
     }
 
     for (const [code, rate] of Object.entries(usdResult.data)) {
-      rates[`${code}_usd`] = rate;
+      // Convert 100-unit currencies to 1-unit basis for USD rate as well
+      if (HANA_100_UNIT_CURRENCIES.includes(code)) {
+        rates[`${code}_usd`] = rate / 100;
+      } else {
+        rates[`${code}_usd`] = rate;
+      }
     }
 
     const key = `${HANA_CACHE_PREFIX}${dateStr}`;
@@ -792,7 +803,9 @@ const CurrencyCalculator: React.FC = () => {
           const fromUsdRate = currentRates[`${fromCurrency}_usd`];
           result = amountNum * fromUsdRate;
           appliedRate = fromUsdRate;
-          rateInfo = `교차환율: 1 ${fromCurrency} = ${fromUsdRate.toFixed(4)} USD`;
+          // Use 6 decimal places for 100-unit currencies (JPY, IDR, VND)
+          const decimals = HANA_100_UNIT_CURRENCIES.includes(fromCurrency) ? 6 : 4;
+          rateInfo = `교차환율: 1 ${fromCurrency} = ${fromUsdRate.toFixed(decimals)} USD`;
         } else {
           const fromUsdRate = currentRates[`${fromCurrency}_usd`];
           const toUsdRate = currentRates[`${toCurrency}_usd`];
@@ -1180,11 +1193,14 @@ const CurrencyCalculator: React.FC = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-sm font-bold text-slate-800">
-                      {currentRates[code]?.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '-'}
+                      {currentRates[code]?.toLocaleString('ko-KR', {
+                        minimumFractionDigits: LOW_RATE_CURRENCIES.includes(code) ? 4 : 2,
+                        maximumFractionDigits: LOW_RATE_CURRENCIES.includes(code) ? 4 : 2
+                      }) || '-'}
                     </div>
                     {activeTab === 'hana' && currentRates[`${code}_usd`] && (
                       <div className="text-[10px] text-slate-400">
-                        USD: {currentRates[`${code}_usd`]?.toFixed(4)}
+                        USD: {currentRates[`${code}_usd`]?.toFixed(HANA_100_UNIT_CURRENCIES.includes(code) ? 6 : 4)}
                       </div>
                     )}
                   </div>
@@ -1245,7 +1261,7 @@ const CurrencyCalculator: React.FC = () => {
       {showCurrencyModal && (
         <div
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setShowCurrencyModal(false)}
+          onClick={() => { setShowCurrencyModal(false); setCurrencySearch(''); }}
         >
           <div
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[80vh] overflow-hidden"
@@ -1258,7 +1274,7 @@ const CurrencyCalculator: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">계산에 사용할 통화를 선택하세요</p>
               </div>
               <button
-                onClick={() => setShowCurrencyModal(false)}
+                onClick={() => { setShowCurrencyModal(false); setCurrencySearch(''); }}
                 className="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1267,8 +1283,33 @@ const CurrencyCalculator: React.FC = () => {
               </button>
             </div>
 
+            {/* Search Input */}
+            <div className="px-4 pt-3">
+              <div className="relative">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={currencySearch}
+                  onChange={(e) => setCurrencySearch(e.target.value)}
+                  placeholder="통화명 또는 코드 검색 (예: 달러, USD)"
+                  className="w-full pl-10 pr-8 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                  autoFocus
+                />
+                {currencySearch && (
+                  <button
+                    onClick={() => setCurrencySearch('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 bg-slate-300 text-white rounded-full text-[10px] hover:bg-slate-400 transition-colors flex items-center justify-center"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Modal Body */}
-            <div className="p-4 overflow-y-auto max-h-[calc(80vh-70px)]">
+            <div className="p-4 overflow-y-auto max-h-[calc(80vh-130px)] min-h-[300px]">
               {Object.keys(allCurrencies).length === 0 ? (
                 <div className="text-center py-12">
                   <svg className="w-12 h-12 mx-auto mb-3 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1278,44 +1319,83 @@ const CurrencyCalculator: React.FC = () => {
                     날짜를 선택하여<br />환율을 먼저 불러와주세요
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-1">
-                  {Object.keys(allCurrencies).sort().map(code => (
-                    <label
-                      key={code}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
-                        selectedCurrencies.includes(code)
-                          ? 'bg-blue-50'
-                          : 'hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                        selectedCurrencies.includes(code)
-                          ? 'bg-blue-600 border-blue-600'
-                          : 'border-slate-300'
-                      }`}>
-                        {selectedCurrencies.includes(code) && (
-                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                          </svg>
+              ) : (() => {
+                const popularCurrencies = ['USD', 'EUR', 'JPY', 'CNY', 'GBP', 'AUD', 'CAD', 'CHF', 'HKD', 'SGD', 'THB', 'VND', 'TWD', 'IDR', 'MYR', 'PHP', 'INR'];
+                const filteredCurrencies = Object.keys(allCurrencies)
+                  .filter(code => {
+                    if (!currencySearch) return true;
+                    const search = currencySearch.toLowerCase();
+                    const name = getDetailedCurrencyName(code).toLowerCase();
+                    return code.toLowerCase().includes(search) || name.includes(search);
+                  });
+
+                // Sort: popular currencies first, then alphabetically
+                const sortedCurrencies = filteredCurrencies.sort((a, b) => {
+                  const aPopular = popularCurrencies.indexOf(a);
+                  const bPopular = popularCurrencies.indexOf(b);
+                  if (aPopular !== -1 && bPopular !== -1) return aPopular - bPopular;
+                  if (aPopular !== -1) return -1;
+                  if (bPopular !== -1) return 1;
+                  return a.localeCompare(b);
+                });
+
+                if (sortedCurrencies.length === 0) {
+                  return (
+                    <div className="text-center py-8">
+                      <svg className="w-10 h-10 mx-auto mb-2 text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <p className="text-slate-400 text-sm">검색 결과가 없습니다</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-1">
+                    {sortedCurrencies.map((code, index) => (
+                      <React.Fragment key={code}>
+                        {/* Divider after popular currencies */}
+                        {!currencySearch && index === popularCurrencies.filter(c => allCurrencies[c]).length && (
+                          <div className="border-t border-slate-200 my-2 pt-2">
+                            <span className="text-[10px] text-slate-400 px-3">기타 통화</span>
+                          </div>
                         )}
-                      </div>
-                      <input
-                        type="checkbox"
-                        checked={selectedCurrencies.includes(code)}
-                        onChange={(e) => handleCurrencySelectionChange(code, e.target.checked)}
-                        className="sr-only"
-                      />
-                      <div className="flex items-center gap-2 flex-1">
-                        <span className="text-xs font-bold text-slate-500 w-10">{code}</span>
-                        <span className={`text-sm ${selectedCurrencies.includes(code) ? 'text-blue-700 font-medium' : 'text-slate-600'}`}>
-                          {getDetailedCurrencyName(code)}
-                        </span>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              )}
+                        <label
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all ${
+                            selectedCurrencies.includes(code)
+                              ? 'bg-blue-50'
+                              : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                            selectedCurrencies.includes(code)
+                              ? 'bg-blue-600 border-blue-600'
+                              : 'border-slate-300'
+                          }`}>
+                            {selectedCurrencies.includes(code) && (
+                              <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={selectedCurrencies.includes(code)}
+                            onChange={(e) => handleCurrencySelectionChange(code, e.target.checked)}
+                            className="sr-only"
+                          />
+                          <div className="flex items-center gap-2 flex-1">
+                            <span className="text-xs font-bold text-slate-500 w-10">{code}</span>
+                            <span className={`text-sm ${selectedCurrencies.includes(code) ? 'text-blue-700 font-medium' : 'text-slate-600'}`}>
+                              {getDetailedCurrencyName(code)}
+                            </span>
+                          </div>
+                        </label>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>
