@@ -86,6 +86,9 @@ const CurrencyCalculator: React.FC = () => {
   const [calcExpression, setCalcExpression] = useState<string>('');
   const calcRef = useRef<HTMLDivElement>(null);
 
+  // Status timeout ref
+  const statusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Draggable calculator state
   const [calcPosition, setCalcPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -291,13 +294,20 @@ const CurrencyCalculator: React.FC = () => {
   }, [date, activeTab]);
 
   const showStatus = (type: ApiStatus, message: string) => {
+    // Clear any existing timeout to prevent it from overwriting new status
+    if (statusTimeoutRef.current) {
+      clearTimeout(statusTimeoutRef.current);
+      statusTimeoutRef.current = null;
+    }
+
     setApiStatus(type);
     setStatusMessage(message);
 
     if (type === 'success' || type === 'cached') {
-      setTimeout(() => {
+      statusTimeoutRef.current = setTimeout(() => {
         setApiStatus('idle');
         setStatusMessage('');
+        statusTimeoutRef.current = null;
       }, 3000);
     }
   };
@@ -440,6 +450,9 @@ const CurrencyCalculator: React.FC = () => {
     return { data, currencyNames };
   };
 
+  // Currencies that Hana Bank displays in 100-unit basis (e.g., 100 JPY = 957.88 KRW)
+  const HANA_100_UNIT_CURRENCIES = ['JPY', 'IDR', 'VND'];
+
   const processHanaData = (mall1501Html: string, mall1502Html: string, dateStr: string): boolean => {
     const sendingResult = extractRatesFromHtml(mall1501Html, 'rate');
     const usdResult = extractRatesFromHtml(mall1502Html, 'usd');
@@ -452,7 +465,12 @@ const CurrencyCalculator: React.FC = () => {
     const combinedCurrencyNames = { ...sendingResult.currencyNames, ...usdResult.currencyNames };
 
     for (const [code, rate] of Object.entries(sendingResult.data)) {
-      rates[code] = rate;
+      // Convert 100-unit currencies to 1-unit basis
+      if (HANA_100_UNIT_CURRENCIES.includes(code)) {
+        rates[code] = rate / 100;
+      } else {
+        rates[code] = rate;
+      }
     }
 
     for (const [code, rate] of Object.entries(usdResult.data)) {
