@@ -8,6 +8,7 @@ interface PalletItem {
   dimensions: Dimensions;
   position: { x: number; y: number; z: number };
   color: string;
+  isOverHeight?: boolean;
 }
 
 interface PalletSimulatorProps {
@@ -32,6 +33,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   const [dragMode, setDragMode] = useState<'rotate' | 'pan' | null>(null);
   const [isArranging, setIsArranging] = useState(false);
   const [showOpaque, setShowOpaque] = useState(false);
+  const [noStandUp, setNoStandUp] = useState(false); // 제품 세우지 않기 모드
 
   // 새 아이템 추가 폼
   const [newItemName, setNewItemName] = useState('박스');
@@ -54,6 +56,22 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedItemId]);
+
+  // maxHeight 변경 시 isOverHeight 재계산
+  useEffect(() => {
+    if (palletItems.length === 0) return;
+
+    const updatedItems = palletItems.map(item => ({
+      ...item,
+      isOverHeight: item.position.y + item.dimensions.height > maxHeight
+    }));
+
+    // 변경된 경우에만 업데이트
+    const hasChanges = updatedItems.some((item, i) => item.isOverHeight !== palletItems[i].isOverHeight);
+    if (hasChanges) {
+      setPalletItems(updatedItems);
+    }
+  }, [maxHeight]);
 
   // Non-passive wheel event listener to prevent scroll warning
   useEffect(() => {
@@ -111,9 +129,16 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   };
 
 
-  // 모든 회전 방향 가져오기
-  const getAllOrientations = (dims: Dimensions) => {
+  // 모든 회전 방향 가져오기 (noStandUp: true면 높이 유지, L/W만 변경)
+  const getAllOrientations = (dims: Dimensions, keepHeight = false) => {
     const { width: w, height: h, length: l } = dims;
+    if (keepHeight || noStandUp) {
+      // 높이 유지 모드: L과 W만 교환
+      return [
+        { width: w, height: h, length: l },
+        { width: l, height: h, length: w },
+      ];
+    }
     return [
       { width: w, height: h, length: l },
       { width: l, height: h, length: w },
@@ -139,17 +164,18 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     return true;
   };
 
-  // 최적 위치 찾기 함수
-  const findBestPosition = (existingItems: PalletItem[], dims: Dimensions) => {
+  // 최적 위치 찾기 함수 (ignoreHeightLimit: true면 높이 제한 무시)
+  const findBestPosition = (existingItems: PalletItem[], dims: Dimensions, ignoreHeightLimit = false): { x: number; y: number; z: number } | null => {
     // 팔레트 위에서 시작
-    let bestPosition = { x: 0, y: palletSize.height, z: 0 };
+    let bestPosition: { x: number; y: number; z: number } | null = null;
     let lowestY = Infinity;
 
+    // 아이템이 없으면 팔레트 위 원점에 배치
     if (existingItems.length === 0) {
-      return bestPosition;
+      return { x: 0, y: palletSize.height, z: 0 };
     }
 
-    // 1. 먼저 바닥 레벨에서 빈 공간 찾기
+    // XZ 평면을 스캔하면서 최적 위치 찾기
     for (let x = 0; x <= palletSize.width - dims.width; x += 50) {
       for (let z = 0; z <= palletSize.length - dims.length; z += 50) {
         let maxY = palletSize.height; // 이 위치에서의 바닥 높이
@@ -166,8 +192,8 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           }
         }
 
-        // 이 위치가 최대 높이를 초과하지 않는지 확인
-        if (maxY + dims.height <= maxHeight) {
+        // 높이 제한 무시 옵션이 있거나, 최대 높이를 초과하지 않는 경우
+        if (ignoreHeightLimit || maxY + dims.height <= maxHeight) {
           // 가장 낮은 위치 선택
           if (maxY < lowestY) {
             lowestY = maxY;
@@ -192,7 +218,9 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       let bestPosition = null;
       let bestOrientation = newItemDims;
       let lowestY = Infinity;
+      let isOverHeight = false;
 
+      // 1단계: 높이 제한 내에서 위치 찾기
       for (const orientation of orientations) {
         // 팔레트 범위 체크
         if (orientation.width > palletSize.width || orientation.length > palletSize.length) {
@@ -208,18 +236,41 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         }
       }
 
+      // 2단계: 높이 제한 내에서 못 찾으면, 높이 제한 무시하고 찾기
+      if (!bestPosition) {
+        lowestY = Infinity;
+        for (const orientation of orientations) {
+          if (orientation.width > palletSize.width || orientation.length > palletSize.length) {
+            continue;
+          }
+
+          const position = findBestPosition(currentItems, orientation, true);
+
+          if (position && position.y < lowestY) {
+            lowestY = position.y;
+            bestPosition = position;
+            bestOrientation = orientation;
+            isOverHeight = true;
+          }
+        }
+      }
+
       if (bestPosition) {
+        // 높이 제한 초과 여부 체크 (bestPosition을 찾았지만 실제로 초과하는 경우)
+        const actualOverHeight = isOverHeight || (bestPosition.y + bestOrientation.height > maxHeight);
+
         const newItem: PalletItem = {
           id: `${Date.now()}-${i}`,
           name: newItemName,
           dimensions: bestOrientation,
           position: bestPosition,
-          color: `hsl(${Math.random() * 360}, 70%, 60%)`
+          color: `hsl(${Math.random() * 360}, 70%, 60%)`,
+          isOverHeight: actualOverHeight
         };
         newItems.push(newItem);
-      } else {
-        // 배치할 수 없으면 경고
-        alert(`${newItemName} ${i + 1}/${newItemQuantity}개를 배치할 공간이 없습니다.`);
+      }
+      // 더 이상 배치할 수 없으면 (팔레트 범위 초과) 중단
+      else {
         break;
       }
     }
@@ -276,10 +327,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       }
 
       if (bestPosition && bestOrientation) {
+        const isOverHeight = bestPosition.y + bestOrientation.height > maxHeight;
         arrangedItems.push({
           ...item,
           dimensions: bestOrientation,
-          position: bestPosition
+          position: bestPosition,
+          isOverHeight
         });
       }
     }
@@ -345,9 +398,10 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     };
   };
 
-  const renderBox = (item: { dimensions: Dimensions; position: { x: number; y: number; z: number }; color: string }, id: string, isPallet = false) => {
+  const renderBox = (item: { dimensions: Dimensions; position: { x: number; y: number; z: number }; color: string; isOverHeight?: boolean }, id: string, isPallet = false) => {
     const { width, height, length } = item.dimensions;
     const { x, y, z } = item.position;
+    const isOverHeight = item.isOverHeight;
 
     const vertices = [
       project3D(x, y, z),
@@ -370,8 +424,8 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     ];
 
     const isSelected = selectedItemId === id;
-    // 팔레트는 항상 불투명, 화물만 투명도 조절
-    const baseOpacity = isPallet ? 1.0 : (showOpaque ? 1.0 : 0.85);
+    // 팔레트는 항상 불투명, 높이 초과 아이템은 거의 투명, 나머지는 기존 로직
+    const baseOpacity = isPallet ? 1.0 : (isOverHeight ? 0.15 : (showOpaque ? 1.0 : 0.85));
 
     return (
       <g key={id} onClick={() => !isPallet && setSelectedItemId(id)} className="cursor-pointer">
@@ -385,9 +439,10 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
               points={points}
               fill={baseColor}
               fillOpacity={baseOpacity * face.brightness}
-              stroke={isSelected ? '#3B82F6' : (showOpaque ? '#333' : '#000')}
-              strokeWidth={isSelected ? 2 : (showOpaque ? 1 : 0.5)}
-              strokeOpacity={isSelected ? 1 : (showOpaque ? 0.8 : 0.2)}
+              stroke={isSelected ? '#3B82F6' : (isOverHeight ? '#ff6666' : (showOpaque ? '#333' : '#000'))}
+              strokeWidth={isSelected ? 2 : (isOverHeight ? 0.5 : (showOpaque ? 1 : 0.5))}
+              strokeOpacity={isSelected ? 1 : (isOverHeight ? 0.3 : (showOpaque ? 0.8 : 0.2))}
+              strokeDasharray={isOverHeight ? '3,3' : undefined}
             />
           );
         })}
@@ -397,18 +452,28 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   // 통계 계산
   const stats = React.useMemo(() => {
-    const currentMaxHeight = palletItems.length > 0
-      ? Math.max(...palletItems.map(i => i.position.y + i.dimensions.height))
+    // 높이 제한 내의 아이템만 필터링
+    const validItems = palletItems.filter(i => !i.isOverHeight);
+    const overHeightItems = palletItems.filter(i => i.isOverHeight);
+
+    const currentMaxHeight = validItems.length > 0
+      ? Math.max(...validItems.map(i => i.position.y + i.dimensions.height))
       : palletSize.height;
 
-    const totalVolume = palletItems.reduce((acc, item) =>
+    // 효율 계산은 높이 제한 내의 아이템만 포함
+    const totalVolume = validItems.reduce((acc, item) =>
       acc + (item.dimensions.width * item.dimensions.height * item.dimensions.length), 0);
 
     // 전체 최대 허용 공간 대비 효율 계산 (컨테이너와 동일한 방식)
     const totalAvailableVolume = palletSize.width * palletSize.length * (maxHeight - palletSize.height);
     const efficiency = totalAvailableVolume > 0 ? (totalVolume / totalAvailableVolume) * 100 : 0;
 
-    return { itemCount: palletItems.length, maxHeight: currentMaxHeight, efficiency };
+    return {
+      itemCount: validItems.length,
+      overHeightCount: overHeightItems.length,
+      maxHeight: currentMaxHeight,
+      efficiency
+    };
   }, [palletItems, palletSize, maxHeight]);
 
   return (
@@ -573,17 +638,26 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                 );
               })()}
 
-              {/* 최대 높이 가이드라인 */}
-              <line
-                x1={project3D(0, maxHeight, 0).x}
-                y1={project3D(0, maxHeight, 0).y}
-                x2={project3D(palletSize.width, maxHeight, 0).x}
-                y2={project3D(palletSize.width, maxHeight, 0).y}
-                stroke="red"
-                strokeWidth="2"
-                strokeDasharray="5,5"
-                opacity="0.5"
-              />
+              {/* 최대 높이 가이드라인 (사각형) */}
+              {(() => {
+                const corners = [
+                  project3D(0, maxHeight, 0),
+                  project3D(palletSize.width, maxHeight, 0),
+                  project3D(palletSize.width, maxHeight, palletSize.length),
+                  project3D(0, maxHeight, palletSize.length),
+                ];
+                const points = corners.map(c => `${c.x},${c.y}`).join(' ');
+                return (
+                  <polygon
+                    points={points}
+                    fill="none"
+                    stroke="red"
+                    strokeWidth="1.5"
+                    strokeDasharray="5,5"
+                    opacity="0.6"
+                  />
+                );
+              })()}
             </svg>
 
             {/* 컨트롤 안내 */}
@@ -613,6 +687,9 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                 <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
                   <p className="text-[10px] text-slate-500">
                     <span className="font-black text-slate-700">아이템:</span> {stats.itemCount}개
+                    {stats.overHeightCount > 0 && (
+                      <span className="text-red-400 ml-1">(+{stats.overHeightCount} 초과)</span>
+                    )}
                   </p>
                   <p className="text-[10px] text-slate-500">
                     <span className="font-black text-slate-700">최고높이:</span> {stats.maxHeight}mm
@@ -760,16 +837,25 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H mm)</label>
-                  <button
-                    type="button"
-                    onClick={() => setNewItemDims({ width: newItemDims.length, height: newItemDims.height, length: newItemDims.width })}
-                    className="px-2 py-1 text-[8px] font-black text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                    </svg>
-                    90°
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setNewItemDims({ width: newItemDims.length, height: newItemDims.height, length: newItemDims.width })}
+                      className="px-2 py-0.5 text-[8px] font-black text-blue-600 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                      </svg>
+                      90°
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNoStandUp(!noStandUp)}
+                      className={`px-2 py-0.5 text-[8px] font-bold rounded-lg transition-all ${noStandUp ? 'bg-slate-200 text-slate-500 hover:bg-slate-300' : 'bg-blue-500 text-white hover:bg-blue-600'}`}
+                    >
+                      {noStandUp ? '높이 고정 (LxW)' : '높이도 변경 (LxWxH)'}
+                    </button>
+                  </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2.5">
                   <input
@@ -879,18 +965,21 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                       className={`group relative flex items-center p-3 rounded-xl border transition-all duration-200 cursor-pointer ${
                         selectedItemId === item.id
                           ? 'bg-white border-slate-900 shadow-md translate-x-1'
-                          : 'bg-white border-slate-100 hover:border-slate-200'
+                          : item.isOverHeight
+                            ? 'bg-red-50/50 border-red-200 hover:border-red-300'
+                            : 'bg-white border-slate-100 hover:border-slate-200'
                       }`}
                     >
                       <div
-                        className="w-1.5 h-8 rounded-full mr-3 shrink-0"
+                        className={`w-1.5 h-8 rounded-full mr-3 shrink-0 ${item.isOverHeight ? 'opacity-30' : ''}`}
                         style={{ backgroundColor: item.color }}
                       ></div>
                       <div className="flex-1 min-w-0">
                         <p className={`font-black text-[11px] truncate ${
-                          selectedItemId === item.id ? 'text-slate-900' : 'text-slate-700'
+                          selectedItemId === item.id ? 'text-slate-900' : item.isOverHeight ? 'text-red-400' : 'text-slate-700'
                         }`}>
                           {item.name}
+                          {item.isOverHeight && <span className="ml-1 text-[8px] text-red-400">(초과)</span>}
                         </p>
                         <div className="flex items-center text-[9px] text-slate-400 font-bold">
                           <span className="truncate opacity-60">
