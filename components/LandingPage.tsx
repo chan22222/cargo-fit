@@ -526,7 +526,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                            도시 선택
                         </button>
                      </div>
-                     <p className="text-4xl font-black tracking-tight text-slate-900">주요 거점 세계 시간</p>
+                     <p className="text-4xl font-black tracking-tight text-slate-900">주요거점 세계시간</p>
                   </div>
                   <div className="grid grid-cols-4 gap-5">
                      {selectedCities.map((city) => {
