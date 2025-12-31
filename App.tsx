@@ -537,6 +537,15 @@ const App: React.FC = () => {
         '/regulations': 'regulations',
         '/admin': 'admin',
       };
+
+      // Handle dynamic insight route
+      if (path.startsWith('/insight/')) {
+        const id = path.split('/')[2];
+        setCurrentRoute('insight');
+        setCurrentInsightId(id);
+        return;
+      }
+
       const route = routeMap[path];
       if (route) {
         setCurrentRoute(route);
