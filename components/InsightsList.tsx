@@ -35,7 +35,13 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
               author: item.author,
               published: item.published,
               viewCount: item.view_count || 0
-            }));
+            }))
+            // 날짜순 정렬 (최신순)
+            .sort((a: any, b: any) => {
+              const dateA = new Date(a.date).getTime();
+              const dateB = new Date(b.date).getTime();
+              return dateB - dateA;
+            });
           setInsights(formattedInsights);
         }
       } catch (error) {
