@@ -164,6 +164,47 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     return true;
   };
 
+  // 지지율 계산 (아래 아이템들에 의해 몇 %가 지지되는지)
+  const calculateSupportRatio = (pos: { x: number, y: number, z: number }, dims: Dimensions, existingItems: PalletItem[]): number => {
+    const itemArea = dims.width * dims.length;
+
+    // 팔레트 바닥에 놓이는 경우 100% 지지
+    if (pos.y <= palletSize.height) {
+      return 1.0;
+    }
+
+    // 새 아이템의 바닥 영역
+    const itemLeft = pos.x;
+    const itemRight = pos.x + dims.width;
+    const itemFront = pos.z;
+    const itemBack = pos.z + dims.length;
+
+    let supportedArea = 0;
+
+    // 아래 아이템들과의 겹침 면적 계산
+    for (const item of existingItems) {
+      const itemTop = item.position.y + item.dimensions.height;
+
+      // 이 아이템이 새 아이템 바로 아래에 있는지 확인 (약간의 여유 허용)
+      if (Math.abs(itemTop - pos.y) < 1) {
+        // XZ 평면에서 겹치는 영역 계산
+        const overlapLeft = Math.max(itemLeft, item.position.x);
+        const overlapRight = Math.min(itemRight, item.position.x + item.dimensions.width);
+        const overlapFront = Math.max(itemFront, item.position.z);
+        const overlapBack = Math.min(itemBack, item.position.z + item.dimensions.length);
+
+        if (overlapRight > overlapLeft && overlapBack > overlapFront) {
+          const overlapArea = (overlapRight - overlapLeft) * (overlapBack - overlapFront);
+          supportedArea += overlapArea;
+        }
+      }
+    }
+
+    return supportedArea / itemArea;
+  };
+
+  const MIN_SUPPORT_RATIO = 0.90; // 최소 90% 지지 필요
+
   // 최적 위치 찾기 함수 (ignoreHeightLimit: true면 높이 제한 무시)
   const findBestPosition = (existingItems: PalletItem[], dims: Dimensions, ignoreHeightLimit = false): { x: number; y: number; z: number } | null => {
     // 팔레트 위에서 시작
@@ -192,12 +233,20 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           }
         }
 
+        const pos = { x, y: maxY, z };
+
+        // 지지율 체크 (85% 이상 지지되어야 함)
+        const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+        if (supportRatio < MIN_SUPPORT_RATIO) {
+          continue; // 지지율 부족하면 스킵
+        }
+
         // 높이 제한 무시 옵션이 있거나, 최대 높이를 초과하지 않는 경우
         if (ignoreHeightLimit || maxY + dims.height <= maxHeight) {
           // 가장 낮은 위치 선택
           if (maxY < lowestY) {
             lowestY = maxY;
-            bestPosition = { x, y: maxY, z };
+            bestPosition = pos;
           }
         }
       }
@@ -356,6 +405,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           const pos = { x, y, z };
 
           if (canPlaceAt(pos, dims, existingItems)) {
+            // 지지율 체크 (85% 이상 지지되어야 함)
+            const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+            if (supportRatio < MIN_SUPPORT_RATIO) {
+              continue;
+            }
+
             if (y < lowestY) {
               lowestY = y;
               bestPosition = pos;

@@ -172,6 +172,51 @@ const App: React.FC = () => {
     return true;
   };
 
+  // 지지율 계산 (아래 아이템들에 의해 몇 %가 지지되는지)
+  const calculateSupportRatio = (
+    pos: { x: number, y: number, z: number },
+    dims: { width: number, height: number, length: number },
+    existingItems: PackedItem[]
+  ): number => {
+    const itemArea = dims.width * dims.length;
+
+    // 바닥에 놓이는 경우 100% 지지
+    if (pos.y <= 0) {
+      return 1.0;
+    }
+
+    // 새 아이템의 바닥 영역
+    const itemLeft = pos.x;
+    const itemRight = pos.x + dims.width;
+    const itemFront = pos.z;
+    const itemBack = pos.z + dims.length;
+
+    let supportedArea = 0;
+
+    // 아래 아이템들과의 겹침 면적 계산
+    for (const item of existingItems) {
+      const itemTop = item.position.y + item.dimensions.height;
+
+      // 이 아이템이 새 아이템 바로 아래에 있는지 확인 (약간의 여유 허용)
+      if (Math.abs(itemTop - pos.y) < 1) {
+        // XZ 평면에서 겹치는 영역 계산
+        const overlapLeft = Math.max(itemLeft, item.position.x);
+        const overlapRight = Math.min(itemRight, item.position.x + item.dimensions.width);
+        const overlapFront = Math.max(itemFront, item.position.z);
+        const overlapBack = Math.min(itemBack, item.position.z + item.dimensions.length);
+
+        if (overlapRight > overlapLeft && overlapBack > overlapFront) {
+          const overlapArea = (overlapRight - overlapLeft) * (overlapBack - overlapFront);
+          supportedArea += overlapArea;
+        }
+      }
+    }
+
+    return supportedArea / itemArea;
+  };
+
+  const MIN_SUPPORT_RATIO = 0.90; // 최소 90% 지지 필요
+
   // 최적 위치 찾기 - 바닥부터 채우기 방식
   const findBestPositionBottomFirst = (
     container: ContainerSpec,
@@ -201,11 +246,16 @@ const App: React.FC = () => {
 
         // 이 위치가 컨테이너 높이를 초과하지 않는지 확인
         if (maxY + dims.height <= container.height) {
-          // 가장 낮은 위치 선택
-          if (maxY < lowestY) {
-            lowestY = maxY;
-            bestPosition = { x, y: maxY, z };
-            found = true;
+          const pos = { x, y: maxY, z };
+          // 지지율 체크 (90% 이상 지지되어야 함)
+          const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+          if (supportRatio >= MIN_SUPPORT_RATIO) {
+            // 가장 낮은 위치 선택
+            if (maxY < lowestY) {
+              lowestY = maxY;
+              bestPosition = pos;
+              found = true;
+            }
           }
         }
       }
@@ -230,17 +280,21 @@ const App: React.FC = () => {
           const pos = { x, y, z };
 
           if (canPlaceAt(pos, dims, existingItems)) {
-            // 점수 계산: 안쪽 모서리부터 채우기
-            // 1. z축 (뒤쪽 우선) - 가장 중요
-            // 2. y축 (아래쪽 우선) - 두 번째 중요
-            // 3. x축 (왼쪽 우선) - 세 번째 중요
-            const score = (container.length - z - dims.length) * 1000000 + // 뒤쪽 벽에 가까울수록 우선
-                         y * 1000 + // 바닥에 가까울수록 우선
-                         x; // 왼쪽 벽에 가까울수록 우선
+            // 지지율 체크 (90% 이상 지지되어야 함)
+            const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+            if (supportRatio >= MIN_SUPPORT_RATIO) {
+              // 점수 계산: 안쪽 모서리부터 채우기
+              // 1. z축 (뒤쪽 우선) - 가장 중요
+              // 2. y축 (아래쪽 우선) - 두 번째 중요
+              // 3. x축 (왼쪽 우선) - 세 번째 중요
+              const score = (container.length - z - dims.length) * 1000000 + // 뒤쪽 벽에 가까울수록 우선
+                           y * 1000 + // 바닥에 가까울수록 우선
+                           x; // 왼쪽 벽에 가까울수록 우선
 
-            if (score < bestScore) {
-              bestScore = score;
-              bestPosition = pos;
+              if (score < bestScore) {
+                bestScore = score;
+                bestPosition = pos;
+              }
             }
           }
         }

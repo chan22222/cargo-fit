@@ -284,10 +284,15 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
 
         // 높이 제한 무시 옵션이 있거나, 최대 높이를 초과하지 않는 경우
         if (ignoreHeightLimit || maxY + dims.height <= maxHeight) {
-          // 가장 낮은 위치 선택
-          if (maxY < lowestY) {
-            lowestY = maxY;
-            bestPosition = { x, y: maxY, z };
+          const pos = { x, y: maxY, z };
+          // 지지율 체크 (85% 이상 지지되어야 함)
+          const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+          if (supportRatio >= MIN_SUPPORT_RATIO) {
+            // 가장 낮은 위치 선택
+            if (maxY < lowestY) {
+              lowestY = maxY;
+              bestPosition = pos;
+            }
           }
         }
       }
@@ -371,9 +376,13 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
           const pos = { x, y, z };
 
           if (canPlaceAt(pos, dims, existingItems)) {
-            if (y < lowestY) {
-              lowestY = y;
-              bestPosition = pos;
+            // 지지율 체크 (85% 이상 지지되어야 함)
+            const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+            if (supportRatio >= MIN_SUPPORT_RATIO) {
+              if (y < lowestY) {
+                lowestY = y;
+                bestPosition = pos;
+              }
             }
           }
         }
@@ -559,6 +568,47 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
     return true;
   };
 
+  // 지지율 계산 (아래 아이템들에 의해 몇 %가 지지되는지)
+  const calculateSupportRatio = (pos: { x: number, y: number, z: number }, dims: Dimensions, existingItems: PalletItem[]): number => {
+    const itemArea = dims.width * dims.length;
+
+    // 팔레트 바닥에 놓이는 경우 100% 지지
+    if (pos.y <= palletSize.height) {
+      return 1.0;
+    }
+
+    // 새 아이템의 바닥 영역
+    const itemLeft = pos.x;
+    const itemRight = pos.x + dims.width;
+    const itemFront = pos.z;
+    const itemBack = pos.z + dims.length;
+
+    let supportedArea = 0;
+
+    // 아래 아이템들과의 겹침 면적 계산
+    for (const item of existingItems) {
+      const itemTop = item.position.y + item.dimensions.height;
+
+      // 이 아이템이 새 아이템 바로 아래에 있는지 확인 (약간의 여유 허용)
+      if (Math.abs(itemTop - pos.y) < 1) {
+        // XZ 평면에서 겹치는 영역 계산
+        const overlapLeft = Math.max(itemLeft, item.position.x);
+        const overlapRight = Math.min(itemRight, item.position.x + item.dimensions.width);
+        const overlapFront = Math.max(itemFront, item.position.z);
+        const overlapBack = Math.min(itemBack, item.position.z + item.dimensions.length);
+
+        if (overlapRight > overlapLeft && overlapBack > overlapFront) {
+          const overlapArea = (overlapRight - overlapLeft) * (overlapBack - overlapFront);
+          supportedArea += overlapArea;
+        }
+      }
+    }
+
+    return supportedArea / itemArea;
+  };
+
+  const MIN_SUPPORT_RATIO = 0.90; // 최소 90% 지지 필요
+
   // 패킹 효율성 계산
   const calculatePackingEfficiency = (items: PalletItem[]): number => {
     if (items.length === 0) return 0;
@@ -585,7 +635,6 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
     for (let x = 0; x <= palletSize.width - dims.width; x += 25) {
       for (let z = 0; z <= palletSize.length - dims.length; z += 25) {
         let maxY = palletSize.height; // 이 위치에서의 바닥 높이
-        let canPlace = true;
 
         for (const item of existingItems) {
           // XZ 평면에서 겹치는지 확인
@@ -601,9 +650,14 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
 
         // 이 위치가 최대 높이를 초과하지 않는지 확인
         if (maxY + dims.height <= maxHeight && maxY < lowestY) {
-          lowestY = maxY;
-          bestPosition = { x, y: maxY, z };
-          found = true;
+          const pos = { x, y: maxY, z };
+          // 지지율 체크 (85% 이상 지지되어야 함)
+          const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+          if (supportRatio >= MIN_SUPPORT_RATIO) {
+            lowestY = maxY;
+            bestPosition = pos;
+            found = true;
+          }
         }
       }
     }
