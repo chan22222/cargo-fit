@@ -10,6 +10,8 @@ import { CargoControls } from './components/CargoControls';
 import LandingPage from './components/LandingPage';
 import PalletSimulator from './components/PalletSimulator';
 import CurrencyCalculator from './components/CurrencyCalculator';
+import Incoterms from './components/Incoterms';
+import WorldHolidays from './components/WorldHolidays';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import AdminDashboard from './components/AdminDashboard';
@@ -25,7 +27,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'pallet' | 'currency'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'pallet' | 'currency' | 'incoterms' | 'holidays'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
 
   // Check for route on mount and URL changes
@@ -53,6 +55,10 @@ const App: React.FC = () => {
         setCurrentRoute('pallet');
       } else if (path === '/currency') {
         setCurrentRoute('currency');
+      } else if (path === '/incoterms') {
+        setCurrentRoute('incoterms');
+      } else if (path === '/holidays') {
+        setCurrentRoute('holidays');
       } else if (path === '/admin') {
         setCurrentRoute('admin');
       } else {
@@ -87,7 +93,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'privacy' | 'terms'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'privacy' | 'terms'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
 
@@ -569,6 +575,10 @@ const App: React.FC = () => {
       setActiveTab('pallet');
     } else if (currentRoute === 'currency') {
       setActiveTab('currency');
+    } else if (currentRoute === 'incoterms') {
+      setActiveTab('incoterms');
+    } else if (currentRoute === 'holidays') {
+      setActiveTab('holidays');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -710,6 +720,24 @@ const App: React.FC = () => {
            >
              환율 계산기
            </button>
+           <button
+             onClick={() => {
+               setActiveTab('incoterms');
+               navigate('/incoterms');
+             }}
+             className={`text-sm font-bold transition-all duration-300 ${activeTab === 'incoterms' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
+           >
+             인코텀즈
+           </button>
+           <button
+             onClick={() => {
+               setActiveTab('holidays');
+               navigate('/holidays');
+             }}
+             className={`text-sm font-bold transition-all duration-300 ${activeTab === 'holidays' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
+           >
+             세계 공휴일
+           </button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -779,6 +807,30 @@ const App: React.FC = () => {
               >
                 환율 계산기
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab('incoterms');
+                  navigate('/incoterms');
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'incoterms' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                인코텀즈
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('holidays');
+                  navigate('/holidays');
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'holidays' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                세계 공휴일
+              </button>
             </nav>
           </div>
         )}
@@ -801,6 +853,10 @@ const App: React.FC = () => {
         <TermsOfService />
       ) : activeTab === 'currency' ? (
         <CurrencyCalculator />
+      ) : activeTab === 'incoterms' ? (
+        <Incoterms />
+      ) : activeTab === 'holidays' ? (
+        <WorldHolidays />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
