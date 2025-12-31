@@ -844,6 +844,9 @@ const CurrencyCalculator: React.FC = () => {
   };
 
   const handleTabChange = (tab: TabType) => {
+    // Ignore if same tab is clicked
+    if (tab === activeTab) return;
+
     setActiveTab(tab);
     localStorage.setItem('currency_active_tab', tab);
     setCurrentRates(null);
