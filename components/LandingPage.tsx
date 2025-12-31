@@ -75,6 +75,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     return saved ? JSON.parse(saved) : DEFAULT_CITIES;
   });
   const [showCityModal, setShowCityModal] = useState(false);
+  const [expandIncoterms, setExpandIncoterms] = useState(false);
+  const [expandHolidays, setExpandHolidays] = useState(false);
 
   // Modal states
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -550,7 +552,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       </section>
 
       {/* Incoterms & World Holidays Preview */}
-      <section className="py-32 px-10 bg-white border-y border-slate-50">
+      <section className="py-32 px-10 bg-gradient-to-b from-slate-50 to-white">
          <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-20 items-start">
                {/* Left: Incoterms Preview */}
@@ -567,34 +569,53 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                      </div>
                      <p className="text-4xl font-black tracking-tight text-slate-900">인코텀즈 가이드</p>
                   </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                     {[
-                        { code: 'EXW', name: '공장인도', type: 'E' },
-                        { code: 'FCA', name: '운송인인도', type: 'F' },
-                        { code: 'FAS', name: '선측인도', type: 'F' },
-                        { code: 'FOB', name: '본선인도', type: 'F' },
-                        { code: 'CPT', name: '운송비지급', type: 'C' },
-                        { code: 'CIP', name: '운송비보험료지급', type: 'C' },
-                        { code: 'CFR', name: '운임포함', type: 'C' },
-                        { code: 'CIF', name: '운임보험료포함', type: 'C' },
-                        { code: 'DAP', name: '도착장소인도', type: 'D' },
-                        { code: 'DPU', name: '도착지양하인도', type: 'D' },
-                        { code: 'DDP', name: '관세지급인도', type: 'D' },
-                     ].map((term) => (
-                        <div
-                           key={term.code}
-                           className="bg-slate-50 border border-slate-100 p-3 rounded-[16px] hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer group text-center"
-                           onClick={onNavigateToIncoterms}
-                        >
-                           <div className="text-lg font-black text-blue-600 group-hover:text-blue-700">{term.code}</div>
-                           <div className="text-[9px] text-slate-500 mt-1 leading-tight">{term.name}</div>
-                        </div>
-                     ))}
-                  </div>
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-2">
-                     <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                     비용/위험 분기점 비교표 제공
-                  </div>
+                  {(() => {
+                     const allTerms = [
+                        { code: 'EXW', name: 'Ex Works', nameKr: '공장인도', desc: '매도인 의무 최소, 공장에서 인도' },
+                        { code: 'FCA', name: 'Free Carrier', nameKr: '운송인인도', desc: '지정장소에서 운송인에게 인도' },
+                        { code: 'FAS', name: 'Free Alongside Ship', nameKr: '선측인도', desc: '선박 옆에서 인도 (해상전용)' },
+                        { code: 'FOB', name: 'Free On Board', nameKr: '본선인도', desc: '본선 적재 완료 시 인도 (해상전용)' },
+                        { code: 'CFR', name: 'Cost and Freight', nameKr: '운임포함인도', desc: '운임 포함, 위험은 선적 시 이전' },
+                        { code: 'CIF', name: 'Cost, Insurance & Freight', nameKr: '운임보험료포함', desc: '운임+보험료 포함 (해상전용)' },
+                        { code: 'CPT', name: 'Carriage Paid To', nameKr: '운송비지급인도', desc: '목적지까지 운송비 지급' },
+                        { code: 'CIP', name: 'Carriage & Insurance Paid', nameKr: '운송비보험료지급', desc: '운송비+보험료 지급' },
+                        { code: 'DAP', name: 'Delivered At Place', nameKr: '도착장소인도', desc: '목적지 도착, 양하 전 인도' },
+                        { code: 'DPU', name: 'Delivered at Place Unloaded', nameKr: '도착지양하인도', desc: '목적지 양하 후 인도' },
+                        { code: 'DDP', name: 'Delivered Duty Paid', nameKr: '관세지급인도', desc: '매도인 의무 최대, 관세까지 부담' },
+                     ];
+                     const displayTerms = expandIncoterms ? allTerms : allTerms.slice(0, 4);
+                     return (
+                        <>
+                           <div className="space-y-2">
+                              {displayTerms.map((term) => (
+                                 <div
+                                    key={term.code}
+                                    className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
+                                    onClick={onNavigateToIncoterms}
+                                 >
+                                    <div className="w-14 text-center">
+                                       <div className="text-lg font-black text-blue-600 group-hover:text-blue-700">{term.code}</div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                       <div className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{term.nameKr}</div>
+                                       <div className="text-[11px] text-slate-600 truncate">{term.desc}</div>
+                                    </div>
+                                 </div>
+                              ))}
+                           </div>
+                           <button
+                              onClick={() => setExpandIncoterms(!expandIncoterms)}
+                              className="w-full py-3 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                           >
+                              {expandIncoterms ? (
+                                 <>접기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></>
+                              ) : (
+                                 <>+{allTerms.length - 4}개 더보기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></>
+                              )}
+                           </button>
+                        </>
+                     );
+                  })()}
                </div>
 
                {/* Right: World Holidays Preview */}
@@ -611,49 +632,78 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                      </div>
                      <p className="text-4xl font-black tracking-tight text-slate-900">세계 공휴일 달력</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
-                     {(() => {
-                        const today = new Date();
-                        const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                        const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+                  {(() => {
+                     const today = new Date();
+                     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                     const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-                        // 여러 국가의 공휴일 데이터
-                        const upcomingHolidays = [
-                           { date: '2025-01-01', name: '신정', nameEn: "New Year's Day", flag: '🇰🇷', country: '한국' },
-                           { date: '2025-01-01', name: '元旦', nameEn: "New Year's Day", flag: '🇨🇳', country: '중국' },
-                           { date: '2025-01-01', name: '元日', nameEn: "New Year's Day", flag: '🇯🇵', country: '일본' },
-                           { date: '2025-01-01', name: "New Year's Day", nameEn: "New Year's Day", flag: '🇺🇸', country: '미국' },
-                           { date: '2025-01-13', name: '成人の日', nameEn: "Coming of Age Day", flag: '🇯🇵', country: '일본' },
-                           { date: '2025-01-20', name: "MLK Day", nameEn: "Martin Luther King Jr. Day", flag: '🇺🇸', country: '미국' },
-                           { date: '2025-01-26', name: 'Australia Day', nameEn: "Australia Day", flag: '🇦🇺', country: '호주' },
-                           { date: '2025-01-28', name: '설날', nameEn: 'Lunar New Year', flag: '🇰🇷', country: '한국' },
-                           { date: '2025-01-29', name: '春节', nameEn: 'Chinese New Year', flag: '🇨🇳', country: '중국' },
-                           { date: '2025-01-29', name: 'Tết', nameEn: 'Vietnamese New Year', flag: '🇻🇳', country: '베트남' },
-                           { date: '2025-02-11', name: '建国記念の日', nameEn: "National Foundation Day", flag: '🇯🇵', country: '일본' },
-                           { date: '2025-03-01', name: '삼일절', nameEn: 'Independence Movement Day', flag: '🇰🇷', country: '한국' },
-                        ].filter(h => h.date >= todayStr).slice(0, 6);
+                     // 2025년 말 ~ 2026년 초 공휴일 데이터
+                     const allHolidays = [
+                        { date: '2025-12-25', name: '크리스마스', flag: '🇰🇷', country: '한국' },
+                        { date: '2025-12-25', name: 'Christmas', flag: '🇺🇸', country: '미국' },
+                        { date: '2025-12-25', name: 'Christmas', flag: '🇬🇧', country: '영국' },
+                        { date: '2025-12-26', name: 'Boxing Day', flag: '🇬🇧', country: '영국' },
+                        { date: '2025-12-31', name: '大晦日', flag: '🇯🇵', country: '일본' },
+                        { date: '2026-01-01', name: '신정', flag: '🇰🇷', country: '한국' },
+                        { date: '2026-01-01', name: '元日', flag: '🇯🇵', country: '일본' },
+                        { date: '2026-01-01', name: "New Year's Day", flag: '🇺🇸', country: '미국' },
+                        { date: '2026-01-01', name: '元旦', flag: '🇨🇳', country: '중국' },
+                        { date: '2026-01-12', name: '成人の日', flag: '🇯🇵', country: '일본' },
+                        { date: '2026-01-19', name: 'MLK Day', flag: '🇺🇸', country: '미국' },
+                        { date: '2026-01-26', name: 'Australia Day', flag: '🇦🇺', country: '호주' },
+                        { date: '2026-02-17', name: '春节', flag: '🇨🇳', country: '중국' },
+                        { date: '2026-02-17', name: '설날', flag: '🇰🇷', country: '한국' },
+                        { date: '2026-02-17', name: 'Tết', flag: '🇻🇳', country: '베트남' },
+                        { date: '2026-03-01', name: '삼일절', flag: '🇰🇷', country: '한국' },
+                     ].filter(h => h.date >= todayStr);
 
-                        return upcomingHolidays.map((h, idx) => {
-                           const [year, month, day] = h.date.split('-');
-                           const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                           const dayOfWeek = WEEKDAYS[dateObj.getDay()];
-                           return (
-                              <div key={idx} className="bg-slate-50 border border-slate-100 p-4 rounded-[16px] hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer group" onClick={onNavigateToHolidays}>
-                                 <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-lg">{h.flag}</span>
-                                    <span className="text-[10px] text-slate-500 font-bold">{h.country}</span>
-                                 </div>
-                                 <div className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors">{h.name}</div>
-                                 <div className="text-[10px] text-slate-400 mt-1">{parseInt(month)}/{parseInt(day)} ({dayOfWeek})</div>
-                              </div>
-                           );
-                        });
-                     })()}
-                  </div>
-                  <div className="text-xs text-slate-400 flex items-center justify-center gap-2">
-                     <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                     48개국 공휴일 자동 계산
-                  </div>
+                     const displayHolidays = expandHolidays ? allHolidays : allHolidays.slice(0, 4);
+
+                     return (
+                        <>
+                           <div className="space-y-2">
+                              {displayHolidays.map((h, idx) => {
+                                 const [year, month, day] = h.date.split('-');
+                                 const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+                                 const dayOfWeek = WEEKDAYS[dateObj.getDay()];
+                                 const isNextYear = parseInt(year) > today.getFullYear();
+                                 return (
+                                    <div
+                                       key={idx}
+                                       className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
+                                       onClick={onNavigateToHolidays}
+                                    >
+                                       <span className="text-2xl">{h.flag}</span>
+                                       <div className="flex-1 min-w-0">
+                                          <div className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{h.name}</div>
+                                          <div className="text-[11px] text-slate-600">{h.country}</div>
+                                       </div>
+                                       <div className="text-right">
+                                          <div className="text-sm font-black text-slate-900">
+                                             {isNextYear && <span className="text-[10px] text-blue-500 mr-1">{year}.</span>}
+                                             {parseInt(month)}/{parseInt(day)}
+                                          </div>
+                                          <div className="text-[11px] text-slate-600">{dayOfWeek}요일</div>
+                                       </div>
+                                    </div>
+                                 );
+                              })}
+                           </div>
+                           {allHolidays.length > 4 && (
+                              <button
+                                 onClick={() => setExpandHolidays(!expandHolidays)}
+                                 className="w-full py-3 text-sm font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                              >
+                                 {expandHolidays ? (
+                                    <>접기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></>
+                                 ) : (
+                                    <>+{allHolidays.length - 4}개 더보기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></>
+                                 )}
+                              </button>
+                           )}
+                        </>
+                     );
+                  })()}
                </div>
             </div>
          </div>
