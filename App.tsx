@@ -30,7 +30,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'hscode'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'hscode'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
 
   // Check for route on mount and URL changes
