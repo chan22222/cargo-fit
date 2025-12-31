@@ -550,108 +550,110 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       </section>
 
       {/* Incoterms & World Holidays Preview */}
-      <section className="py-20 px-10 bg-slate-50">
+      <section className="py-32 px-10 bg-white border-y border-slate-50">
          <div className="max-w-7xl mx-auto">
-            <div className="grid lg:grid-cols-2 gap-10">
-               {/* Incoterms Preview */}
-               <div className="bg-white rounded-[24px] p-8 border border-slate-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                     <div>
-                        <h3 className="text-xs font-black text-emerald-600 uppercase tracking-[0.2em] mb-1">Incoterms 2020</h3>
-                        <p className="text-2xl font-black text-slate-900">인코텀즈 가이드</p>
+            <div className="grid lg:grid-cols-2 gap-20 items-start">
+               {/* Left: Incoterms Preview */}
+               <div className="space-y-10">
+                  <div className="space-y-2 text-center">
+                     <div className="flex items-center justify-center gap-3">
+                        <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Incoterms 2020</h2>
+                        <button
+                           onClick={onNavigateToIncoterms}
+                           className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
+                        >
+                           자세히 보기
+                        </button>
                      </div>
-                     <button
-                        onClick={onNavigateToIncoterms}
-                        className="text-xs font-bold text-slate-500 hover:text-emerald-600 transition-colors flex items-center gap-1"
-                     >
-                        자세히 보기
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                     </button>
+                     <p className="text-4xl font-black tracking-tight text-slate-900">인코텀즈 가이드</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                      {[
-                        { code: 'EXW', name: '공장인도', desc: '매도인 의무 최소' },
-                        { code: 'FOB', name: '본선인도', desc: '해상운송 대표조건' },
-                        { code: 'CIF', name: '운임보험료포함인도', desc: '보험료 포함' },
-                        { code: 'DDP', name: '관세지급인도', desc: '매도인 의무 최대' },
+                        { code: 'EXW', name: '공장인도', type: 'E' },
+                        { code: 'FCA', name: '운송인인도', type: 'F' },
+                        { code: 'FAS', name: '선측인도', type: 'F' },
+                        { code: 'FOB', name: '본선인도', type: 'F' },
+                        { code: 'CPT', name: '운송비지급', type: 'C' },
+                        { code: 'CIP', name: '운송비보험료지급', type: 'C' },
+                        { code: 'CFR', name: '운임포함', type: 'C' },
+                        { code: 'CIF', name: '운임보험료포함', type: 'C' },
+                        { code: 'DAP', name: '도착장소인도', type: 'D' },
+                        { code: 'DPU', name: '도착지양하인도', type: 'D' },
+                        { code: 'DDP', name: '관세지급인도', type: 'D' },
                      ].map((term) => (
                         <div
                            key={term.code}
-                           className="p-4 bg-slate-50 rounded-xl hover:bg-emerald-50 transition-colors cursor-pointer group"
+                           className="bg-slate-50 border border-slate-100 p-3 rounded-[16px] hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer group text-center"
                            onClick={onNavigateToIncoterms}
                         >
-                           <div className="text-lg font-black text-emerald-600 group-hover:text-emerald-700">{term.code}</div>
-                           <div className="text-sm font-bold text-slate-700">{term.name}</div>
-                           <div className="text-[10px] text-slate-500 mt-1">{term.desc}</div>
+                           <div className="text-lg font-black text-blue-600 group-hover:text-blue-700">{term.code}</div>
+                           <div className="text-[9px] text-slate-500 mt-1 leading-tight">{term.name}</div>
                         </div>
                      ))}
                   </div>
-                  <p className="text-xs text-slate-400 mt-4 text-center">11개 조건 비용/위험 비교표 제공</p>
+                  <div className="text-xs text-slate-400 flex items-center justify-center gap-2">
+                     <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                     비용/위험 분기점 비교표 제공
+                  </div>
                </div>
 
-               {/* World Holidays Preview */}
-               <div className="bg-white rounded-[24px] p-8 border border-slate-200 shadow-sm">
-                  <div className="flex items-center justify-between mb-6">
-                     <div>
-                        <h3 className="text-xs font-black text-blue-600 uppercase tracking-[0.2em] mb-1">World Holidays</h3>
-                        <p className="text-2xl font-black text-slate-900">세계 공휴일 달력</p>
+               {/* Right: World Holidays Preview */}
+               <div className="space-y-10">
+                  <div className="space-y-2 text-center">
+                     <div className="flex items-center justify-center gap-3">
+                        <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">World Holidays</h2>
+                        <button
+                           onClick={onNavigateToHolidays}
+                           className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
+                        >
+                           자세히 보기
+                        </button>
                      </div>
-                     <button
-                        onClick={onNavigateToHolidays}
-                        className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors flex items-center gap-1"
-                     >
-                        자세히 보기
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                     </button>
+                     <p className="text-4xl font-black tracking-tight text-slate-900">세계 공휴일 달력</p>
                   </div>
-                  <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
                      {(() => {
                         const today = new Date();
                         const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                         const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-                        // 간단한 한국 공휴일 데이터 (2025년 기준)
+                        // 여러 국가의 공휴일 데이터
                         const upcomingHolidays = [
-                           { date: '2025-01-01', name: '신정', flag: '🇰🇷' },
-                           { date: '2025-01-28', name: '설날 연휴', flag: '🇰🇷' },
-                           { date: '2025-01-29', name: '설날', flag: '🇰🇷' },
-                           { date: '2025-01-30', name: '설날 연휴', flag: '🇰🇷' },
-                           { date: '2025-03-01', name: '삼일절', flag: '🇰🇷' },
-                           { date: '2025-05-05', name: '어린이날', flag: '🇰🇷' },
-                           { date: '2025-06-06', name: '현충일', flag: '🇰🇷' },
-                           { date: '2025-08-15', name: '광복절', flag: '🇰🇷' },
-                           { date: '2025-10-03', name: '개천절', flag: '🇰🇷' },
-                           { date: '2025-10-06', name: '추석', flag: '🇰🇷' },
-                           { date: '2025-10-09', name: '한글날', flag: '🇰🇷' },
-                           { date: '2025-12-25', name: '크리스마스', flag: '🇰🇷' },
-                           { date: '2026-01-01', name: '신정', flag: '🇰🇷' },
-                        ].filter(h => h.date >= todayStr).slice(0, 4);
+                           { date: '2025-01-01', name: '신정', nameEn: "New Year's Day", flag: '🇰🇷', country: '한국' },
+                           { date: '2025-01-01', name: '元旦', nameEn: "New Year's Day", flag: '🇨🇳', country: '중국' },
+                           { date: '2025-01-01', name: '元日', nameEn: "New Year's Day", flag: '🇯🇵', country: '일본' },
+                           { date: '2025-01-01', name: "New Year's Day", nameEn: "New Year's Day", flag: '🇺🇸', country: '미국' },
+                           { date: '2025-01-13', name: '成人の日', nameEn: "Coming of Age Day", flag: '🇯🇵', country: '일본' },
+                           { date: '2025-01-20', name: "MLK Day", nameEn: "Martin Luther King Jr. Day", flag: '🇺🇸', country: '미국' },
+                           { date: '2025-01-26', name: 'Australia Day', nameEn: "Australia Day", flag: '🇦🇺', country: '호주' },
+                           { date: '2025-01-28', name: '설날', nameEn: 'Lunar New Year', flag: '🇰🇷', country: '한국' },
+                           { date: '2025-01-29', name: '春节', nameEn: 'Chinese New Year', flag: '🇨🇳', country: '중국' },
+                           { date: '2025-01-29', name: 'Tết', nameEn: 'Vietnamese New Year', flag: '🇻🇳', country: '베트남' },
+                           { date: '2025-02-11', name: '建国記念の日', nameEn: "National Foundation Day", flag: '🇯🇵', country: '일본' },
+                           { date: '2025-03-01', name: '삼일절', nameEn: 'Independence Movement Day', flag: '🇰🇷', country: '한국' },
+                        ].filter(h => h.date >= todayStr).slice(0, 6);
 
                         return upcomingHolidays.map((h, idx) => {
                            const [year, month, day] = h.date.split('-');
                            const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
                            const dayOfWeek = WEEKDAYS[dateObj.getDay()];
-                           const isNextYear = parseInt(year) > today.getFullYear();
                            return (
-                              <div key={idx} className="flex items-center gap-4 p-3 bg-slate-50 rounded-xl hover:bg-blue-50 transition-colors cursor-pointer" onClick={onNavigateToHolidays}>
-                                 <span className="text-2xl">{h.flag}</span>
-                                 <div className="flex-1">
-                                    <div className="text-sm font-bold text-slate-800">{h.name}</div>
-                                    <div className="text-xs text-slate-500">
-                                       {isNextYear && <span className="text-blue-500">{year}. </span>}
-                                       {parseInt(month)}/{parseInt(day)} ({dayOfWeek})
-                                    </div>
+                              <div key={idx} className="bg-slate-50 border border-slate-100 p-4 rounded-[16px] hover:bg-blue-50 hover:border-blue-200 transition-all cursor-pointer group" onClick={onNavigateToHolidays}>
+                                 <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-lg">{h.flag}</span>
+                                    <span className="text-[10px] text-slate-500 font-bold">{h.country}</span>
                                  </div>
+                                 <div className="text-sm font-black text-slate-900 group-hover:text-blue-600 transition-colors">{h.name}</div>
+                                 <div className="text-[10px] text-slate-400 mt-1">{parseInt(month)}/{parseInt(day)} ({dayOfWeek})</div>
                               </div>
                            );
                         });
                      })()}
                   </div>
-                  <p className="text-xs text-slate-400 mt-4 text-center">48개국 공휴일 자동 계산 달력</p>
+                  <div className="text-xs text-slate-400 flex items-center justify-center gap-2">
+                     <span className="inline-block w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                     48개국 공휴일 자동 계산
+                  </div>
                </div>
             </div>
          </div>
