@@ -84,6 +84,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
   // Modal states
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [isCoffeeModalOpen, setIsCoffeeModalOpen] = useState(false);
+  const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null);
+  const [isInsightModalOpen, setIsInsightModalOpen] = useState(false);
 
   // Load insights from Supabase
   useEffect(() => {
@@ -734,7 +736,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                      <div
                        key={post.id}
                        className="group cursor-pointer"
-                       onClick={() => onNavigateToInsight && onNavigateToInsight(post.id)}
+                       onClick={() => {
+                         setSelectedInsight(post);
+                         setIsInsightModalOpen(true);
+                       }}
                      >
                         <div className="aspect-[16/10] bg-slate-100 rounded-[24px] mb-6 overflow-hidden relative">
                            <img
@@ -1078,6 +1083,101 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               >
                 완료
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Insight Modal */}
+      {isInsightModalOpen && selectedInsight && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setIsInsightModalOpen(false)}
+        >
+          <div
+            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header with Image */}
+            {selectedInsight.imageUrl && (
+              <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden rounded-t-3xl">
+                <img
+                  src={selectedInsight.imageUrl}
+                  alt={selectedInsight.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsInsightModalOpen(false)}
+                  className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-colors text-slate-600 hover:text-slate-900 shadow-lg"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
+            {/* Modal Content */}
+            <div className="p-8">
+              {/* Close button if no image */}
+              {!selectedInsight.imageUrl && (
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => setIsInsightModalOpen(false)}
+                    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Meta Info */}
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full text-xs font-medium">
+                  {selectedInsight.tag}
+                </span>
+                <span className="text-sm text-slate-500">{selectedInsight.date}</span>
+                {selectedInsight.author && (
+                  <>
+                    <span className="text-slate-300">•</span>
+                    <span className="text-sm text-slate-500">by {selectedInsight.author}</span>
+                  </>
+                )}
+              </div>
+
+              {/* Title */}
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 leading-tight">
+                {selectedInsight.title}
+              </h2>
+
+              {/* Content */}
+              <div
+                className="prose prose-slate max-w-none prose-headings:font-black prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-img:rounded-xl"
+                dangerouslySetInnerHTML={{ __html: selectedInsight.content || '' }}
+              />
+
+              {/* Footer Actions */}
+              <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
+                <button
+                  onClick={() => setIsInsightModalOpen(false)}
+                  className="px-6 py-2.5 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                >
+                  닫기
+                </button>
+                <button
+                  onClick={() => {
+                    setIsInsightModalOpen(false);
+                    onNavigateToInsights && onNavigateToInsights();
+                  }}
+                  className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+                >
+                  더 많은 인사이트 보기
+                </button>
+              </div>
             </div>
           </div>
         </div>
