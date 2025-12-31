@@ -14,7 +14,6 @@ import Incoterms from './components/Incoterms';
 import WorldHolidays from './components/WorldHolidays';
 import CbmCalculator from './components/CbmCalculator';
 import ImportRegulations from './components/ImportRegulations';
-import HsCodeSearch from './components/HsCodeSearch';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsOfService from './components/TermsOfService';
 import AdminDashboard from './components/AdminDashboard';
@@ -30,7 +29,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'hscode'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
 
   // Check for route on mount and URL changes
@@ -66,8 +65,6 @@ const App: React.FC = () => {
         setCurrentRoute('cbm');
       } else if (path === '/regulations') {
         setCurrentRoute('regulations');
-      } else if (path === '/hscode') {
-        setCurrentRoute('hscode');
       } else if (path === '/admin') {
         setCurrentRoute('admin');
       } else {
@@ -102,7 +99,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'hscode' | 'privacy' | 'terms'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
 
@@ -538,7 +535,6 @@ const App: React.FC = () => {
         '/holidays': 'holidays',
         '/cbm': 'cbm',
         '/regulations': 'regulations',
-        '/hscode': 'hscode',
         '/admin': 'admin',
       };
       const route = routeMap[path];
@@ -613,8 +609,6 @@ const App: React.FC = () => {
       setActiveTab('cbm');
     } else if (currentRoute === 'regulations') {
       setActiveTab('regulations');
-    } else if (currentRoute === 'hscode') {
-      setActiveTab('hscode');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -792,15 +786,6 @@ const App: React.FC = () => {
            >
              수입규제
            </button>
-           <button
-             onClick={() => {
-               setActiveTab('hscode');
-               navigate('/hscode');
-             }}
-             className={`text-sm font-bold transition-all duration-300 ${activeTab === 'hscode' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
-           >
-             HS Code
-           </button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -918,18 +903,6 @@ const App: React.FC = () => {
               >
                 수입규제
               </button>
-              <button
-                onClick={() => {
-                  setActiveTab('hscode');
-                  navigate('/hscode');
-                  setMobileMenuOpen(false);
-                }}
-                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
-                  activeTab === 'hscode' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                HS Code
-              </button>
             </nav>
           </div>
         )}
@@ -962,8 +935,6 @@ const App: React.FC = () => {
         <CbmCalculator />
       ) : activeTab === 'regulations' ? (
         <ImportRegulations />
-      ) : activeTab === 'hscode' ? (
-        <HsCodeSearch />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
