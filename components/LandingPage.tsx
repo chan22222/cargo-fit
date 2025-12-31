@@ -87,6 +87,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
   const [selectedInsight, setSelectedInsight] = useState<Insight | null>(null);
   const [isInsightModalOpen, setIsInsightModalOpen] = useState(false);
 
+  // Increment view count when insight modal opens
+  useEffect(() => {
+    if (isInsightModalOpen && selectedInsight) {
+      const incrementViewCount = async () => {
+        const viewCountKey = `viewed_${selectedInsight.id}`;
+        const alreadyViewed = sessionStorage.getItem(viewCountKey);
+        if (!alreadyViewed) {
+          await db.insights.incrementViewCount(selectedInsight.id);
+          sessionStorage.setItem(viewCountKey, 'true');
+        }
+      };
+      incrementViewCount();
+    }
+  }, [isInsightModalOpen, selectedInsight]);
+
   // Load insights from Supabase
   useEffect(() => {
     const loadInsights = async () => {
@@ -1091,42 +1106,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       {/* Insight Modal */}
       {isInsightModalOpen && selectedInsight && (
         <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 overflow-y-auto"
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
           onClick={() => setIsInsightModalOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl my-8"
+            className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] shadow-2xl overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Modal Header with Image */}
-            {selectedInsight.imageUrl && (
-              <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden rounded-t-3xl">
-                <img
-                  src={selectedInsight.imageUrl}
-                  alt={selectedInsight.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
-                {/* Close Button */}
-                <button
-                  onClick={() => setIsInsightModalOpen(false)}
-                  className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-colors text-slate-600 hover:text-slate-900 shadow-lg"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-            )}
-
-            {/* Modal Content */}
-            <div className="p-8">
-              {/* Close button if no image */}
-              {!selectedInsight.imageUrl && (
-                <div className="flex justify-end mb-4">
+            {/* Scrollable Content Container */}
+            <div className="overflow-y-auto flex-1">
+              {/* Modal Header with Image */}
+              {selectedInsight.imageUrl && (
+                <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
+                  <img
+                    src={selectedInsight.imageUrl}
+                    alt={selectedInsight.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+                  {/* Close Button */}
                   <button
                     onClick={() => setIsInsightModalOpen(false)}
-                    className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                    className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-colors text-slate-600 hover:text-slate-900 shadow-lg"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1135,48 +1136,167 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                 </div>
               )}
 
-              {/* Meta Info */}
-              <div className="flex flex-wrap items-center gap-3 mb-4">
-                <span className="px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full text-xs font-medium">
-                  {selectedInsight.tag}
-                </span>
-                <span className="text-sm text-slate-500">{selectedInsight.date}</span>
-                {selectedInsight.author && (
-                  <>
-                    <span className="text-slate-300">•</span>
-                    <span className="text-sm text-slate-500">by {selectedInsight.author}</span>
-                  </>
+              {/* Modal Content */}
+              <div className="p-8 md:p-12">
+                {/* Close button if no image */}
+                {!selectedInsight.imageUrl && (
+                  <div className="flex justify-end mb-4">
+                    <button
+                      onClick={() => setIsInsightModalOpen(false)}
+                      className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 transition-colors text-slate-400 hover:text-slate-600"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
                 )}
-              </div>
 
-              {/* Title */}
-              <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 leading-tight">
-                {selectedInsight.title}
-              </h2>
+                {/* Meta Info */}
+                <div className="flex flex-wrap items-center gap-4 mb-6">
+                  <span className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full text-sm font-medium">
+                    {selectedInsight.tag}
+                  </span>
+                  <span className="text-sm text-slate-500">{selectedInsight.date}</span>
+                </div>
 
-              {/* Content */}
-              <div
-                className="prose prose-slate max-w-none prose-headings:font-black prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-img:rounded-xl"
-                dangerouslySetInnerHTML={{ __html: selectedInsight.content || '' }}
-              />
+                {/* Title */}
+                <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-8 leading-tight">
+                  {selectedInsight.title}
+                </h2>
 
-              {/* Footer Actions */}
-              <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
-                <button
-                  onClick={() => setIsInsightModalOpen(false)}
-                  className="px-6 py-2.5 text-slate-600 hover:text-slate-900 font-medium transition-colors"
-                >
-                  닫기
-                </button>
-                <button
-                  onClick={() => {
-                    setIsInsightModalOpen(false);
-                    onNavigateToInsights && onNavigateToInsights();
-                  }}
-                  className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
-                >
-                  더 많은 인사이트 보기
-                </button>
+                {/* Content */}
+                <div
+                  className="prose prose-lg max-w-none prose-headings:font-black prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-img:rounded-xl"
+                  dangerouslySetInnerHTML={{ __html: selectedInsight.content || '' }}
+                />
+
+                {/* Author & Share Section */}
+                <div className="mt-12 pt-8 border-t border-slate-200">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    {/* Author Info */}
+                    {selectedInsight.author && (
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                          {selectedInsight.author.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-slate-900">{selectedInsight.author}</div>
+                          <div className="text-sm text-slate-500">SHIPDAGO Insights Editor</div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Share Buttons */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-slate-500 mr-2">공유하기:</span>
+                      <button
+                        onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.origin + '/insight/' + selectedInsight.id)}`, '_blank', 'width=600,height=400')}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#1877F2] hover:opacity-80 transition-opacity"
+                        title="Facebook에 공유"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.origin + '/insight/' + selectedInsight.id)}&text=${encodeURIComponent(selectedInsight.title)}`, '_blank', 'width=600,height=400')}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-black hover:opacity-80 transition-opacity"
+                        title="X(Twitter)에 공유"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.origin + '/insight/' + selectedInsight.id)}`, '_blank', 'width=600,height=400')}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#0A66C2] hover:opacity-80 transition-opacity"
+                        title="LinkedIn에 공유"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => window.open(`kakaotalk://sendurl?url=${encodeURIComponent(window.location.origin + '/insight/' + selectedInsight.id)}&text=${encodeURIComponent(selectedInsight.title)}`, '_blank')}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-[#FEE500] hover:opacity-80 transition-opacity"
+                        title="카카오톡에 공유"
+                      >
+                        <svg className="w-6 h-6" viewBox="0 0 24 24">
+                          <path fill="#000000" d="M12 3C6.48 3 2 6.59 2 10.86c0 2.77 1.87 5.2 4.69 6.56l-.78 2.84c-.06.22.16.4.37.3l3.16-1.9c.52.08 1.04.12 1.56.12 5.52 0 10-3.59 10-7.86S17.52 3 12 3zm-4.5 8.5c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm3 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm3 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm3 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => window.open(`mailto:?subject=${encodeURIComponent(selectedInsight.title)}&body=${encodeURIComponent(selectedInsight.title + '\n\n' + window.location.origin + '/insight/' + selectedInsight.id)}`, '_blank')}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-600 hover:opacity-80 transition-opacity"
+                        title="이메일로 공유"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => { navigator.clipboard.writeText(window.location.origin + '/insight/' + selectedInsight.id); alert('링크가 복사되었습니다!'); }}
+                        className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-600 hover:opacity-80 transition-opacity"
+                        title="링크 복사"
+                      >
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Related Insights */}
+                {insights.filter(i => i.id !== selectedInsight.id && i.tag === selectedInsight.tag).length > 0 && (
+                  <div className="mt-10 pt-8 border-t border-slate-200">
+                    <h3 className="text-lg font-bold text-slate-900 mb-6">관련 콘텐츠</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {insights
+                        .filter(i => i.id !== selectedInsight.id && i.tag === selectedInsight.tag)
+                        .slice(0, 2)
+                        .map(related => (
+                          <div
+                            key={related.id}
+                            className="flex gap-4 p-3 rounded-2xl hover:bg-slate-50 cursor-pointer transition-colors group"
+                            onClick={() => setSelectedInsight(related)}
+                          >
+                            <div className="w-20 h-20 rounded-xl overflow-hidden bg-slate-100 shrink-0">
+                              <img
+                                src={related.imageUrl}
+                                alt={related.title}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              />
+                            </div>
+                            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                              <p className="text-sm font-bold text-slate-900 line-clamp-2 leading-snug group-hover:text-blue-600 transition-colors">{related.title}</p>
+                              <p className="text-xs text-slate-500 mt-2">{related.date}</p>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer Actions */}
+                <div className="mt-8 pt-6 border-t border-slate-200 flex items-center justify-between">
+                  <button
+                    onClick={() => setIsInsightModalOpen(false)}
+                    className="px-6 py-2.5 text-slate-600 hover:text-slate-900 font-medium transition-colors"
+                  >
+                    닫기
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsInsightModalOpen(false);
+                      onNavigateToInsights && onNavigateToInsights();
+                    }}
+                    className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    더 많은 인사이트 보기
+                  </button>
+                </div>
               </div>
             </div>
           </div>
