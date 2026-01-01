@@ -333,7 +333,7 @@ const carriers: Carrier[] = [
   // F
   { name: 'FedEx Express', code: 'FX', trackingUrl: 'https://www.fedex.com/en-kr/tracking.html', category: 'air', region: 'Global', isMajor: true },
   { name: 'Fiji Airways', code: 'FJ', trackingUrl: 'https://www.fijiairways.com/cargo', category: 'air', region: 'Oceania' },
-  { name: 'Finnair Cargo', code: 'AY', trackingUrl: 'https://cargo.finnair.com/tracking', category: 'air', region: 'Europe' },
+  { name: 'Finnair Cargo', code: 'AY', trackingUrl: 'https://cargo.finnair.com/tracking', category: 'air', region: 'Europe', isMajor: true },
   { name: 'Fly Jinnah', code: '9P', trackingUrl: 'https://www.flyjinnah.com/cargo', category: 'air', region: 'Asia' },
   { name: 'flydubai Cargo', code: 'FZ', trackingUrl: 'https://www.flydubai.com/cargo', category: 'air', region: 'Middle East' },
   { name: 'flynas', code: 'XY', trackingUrl: 'https://www.flynas.com/cargo', category: 'air', region: 'Middle East' },
@@ -374,7 +374,7 @@ const carriers: Carrier[] = [
   { name: 'Lufthansa Cargo', code: 'LH', trackingUrl: 'https://lufthansa-cargo.com/tracking', category: 'air', region: 'Europe', isMajor: true },
   // M
   { name: 'MasAir', code: 'M7', trackingUrl: 'https://www.masair.com/tracking', category: 'air', region: 'Americas' },
-  { name: 'MASkargo', code: 'MH', trackingUrl: 'https://www.maskargo.com/tracking', category: 'air', region: 'Asia' },
+  { name: 'MASkargo', code: 'MH', trackingUrl: 'https://www.maskargo.com/tracking', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Middle East Airlines', code: 'ME', trackingUrl: 'https://www.mea.com.lb/cargo', category: 'air', region: 'Middle East' },
   { name: 'MNG Airlines', code: 'MB', trackingUrl: 'https://www.mngairlines.com/tracking', category: 'air', region: 'Europe' },
   { name: 'MSC Air Cargo', code: 'CP', trackingUrl: 'https://www.msc.com/tracking', category: 'air', region: 'Europe' },
@@ -427,7 +427,7 @@ const carriers: Carrier[] = [
   { name: 'Sunclass Airlines', code: 'DK', trackingUrl: 'https://www.sunclass.com/cargo', category: 'air', region: 'Europe' },
   { name: 'Suparna Airlines', code: 'Y8', trackingUrl: 'https://www.suparna.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Super Air Jet', code: 'IU', trackingUrl: 'https://www.superairjet.com/cargo', category: 'air', region: 'Asia' },
-  { name: 'Swiss WorldCargo', code: 'LX', trackingUrl: 'https://www.swissworldcargo.com/tracking', category: 'air', region: 'Europe' },
+  { name: 'Swiss WorldCargo', code: 'LX', trackingUrl: 'https://www.swissworldcargo.com/tracking', category: 'air', region: 'Europe', isMajor: true },
   // T
   { name: 'TAAG Angola', code: 'DT', trackingUrl: 'https://www.taag.com/cargo', category: 'air', region: 'Africa' },
   { name: 'TAP Air Cargo', code: 'TP', trackingUrl: 'https://www.tapcargo.com/tracking', category: 'air', region: 'Europe' },
@@ -448,7 +448,7 @@ const carriers: Carrier[] = [
   { name: 'Uzbekistan Airways', code: 'HY', trackingUrl: 'https://www.uzairways.com/cargo', category: 'air', region: 'Asia' },
   // V
   { name: 'VietJet Cargo', code: 'VJ', trackingUrl: 'https://www.vietjetair.com/cargo', category: 'air', region: 'Asia' },
-  { name: 'Vietnam Airlines Cargo', code: 'VN', trackingUrl: 'https://cargo.vietnamairlines.com/tracking', category: 'air', region: 'Asia' },
+  { name: 'Vietnam Airlines Cargo', code: 'VN', trackingUrl: 'https://cargo.vietnamairlines.com/tracking', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Virgin Atlantic Cargo', code: 'VS', trackingUrl: 'https://cargo.virginatlantic.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Virgin Australia Cargo', code: 'VA', trackingUrl: 'https://www.virginaustralia.com/cargo', category: 'air', region: 'Oceania' },
   { name: 'Volaris', code: 'Y4', trackingUrl: 'https://www.volaris.com/cargo', category: 'air', region: 'Americas' },
@@ -468,9 +468,9 @@ const carriers: Carrier[] = [
   { name: 'DB Schenker', code: 'DBS', trackingUrl: 'https://www.dbschenker.com/global/tracking', category: 'courier', region: 'Global', isMajor: true },
   { name: 'Kuehne + Nagel', code: 'KN', trackingUrl: 'https://onlineservices.kuehne-nagel.com/public-tracking/', category: 'courier', region: 'Global', isMajor: true },
   { name: 'DSV', code: 'DSV', trackingUrl: 'https://www.dsv.com/en/tools/track-and-trace', category: 'courier', region: 'Global', isMajor: true },
-  { name: 'Expeditors', code: 'EXPO', trackingUrl: 'https://www.expeditors.com/tracking', category: 'courier', region: 'Global' },
+  { name: 'Expeditors', code: 'EXPO', trackingUrl: 'https://www.expeditors.com/tracking', category: 'courier', region: 'Global', isMajor: true },
   { name: 'CH Robinson', code: 'CHRW', trackingUrl: 'https://www.chrobinson.com/en/navisphere-carrier/shipment-tracking/', category: 'courier', region: 'Global' },
-  { name: 'Nippon Express', code: 'NX', trackingUrl: 'https://www.nipponexpress.com/service/tracking/', category: 'courier', region: 'Asia' },
+  { name: 'Nippon Express', code: 'NX', trackingUrl: 'https://www.nipponexpress.com/service/tracking/', category: 'courier', region: 'Asia', isMajor: true },
   { name: 'Yusen Logistics', code: 'YLG', trackingUrl: 'https://www.yusen-logistics.com/tracking/', category: 'courier', region: 'Asia' },
   { name: 'Kintetsu World Express', code: 'KWE', trackingUrl: 'https://www.kwe.com/tracking/', category: 'courier', region: 'Asia' },
   { name: 'CEVA Logistics', code: 'CEVA', trackingUrl: 'https://www.cevalogistics.com/en/tools-resources/tracking', category: 'courier', region: 'Global' },
