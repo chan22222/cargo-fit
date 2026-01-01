@@ -57,8 +57,6 @@ const carriers: Carrier[] = [
   { name: 'Dalreftrans', code: 'DLRF', trackingUrl: 'https://www.dalreftrans.ru/tracking', category: 'container', region: 'Russia' },
   { name: 'DB Schenker', code: 'DBSC', trackingUrl: 'https://www.dbschenker.com/tracking', category: 'container', region: 'Global' },
   { name: 'DHL Global Forwarding', code: 'DHLG', trackingUrl: 'https://www.dhl.com/tracking', category: 'container', region: 'Global' },
-  { name: 'Dong Young Shipping', code: 'DYSH', trackingUrl: 'https://www.dongyoung.co.kr/tracking', category: 'container', region: 'Asia' },
-  { name: 'Dongjin Shipping', code: 'DJSC', trackingUrl: 'https://www.dongjin.com/tracking', category: 'container', region: 'Asia' },
   // E
   { name: 'Econ Shipping', code: 'ECON', trackingUrl: 'https://www.econship.com/tracking', category: 'container', region: 'Asia' },
   { name: 'ECU Worldwide', code: 'ECUW', trackingUrl: 'https://www.ecuworldwide.com/tracking', category: 'container', region: 'Global' },
@@ -78,10 +76,9 @@ const carriers: Carrier[] = [
   // H
   { name: 'Hecny Group', code: 'HCNY', trackingUrl: 'https://www.hecny.com/tracking', category: 'container', region: 'Asia' },
   { name: 'Hede Shipping', code: 'HEDE', trackingUrl: 'https://www.hedeshipping.com/tracking', category: 'container', region: 'Asia' },
-  { name: 'Heung-A Line', code: 'HASU', trackingUrl: 'https://www.heung-a.com/cargo/tracking', category: 'container', region: 'Asia' },
+  { name: 'Heung-A Line', code: 'HASU', trackingUrl: 'http://www.heungaline.com/', category: 'container', region: 'Asia' },
   { name: 'Hikaru Shipping', code: 'HKRU', trackingUrl: 'https://www.hikaru-shipping.co.jp/tracking', category: 'container', region: 'Asia' },
   { name: 'Hillebrand Gori', code: 'HLBG', trackingUrl: 'https://www.hillebrandgori.com/tracking', category: 'container', region: 'Global' },
-  { name: 'HS LINE', code: 'HSLN', trackingUrl: 'https://www.hsline.co.kr/tracking', category: 'container', region: 'Asia' },
   // I
   { name: 'Inox Shipping', code: 'INOX', trackingUrl: 'https://www.inoxshipping.com/tracking', category: 'container', region: 'Europe' },
   { name: 'Interasia Lines', code: 'IALU', trackingUrl: 'https://www.interasia.cc/tracking', category: 'container', region: 'Asia' },
@@ -111,7 +108,6 @@ const carriers: Carrier[] = [
   { name: 'Messina Line', code: 'MSNU', trackingUrl: 'https://www.messinaline.it/tracking', category: 'container', region: 'Europe' },
   { name: 'Minsheng Ocean Shipping', code: 'MNSO', trackingUrl: 'https://www.minshengocean.com/tracking', category: 'container', region: 'Asia' },
   // N
-  { name: 'Namsung Shipping', code: 'NSSU', trackingUrl: 'https://www.namsung.co.kr/tracking', category: 'container', region: 'Asia' },
   { name: 'National Shipping of America', code: 'NSAU', trackingUrl: 'https://www.nsa-shipping.com/tracking', category: 'container', region: 'Americas' },
   { name: 'Nauka Lines', code: 'NKLN', trackingUrl: 'https://www.naukalines.com/tracking', category: 'container', region: 'Europe' },
   { name: 'NCL (Shipping Line)', code: 'NCLU', trackingUrl: 'https://www.nclshipping.com/tracking', category: 'container', region: 'Asia' },
@@ -122,7 +118,6 @@ const carriers: Carrier[] = [
   { name: 'Ocean Axis', code: 'OCAX', trackingUrl: 'https://www.oceanaxis.in/tracking', category: 'container', region: 'Asia' },
   { name: 'Oceanic Star Line', code: 'OSLU', trackingUrl: 'https://www.oceanicstarline.com/tracking', category: 'container', region: 'Americas' },
   // P
-  { name: 'Pan Continental Shipping', code: 'PCLU', trackingUrl: 'https://www.pancon.co.kr/tracking', category: 'container', region: 'Asia' },
   { name: 'Pan Ocean', code: 'PNOU', trackingUrl: 'https://www.panocean.com/tracking', category: 'container', region: 'Asia' },
   { name: 'Pasha Hawaii', code: 'PSHI', trackingUrl: 'https://www.pashahawaii.com/tracking', category: 'container', region: 'Pacific' },
   { name: 'PSL Navegação', code: 'PSLN', trackingUrl: 'https://www.psl.pt/tracking', category: 'container', region: 'Europe' },
@@ -143,7 +138,6 @@ const carriers: Carrier[] = [
   { name: 'SeaLead Shipping', code: 'SLSD', trackingUrl: 'https://www.sealead.com/tracking', category: 'container', region: 'Asia' },
   { name: 'SETH Shipping', code: 'SETH', trackingUrl: 'https://www.sfrlines.com/tracking', category: 'container', region: 'Asia' },
   { name: 'Silkargo Logistics', code: 'SLKG', trackingUrl: 'https://www.silkargo.com.my/tracking', category: 'container', region: 'Asia' },
-  { name: 'Sinokor Merchant Marine', code: 'SKLU', trackingUrl: 'https://ebiz.sinokor.co.kr/Tracking', category: 'container', region: 'Asia' },
   { name: 'Sinotrans', code: 'SNTU', trackingUrl: 'https://www.sinotrans.com/tracking', category: 'container', region: 'Asia' },
   { name: 'SITC', code: 'SITC', trackingUrl: 'https://api.sitcline.com/sitcline/query/cargoTrack', category: 'container', region: 'Asia' },
   { name: 'SM Line', code: 'SMLM', trackingUrl: 'https://www.smlines.com/cargo-tracking', category: 'container', region: 'Asia' },
@@ -181,7 +175,6 @@ const carriers: Carrier[] = [
   // W
   { name: 'W.E.C. Lines', code: 'WECL', trackingUrl: 'https://www.weclines.com/tracking', category: 'container', region: 'Europe' },
   { name: 'Wan Hai Lines', code: 'WHLC', trackingUrl: 'https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml', category: 'container', region: 'Asia' },
-  { name: 'White Line', code: 'WHLN', trackingUrl: 'https://www.whiteline.co.kr/tracking', category: 'container', region: 'Asia' },
   { name: 'World Direct Shipping', code: 'WDSU', trackingUrl: 'https://www.worlddirectshipping.com/tracking', category: 'container', region: 'Americas' },
   { name: 'World Transport Overseas', code: 'WTOU', trackingUrl: 'https://www.wto.be/tracking', category: 'container', region: 'Europe' },
   { name: 'WorldWide Alliance', code: 'WWAU', trackingUrl: 'https://www.worldwidealliance.com/tracking', category: 'container', region: 'Global' },
@@ -195,7 +188,6 @@ const carriers: Carrier[] = [
 
   // ============ B/L 추적 추가 (특수 선사) ============
   { name: 'Bahri (National Shipping)', code: 'BAHR', trackingUrl: 'https://www.bahri.sa/tracking', category: 'container', region: 'Middle East' },
-  { name: 'CK LINE', code: 'CKLN', trackingUrl: 'https://www.ckline.co.kr/tracking', category: 'container', region: 'Asia' },
   { name: 'Eimskip', code: 'EIMS', trackingUrl: 'https://www.eimskip.com/tracking', category: 'container', region: 'Europe' },
   { name: 'EUKOR Car Carriers', code: 'EUKO', trackingUrl: 'https://www.eukor.com/tracking', category: 'container', region: 'Global' },
   { name: 'G2 Ocean', code: 'G2OC', trackingUrl: 'https://www.g2ocean.com/tracking', category: 'container', region: 'Global' },
@@ -209,7 +201,7 @@ const carriers: Carrier[] = [
   { name: '장금상선 (Sinokor)', code: 'SKLU', trackingUrl: 'https://ebiz.sinokor.co.kr/tracking', category: 'container', region: 'Korea', isMajor: true },
   { name: '고려해운 (KMTC)', code: 'KMTU', trackingUrl: 'https://www.ekmtc.com/index.html#/cargo-tracking', category: 'container', region: 'Korea', isMajor: true },
   { name: 'SM상선 (SM Line)', code: 'SMLM', trackingUrl: 'https://www.smlines.com/tracking', category: 'container', region: 'Korea', isMajor: true },
-  { name: '흥아해운 (Heung-A)', code: 'HASU', trackingUrl: 'https://www.heung-a.com/', category: 'container', region: 'Korea', isMajor: true },
+  { name: '흥아해운 (Heung-A)', code: 'HASU', trackingUrl: 'http://www.heungaline.com/', category: 'container', region: 'Korea', isMajor: true },
   { name: '범주해운 (Pan Continental)', code: 'PCLU', trackingUrl: 'https://www.pancon.co.kr/', category: 'container', region: 'Korea' },
   { name: '남성해운 (Namsung)', code: 'NSSU', trackingUrl: 'https://www.namsung.co.kr/', category: 'container', region: 'Korea' },
   { name: '천경해운 (CK Line)', code: 'CKLU', trackingUrl: 'https://www.ckline.co.kr/', category: 'container', region: 'Korea' },
@@ -673,8 +665,8 @@ const carriers: Carrier[] = [
 
   // ============ 철도화물 (Rail) - 40개+ ============
   // 한국
-  { name: 'KORAIL 화물 (코레일)', code: 'KORAIL', trackingUrl: 'https://www.korail.com/logistics.do', category: 'rail', region: 'Korea' },
-  { name: '한국철도공사 물류', code: 'KRLG', trackingUrl: 'https://www.koraillogis.co.kr/', category: 'rail', region: 'Korea' },
+  { name: 'KORAIL 화물 (코레일)', code: 'KORAIL', trackingUrl: 'https://logis.korail.go.kr/index.do', category: 'rail', region: 'Korea' },
+  { name: '한국철도공사 물류', code: 'KRLG', trackingUrl: 'https://www.koraillogis.com/', category: 'rail', region: 'Korea' },
   // 중국-유럽 철도 (China-Europe Railway Express)
   { name: 'CR Express (中欧班列)', code: 'CRE', trackingUrl: 'https://www.crexpress.com/en/trackQuery.html', category: 'rail', region: 'China' },
   { name: 'China Railway (中国铁路)', code: 'CRCC', trackingUrl: 'https://www.12306.cn/', category: 'rail', region: 'China' },
