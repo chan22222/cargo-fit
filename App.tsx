@@ -22,6 +22,7 @@ import InsightDetail from './components/InsightDetail';
 import InsightsList from './components/InsightsList';
 import SelectionModal from './components/SelectionModal';
 import AdSense from './components/AdSense';
+import ContainerTracker from './components/ContainerTracker';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -29,7 +30,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
 
   // Check for route on mount and URL changes
@@ -65,6 +66,8 @@ const App: React.FC = () => {
         setCurrentRoute('cbm');
       } else if (path === '/regulations') {
         setCurrentRoute('regulations');
+      } else if (path === '/tracker') {
+        setCurrentRoute('tracker');
       } else if (path === '/admin') {
         setCurrentRoute('admin');
       } else {
@@ -99,7 +102,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
 
@@ -589,6 +592,7 @@ const App: React.FC = () => {
         '/holidays': 'holidays',
         '/cbm': 'cbm',
         '/regulations': 'regulations',
+        '/tracker': 'tracker',
         '/admin': 'admin',
       };
 
@@ -672,6 +676,8 @@ const App: React.FC = () => {
       setActiveTab('cbm');
     } else if (currentRoute === 'regulations') {
       setActiveTab('regulations');
+    } else if (currentRoute === 'tracker') {
+      setActiveTab('tracker');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -849,6 +855,15 @@ const App: React.FC = () => {
            >
              수입규제
            </button>
+           <button
+             onClick={() => {
+               setActiveTab('tracker');
+               navigate('/tracker');
+             }}
+             className={`text-sm font-bold transition-all duration-300 ${activeTab === 'tracker' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-900'}`}
+           >
+             화물추적
+           </button>
         </nav>
 
         {/* Mobile Menu Button */}
@@ -966,6 +981,18 @@ const App: React.FC = () => {
               >
                 수입규제
               </button>
+              <button
+                onClick={() => {
+                  setActiveTab('tracker');
+                  navigate('/tracker');
+                  setMobileMenuOpen(false);
+                }}
+                className={`text-left px-4 py-2 rounded-lg font-bold transition-all ${
+                  activeTab === 'tracker' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                화물추적
+              </button>
             </nav>
           </div>
         )}
@@ -1001,6 +1028,8 @@ const App: React.FC = () => {
         <CbmCalculator />
       ) : activeTab === 'regulations' ? (
         <ImportRegulations />
+      ) : activeTab === 'tracker' ? (
+        <ContainerTracker />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
