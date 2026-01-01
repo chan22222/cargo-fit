@@ -5,25 +5,26 @@ interface Carrier {
   name: string;
   code: string;
   trackingUrl: string;
-  category: 'container' | 'air' | 'courier' | 'korean' | 'post' | 'rail';
+  category: 'container' | 'air' | 'courier' | 'post' | 'rail';
   region?: string;
+  isMajor?: boolean; // 주요 운송사 여부
 }
 
 const carriers: Carrier[] = [
-  // ============ 컨테이너 선사 (Container Lines) - 171개 ============
+  // ============ 컨테이너 선사 (Container Lines) ============
   // 글로벌 메이저
-  { name: 'Maersk Line', code: 'MAEU', trackingUrl: 'https://www.maersk.com/tracking/', category: 'container', region: 'Global' },
-  { name: 'MSC (Mediterranean Shipping)', code: 'MSCU', trackingUrl: 'https://www.msc.com/track-a-shipment', category: 'container', region: 'Global' },
-  { name: 'CMA CGM', code: 'CMDU', trackingUrl: 'https://www.cma-cgm.com/ebusiness/tracking', category: 'container', region: 'Global' },
-  { name: 'COSCO Shipping Lines', code: 'COSU', trackingUrl: 'https://elines.coscoshipping.com/ebusiness/cargoTracking', category: 'container', region: 'Global' },
-  { name: 'Hapag-Lloyd', code: 'HLCU', trackingUrl: 'https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html', category: 'container', region: 'Global' },
-  { name: 'ONE (Ocean Network Express)', code: 'ONEY', trackingUrl: 'https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking', category: 'container', region: 'Global' },
-  { name: 'Evergreen Line', code: 'EGLV', trackingUrl: 'https://www.shipmentlink.com/tvs2/servlet/TDB1_CargoTracking.do', category: 'container', region: 'Global' },
-  { name: 'Yang Ming', code: 'YMLU', trackingUrl: 'https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx', category: 'container', region: 'Global' },
-  { name: 'HMM (Hyundai)', code: 'HDMU', trackingUrl: 'https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp', category: 'container', region: 'Global' },
-  { name: 'ZIM', code: 'ZIMU', trackingUrl: 'https://www.zim.com/tools/track-a-shipment', category: 'container', region: 'Global' },
-  { name: 'PIL (Pacific Int\'l Lines)', code: 'PCIU', trackingUrl: 'https://www.pilship.com/en-our-solutions-ede-cargo-tracking/84/', category: 'container', region: 'Global' },
-  { name: 'OOCL', code: 'OOLU', trackingUrl: 'https://www.oocl.com/eng/ourservices/eservices/cargotracking/', category: 'container', region: 'Global' },
+  { name: 'Maersk Line', code: 'MAEU', trackingUrl: 'https://www.maersk.com/tracking/', category: 'container', region: 'Global', isMajor: true },
+  { name: 'MSC (Mediterranean Shipping)', code: 'MSCU', trackingUrl: 'https://www.msc.com/track-a-shipment', category: 'container', region: 'Global', isMajor: true },
+  { name: 'CMA CGM', code: 'CMDU', trackingUrl: 'https://www.cma-cgm.com/ebusiness/tracking', category: 'container', region: 'Global', isMajor: true },
+  { name: 'COSCO Shipping Lines', code: 'COSU', trackingUrl: 'https://elines.coscoshipping.com/ebusiness/cargoTracking', category: 'container', region: 'Global', isMajor: true },
+  { name: 'Hapag-Lloyd', code: 'HLCU', trackingUrl: 'https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html', category: 'container', region: 'Global', isMajor: true },
+  { name: 'ONE (Ocean Network Express)', code: 'ONEY', trackingUrl: 'https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking', category: 'container', region: 'Global', isMajor: true },
+  { name: 'Evergreen Line', code: 'EGLV', trackingUrl: 'https://www.shipmentlink.com/tvs2/servlet/TDB1_CargoTracking.do', category: 'container', region: 'Global', isMajor: true },
+  { name: 'Yang Ming', code: 'YMLU', trackingUrl: 'https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx', category: 'container', region: 'Global', isMajor: true },
+  { name: 'HMM (Hyundai)', code: 'HDMU', trackingUrl: 'https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp', category: 'container', region: 'Global', isMajor: true },
+  { name: 'ZIM', code: 'ZIMU', trackingUrl: 'https://www.zim.com/tools/track-a-shipment', category: 'container', region: 'Global', isMajor: true },
+  { name: 'PIL (Pacific Int\'l Lines)', code: 'PCIU', trackingUrl: 'https://www.pilship.com/en-our-solutions-ede-cargo-tracking/84/', category: 'container', region: 'Global', isMajor: true },
+  { name: 'OOCL', code: 'OOLU', trackingUrl: 'https://www.oocl.com/eng/ourservices/eservices/cargotracking/', category: 'container', region: 'Global', isMajor: true },
   // A
   { name: 'ACL (Atlantic Container Line)', code: 'ACLU', trackingUrl: 'https://www.aclcargo.com/tracking', category: 'container', region: 'Europe' },
   { name: 'Aladin Express', code: 'ALAD', trackingUrl: 'https://www.aborientmt.com/tracking', category: 'container', region: 'Asia' },
@@ -204,37 +205,37 @@ const carriers: Carrier[] = [
 
   // ============ 한국 선사 (Korean Lines) ============
   // 컨테이너 선사
-  { name: 'HMM (현대상선)', code: 'HDMU', trackingUrl: 'https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp', category: 'korean' },
-  { name: '장금상선 (Sinokor)', code: 'SKLU', trackingUrl: 'https://ebiz.sinokor.co.kr/tracking', category: 'korean' },
-  { name: '고려해운 (KMTC)', code: 'KMTU', trackingUrl: 'https://www.ekmtc.com/index.html#/cargo-tracking', category: 'korean' },
-  { name: 'SM상선 (SM Line)', code: 'SMLM', trackingUrl: 'https://www.smlines.com/tracking', category: 'korean' },
-  { name: '흥아해운 (Heung-A)', code: 'HASU', trackingUrl: 'https://www.heung-a.com/', category: 'korean' },
-  { name: '범주해운 (Pan Continental)', code: 'PCLU', trackingUrl: 'https://www.pancon.co.kr/', category: 'korean' },
-  { name: '남성해운 (Namsung)', code: 'NSSU', trackingUrl: 'https://www.namsung.co.kr/', category: 'korean' },
-  { name: '천경해운 (CK Line)', code: 'CKLU', trackingUrl: 'https://www.ckline.co.kr/', category: 'korean' },
-  { name: '동영해운 (Dong Young)', code: 'DYSH', trackingUrl: 'https://www.pcsline.co.kr/', category: 'korean' },
-  { name: '동진상선 (Dongjin)', code: 'DJSC', trackingUrl: 'https://www.dongjin.com/', category: 'korean' },
-  { name: 'HS라인 (HS Line)', code: 'HSLN', trackingUrl: 'https://www.hsline.co.kr/', category: 'korean' },
+  { name: 'HMM (현대상선)', code: 'HDMU', trackingUrl: 'https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp', category: 'container', region: 'Korea', isMajor: true },
+  { name: '장금상선 (Sinokor)', code: 'SKLU', trackingUrl: 'https://ebiz.sinokor.co.kr/tracking', category: 'container', region: 'Korea', isMajor: true },
+  { name: '고려해운 (KMTC)', code: 'KMTU', trackingUrl: 'https://www.ekmtc.com/index.html#/cargo-tracking', category: 'container', region: 'Korea', isMajor: true },
+  { name: 'SM상선 (SM Line)', code: 'SMLM', trackingUrl: 'https://www.smlines.com/tracking', category: 'container', region: 'Korea', isMajor: true },
+  { name: '흥아해운 (Heung-A)', code: 'HASU', trackingUrl: 'https://www.heung-a.com/', category: 'container', region: 'Korea', isMajor: true },
+  { name: '범주해운 (Pan Continental)', code: 'PCLU', trackingUrl: 'https://www.pancon.co.kr/', category: 'container', region: 'Korea' },
+  { name: '남성해운 (Namsung)', code: 'NSSU', trackingUrl: 'https://www.namsung.co.kr/', category: 'container', region: 'Korea' },
+  { name: '천경해운 (CK Line)', code: 'CKLU', trackingUrl: 'https://www.ckline.co.kr/', category: 'container', region: 'Korea' },
+  { name: '동영해운 (Dong Young)', code: 'DYSH', trackingUrl: 'https://www.pcsline.co.kr/', category: 'container', region: 'Korea' },
+  { name: '동진상선 (Dongjin)', code: 'DJSC', trackingUrl: 'https://www.dongjin.com/', category: 'container', region: 'Korea' },
+  { name: 'HS라인 (HS Line)', code: 'HSLN', trackingUrl: 'https://www.hsline.co.kr/', category: 'container', region: 'Korea' },
   // 벌크/탱커 선사
-  { name: '팬오션 (Pan Ocean)', code: 'PNOU', trackingUrl: 'https://www.panocean.com/', category: 'korean' },
-  { name: 'SK해운 (SK Shipping)', code: 'SKSH', trackingUrl: 'https://www.skshipping.com/', category: 'korean' },
-  { name: '대한해운 (Korea Line)', code: 'KLCS', trackingUrl: 'https://www.korealine.co.kr/', category: 'korean' },
-  { name: '폴라리스쉬핑 (Polaris)', code: 'PLRS', trackingUrl: 'https://www.polarisshipping.co.kr/', category: 'korean' },
-  { name: 'KSS해운 (KSS Marine)', code: 'KSSM', trackingUrl: 'https://www.kssline.com/', category: 'korean' },
-  { name: '에이치라인해운 (H-Line)', code: 'HLIN', trackingUrl: 'https://www.hlineshipping.com/', category: 'korean' },
+  { name: '팬오션 (Pan Ocean)', code: 'PNOU', trackingUrl: 'https://www.panocean.com/', category: 'container', region: 'Korea' },
+  { name: 'SK해운 (SK Shipping)', code: 'SKSH', trackingUrl: 'https://www.skshipping.com/', category: 'container', region: 'Korea' },
+  { name: '대한해운 (Korea Line)', code: 'KLCS', trackingUrl: 'https://www.korealine.co.kr/', category: 'container', region: 'Korea' },
+  { name: '폴라리스쉬핑 (Polaris)', code: 'PLRS', trackingUrl: 'https://www.polarisshipping.co.kr/', category: 'container', region: 'Korea' },
+  { name: 'KSS해운 (KSS Marine)', code: 'KSSM', trackingUrl: 'https://www.kssline.com/', category: 'container', region: 'Korea' },
+  { name: '에이치라인해운 (H-Line)', code: 'HLIN', trackingUrl: 'https://www.hlineshipping.com/', category: 'container', region: 'Korea' },
   // 자동차운반선
-  { name: '유코카캐리어스 (EUKOR)', code: 'EUKO', trackingUrl: 'https://www.eukor.com/', category: 'korean' },
-  { name: '현대글로비스 (Hyundai Glovis)', code: 'GLVS', trackingUrl: 'https://www.glovis.net/', category: 'korean' },
+  { name: '유코카캐리어스 (EUKOR)', code: 'EUKO', trackingUrl: 'https://www.eukor.com/', category: 'container', region: 'Korea' },
+  { name: '현대글로비스 (Hyundai Glovis)', code: 'GLVS', trackingUrl: 'https://www.glovis.net/', category: 'container', region: 'Korea', isMajor: true },
   // 카페리
-  { name: '부관페리 (Pukwan Ferry)', code: 'PKFR', trackingUrl: 'https://www.pukwan.co.kr/', category: 'korean' },
-  { name: 'DBS크루즈페리', code: 'DBSF', trackingUrl: 'https://www.dbsferry.com/kr/', category: 'korean' },
-  { name: '팬스타라인', code: 'PNST', trackingUrl: 'https://www.panstar.co.kr/', category: 'korean' },
-  { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'korean' },
+  { name: '부관페리 (Pukwan Ferry)', code: 'PKFR', trackingUrl: 'https://www.pukwan.co.kr/', category: 'container', region: 'Korea' },
+  { name: 'DBS크루즈페리', code: 'DBSF', trackingUrl: 'https://www.dbsferry.com/kr/', category: 'container', region: 'Korea' },
+  { name: '팬스타라인', code: 'PNST', trackingUrl: 'https://www.panstar.co.kr/', category: 'container', region: 'Korea' },
+  { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'container', region: 'Korea' },
 
-  // ============ 항공화물 (Air Cargo) - 242개 ============
+  // ============ 항공화물 (Air Cargo) ============
   // 한국 항공사
-  { name: '대한항공 (Korean Air)', code: 'KE', trackingUrl: 'https://cargo.koreanair.com/tracking', category: 'air', region: 'Korea' },
-  { name: '아시아나 (Asiana)', code: 'OZ', trackingUrl: 'https://flyasiana.com/C/US/EN/contents/cargo-tracking', category: 'air', region: 'Korea' },
+  { name: '대한항공 (Korean Air)', code: 'KE', trackingUrl: 'https://cargo.koreanair.com/tracking', category: 'air', region: 'Korea', isMajor: true },
+  { name: '아시아나 (Asiana)', code: 'OZ', trackingUrl: 'https://flyasiana.com/C/US/EN/contents/cargo-tracking', category: 'air', region: 'Korea', isMajor: true },
   { name: '진에어 (Jin Air)', code: 'LJ', trackingUrl: 'https://www.jinair.com/cargo/tracking', category: 'air', region: 'Korea' },
   { name: '제주항공 (Jeju Air)', code: '7C', trackingUrl: 'https://www.jejuair.net/ko/cargo/tracking.do', category: 'air', region: 'Korea' },
   { name: '티웨이 (T\'way Air)', code: 'TW', trackingUrl: 'https://www.twayair.com/cargo', category: 'air', region: 'Korea' },
@@ -244,13 +245,13 @@ const carriers: Carrier[] = [
   { name: 'Aegean Airlines', code: 'A3', trackingUrl: 'https://www.aegeanair.com/cargo', category: 'air', region: 'Europe' },
   { name: 'Aerolineas Argentinas', code: 'AR', trackingUrl: 'https://www.aerolineas.com.ar/cargo', category: 'air', region: 'Americas' },
   { name: 'Aeromexico Cargo', code: 'AM', trackingUrl: 'https://www.aeromexicocargo.com/tracking', category: 'air', region: 'Americas' },
-  { name: 'AF-KL-MP Cargo', code: 'AF', trackingUrl: 'https://www.afklcargo.com/WW/en/common/tracking.jsp', category: 'air', region: 'Europe' },
+  { name: 'AF-KL-MP Cargo', code: 'AF', trackingUrl: 'https://www.afklcargo.com/WW/en/common/tracking.jsp', category: 'air', region: 'Europe', isMajor: true },
   { name: 'Air Astana', code: 'KC', trackingUrl: 'https://airastana.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Air Baltic', code: 'BT', trackingUrl: 'https://www.airbaltic.com/cargo', category: 'air', region: 'Europe' },
   { name: 'Air Belgium', code: 'KF', trackingUrl: 'https://www.airbelgium.com/cargo', category: 'air', region: 'Europe' },
-  { name: 'Air Canada Cargo', code: 'AC', trackingUrl: 'https://www.aircanada.com/cargo/tracking', category: 'air', region: 'Americas' },
+  { name: 'Air Canada Cargo', code: 'AC', trackingUrl: 'https://www.aircanada.com/cargo/tracking', category: 'air', region: 'Americas', isMajor: true },
   { name: 'Air Changan', code: '9H', trackingUrl: 'https://www.airchangan.com/cargo', category: 'air', region: 'Asia' },
-  { name: 'Air China Cargo', code: 'CA', trackingUrl: 'https://www.airchinacargo.com/tracking', category: 'air', region: 'Asia' },
+  { name: 'Air China Cargo', code: 'CA', trackingUrl: 'https://www.airchinacargo.com/tracking', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Air Corsica', code: 'XK', trackingUrl: 'https://www.aircorsica.com/cargo', category: 'air', region: 'Europe' },
   { name: 'Air Côte d\'Ivoire', code: 'HF', trackingUrl: 'https://www.aircotedivoire.com/cargo', category: 'air', region: 'Africa' },
   { name: 'Air Europa Cargo', code: 'UX', trackingUrl: 'https://www.aireuropa.com/cargo', category: 'air', region: 'Europe' },
@@ -275,9 +276,9 @@ const carriers: Carrier[] = [
   { name: 'Alaska Air Cargo', code: 'AS', trackingUrl: 'https://www.alaskaair.com/cargo', category: 'air', region: 'Americas' },
   { name: 'AlliedAir', code: '4W', trackingUrl: 'https://www.alliedair.com/cargo', category: 'air', region: 'Africa' },
   { name: 'Aloha Air Cargo', code: 'KH', trackingUrl: 'https://www.alohaaircargo.com', category: 'air', region: 'Americas' },
-  { name: 'American Airlines Cargo', code: 'AA', trackingUrl: 'https://www.aacargo.com/tracking', category: 'air', region: 'Americas' },
+  { name: 'American Airlines Cargo', code: 'AA', trackingUrl: 'https://www.aacargo.com/tracking', category: 'air', region: 'Americas', isMajor: true },
   { name: 'Amerijet International', code: 'M6', trackingUrl: 'https://www.amerijet.com/tracking', category: 'air', region: 'Americas' },
-  { name: 'ANA Cargo', code: 'NH', trackingUrl: 'https://www.anacargo.jp/en/tracking/', category: 'air', region: 'Asia' },
+  { name: 'ANA Cargo', code: 'NH', trackingUrl: 'https://www.anacargo.jp/en/tracking/', category: 'air', region: 'Asia', isMajor: true },
   { name: 'ASL Airlines Belgium', code: '3V', trackingUrl: 'https://www.aslairlines.be/cargo', category: 'air', region: 'Europe' },
   { name: 'Astral Aviation', code: '8V', trackingUrl: 'https://www.astral-aviation.com', category: 'air', region: 'Africa' },
   { name: 'Atlantic Airways', code: 'RC', trackingUrl: 'https://www.atlanticairways.com/cargo', category: 'air', region: 'Europe' },
@@ -297,19 +298,19 @@ const carriers: Carrier[] = [
   { name: 'Calm Air', code: 'MO', trackingUrl: 'https://www.calmair.com/cargo', category: 'air', region: 'Americas' },
   { name: 'Capital Airlines', code: 'JD', trackingUrl: 'https://www.capitalairlines.com.cn/cargo', category: 'air', region: 'Asia' },
   { name: 'Cargojet', code: 'W8', trackingUrl: 'https://www.cargojet.com/tracking', category: 'air', region: 'Americas' },
-  { name: 'Cargolux', code: 'CV', trackingUrl: 'https://www.cargolux.com/Our-Services/Shipment-Tracking', category: 'air', region: 'Europe' },
+  { name: 'Cargolux', code: 'CV', trackingUrl: 'https://www.cargolux.com/Our-Services/Shipment-Tracking', category: 'air', region: 'Europe', isMajor: true },
   { name: 'Cargolux Italia', code: 'C8', trackingUrl: 'https://www.cargolux.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Caribbean Airlines', code: 'BW', trackingUrl: 'https://www.caribbean-airlines.com/cargo', category: 'air', region: 'Americas' },
-  { name: 'Cathay Cargo', code: 'CX', trackingUrl: 'https://www.cathaypacificcargo.com/en/Track.aspx', category: 'air', region: 'Asia' },
+  { name: 'Cathay Cargo', code: 'CX', trackingUrl: 'https://www.cathaypacificcargo.com/en/Track.aspx', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Cayman Airways', code: 'KX', trackingUrl: 'https://www.caymanairways.com/cargo', category: 'air', region: 'Americas' },
   { name: 'Cebu Pacific Air', code: '5J', trackingUrl: 'https://www.cebupacificair.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Central Airlines', code: 'I9', trackingUrl: 'https://www.flycentralair.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Challenge Airlines BE', code: 'X7', trackingUrl: 'https://www.challengegroup.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Challenge Airlines IL', code: '5C', trackingUrl: 'https://www.challengegroup.com/tracking', category: 'air', region: 'Middle East' },
   { name: 'Challenge Airlines MT', code: 'X6', trackingUrl: 'https://www.challengegroup.com/tracking', category: 'air', region: 'Europe' },
-  { name: 'China Airlines Cargo', code: 'CI', trackingUrl: 'https://cargo.china-airlines.com/ccnetv2/TrackShipmentAction.do', category: 'air', region: 'Asia' },
+  { name: 'China Airlines Cargo', code: 'CI', trackingUrl: 'https://cargo.china-airlines.com/ccnetv2/TrackShipmentAction.do', category: 'air', region: 'Asia', isMajor: true },
   { name: 'China Cargo Airlines', code: 'CK', trackingUrl: 'https://www.ckair.com/tracking', category: 'air', region: 'Asia' },
-  { name: 'China Southern Cargo', code: 'CZ', trackingUrl: 'https://cargo.csair.com/tracking', category: 'air', region: 'Asia' },
+  { name: 'China Southern Cargo', code: 'CZ', trackingUrl: 'https://cargo.csair.com/tracking', category: 'air', region: 'Asia', isMajor: true },
   { name: 'CMA CGM Air Cargo', code: '2C', trackingUrl: 'https://www.cma-cgm.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Condor Cargo', code: 'DE', trackingUrl: 'https://www.condor.com/cargo', category: 'air', region: 'Europe' },
   { name: 'Copa Cargo', code: 'CM', trackingUrl: 'https://cargo.copaair.com/tracking', category: 'air', region: 'Americas' },
@@ -318,19 +319,19 @@ const carriers: Carrier[] = [
   { name: 'Croatia Airlines', code: 'OU', trackingUrl: 'https://www.croatiaairlines.com/cargo', category: 'air', region: 'Europe' },
   // D
   { name: 'Daallo Express', code: 'D3', trackingUrl: 'https://www.daallo.com/cargo', category: 'air', region: 'Africa' },
-  { name: 'Delta Cargo', code: 'DL', trackingUrl: 'https://www.deltacargo.com/tracking', category: 'air', region: 'Americas' },
+  { name: 'Delta Cargo', code: 'DL', trackingUrl: 'https://www.deltacargo.com/tracking', category: 'air', region: 'Americas', isMajor: true },
   { name: 'DHL Aviation', code: 'ES', trackingUrl: 'https://www.dhl.com/tracking', category: 'air', region: 'Global' },
   // E
   { name: 'EgyptAir Cargo', code: 'MS', trackingUrl: 'https://cargo.egyptair.com/tracking', category: 'air', region: 'Africa' },
   { name: 'El Al Cargo', code: 'LY', trackingUrl: 'https://www.elal.com/cargo/tracking', category: 'air', region: 'Middle East' },
-  { name: 'Emirates SkyCargo', code: 'EK', trackingUrl: 'https://www.skycargo.com/english/track/', category: 'air', region: 'Middle East' },
+  { name: 'Emirates SkyCargo', code: 'EK', trackingUrl: 'https://www.skycargo.com/english/track/', category: 'air', region: 'Middle East', isMajor: true },
   { name: 'Estafeta', code: 'E7', trackingUrl: 'https://www.estafeta.com/tracking', category: 'air', region: 'Americas' },
-  { name: 'Ethiopian Cargo', code: 'ET', trackingUrl: 'https://www.ethiopianairlines.com/AA/EN/cargo/track-your-cargo', category: 'air', region: 'Africa' },
-  { name: 'Etihad Cargo', code: 'EY', trackingUrl: 'https://www.etihadcargo.com/en/tracking/', category: 'air', region: 'Middle East' },
-  { name: 'EVA Air Cargo', code: 'BR', trackingUrl: 'https://www.evacargo.com/Tracking/TrackingCargo.aspx', category: 'air', region: 'Asia' },
+  { name: 'Ethiopian Cargo', code: 'ET', trackingUrl: 'https://www.ethiopianairlines.com/AA/EN/cargo/track-your-cargo', category: 'air', region: 'Africa', isMajor: true },
+  { name: 'Etihad Cargo', code: 'EY', trackingUrl: 'https://www.etihadcargo.com/en/tracking/', category: 'air', region: 'Middle East', isMajor: true },
+  { name: 'EVA Air Cargo', code: 'BR', trackingUrl: 'https://www.evacargo.com/Tracking/TrackingCargo.aspx', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Everts Air', code: '5V', trackingUrl: 'https://www.evertsair.com/cargo', category: 'air', region: 'Americas' },
   // F
-  { name: 'FedEx Express', code: 'FX', trackingUrl: 'https://www.fedex.com/en-kr/tracking.html', category: 'air', region: 'Global' },
+  { name: 'FedEx Express', code: 'FX', trackingUrl: 'https://www.fedex.com/en-kr/tracking.html', category: 'air', region: 'Global', isMajor: true },
   { name: 'Fiji Airways', code: 'FJ', trackingUrl: 'https://www.fijiairways.com/cargo', category: 'air', region: 'Oceania' },
   { name: 'Finnair Cargo', code: 'AY', trackingUrl: 'https://cargo.finnair.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Fly Jinnah', code: '9P', trackingUrl: 'https://www.flyjinnah.com/cargo', category: 'air', region: 'Asia' },
@@ -348,14 +349,14 @@ const carriers: Carrier[] = [
   { name: 'HK Express', code: 'UO', trackingUrl: 'https://www.hkexpress.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Hong Kong Air Cargo', code: 'RH', trackingUrl: 'https://www.hongkongaircargo.com/tracking', category: 'air', region: 'Asia' },
   // I
-  { name: 'IAG Cargo', code: 'IB', trackingUrl: 'https://www.iagcargo.com/track-trace/', category: 'air', region: 'Europe' },
+  { name: 'IAG Cargo', code: 'IB', trackingUrl: 'https://www.iagcargo.com/track-trace/', category: 'air', region: 'Europe', isMajor: true },
   { name: 'IBC Airways', code: 'II', trackingUrl: 'https://www.ibcairways.com/cargo', category: 'air', region: 'Americas' },
   { name: 'Icelandair Cargo', code: 'FI', trackingUrl: 'https://www.icelandaircargo.com/tracking', category: 'air', region: 'Europe' },
   { name: 'IndiGo CarGo', code: '6E', trackingUrl: 'https://www.goindigo.in/cargo', category: 'air', region: 'Asia' },
   { name: 'ITA Airways', code: 'AZ', trackingUrl: 'https://www.ita-airways.com/cargo', category: 'air', region: 'Europe' },
   // J
   { name: 'Jambojet', code: 'JM', trackingUrl: 'https://www.jambojet.com/cargo', category: 'air', region: 'Africa' },
-  { name: 'Japan Airlines Cargo', code: 'JL', trackingUrl: 'https://www.jalcargo.com/jcms/e/track/', category: 'air', region: 'Asia' },
+  { name: 'Japan Airlines Cargo', code: 'JL', trackingUrl: 'https://www.jalcargo.com/jcms/e/track/', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Jazeera Air Cargo', code: 'J9', trackingUrl: 'https://www.jazeeraairways.com/cargo', category: 'air', region: 'Middle East' },
   { name: 'JetBlue', code: 'B6', trackingUrl: 'https://www.jetblue.com/cargo', category: 'air', region: 'Americas' },
   { name: 'Juneyao Airlines', code: 'HO', trackingUrl: 'https://www.juneyaoair.com/cargo', category: 'air', region: 'Asia' },
@@ -366,11 +367,11 @@ const carriers: Carrier[] = [
   { name: 'Kuwait Airways', code: 'KU', trackingUrl: 'https://www.kuwaitairways.com/cargo/tracking', category: 'air', region: 'Middle East' },
   // L
   { name: 'LAM Cargo', code: 'TM', trackingUrl: 'https://www.lam.co.mz/cargo', category: 'air', region: 'Africa' },
-  { name: 'LATAM Cargo', code: 'LA', trackingUrl: 'https://www.latamcargo.com/en/trackshipment', category: 'air', region: 'Americas' },
+  { name: 'LATAM Cargo', code: 'LA', trackingUrl: 'https://www.latamcargo.com/en/trackshipment', category: 'air', region: 'Americas', isMajor: true },
   { name: 'Lion Air', code: 'JT', trackingUrl: 'https://www.lionair.co.id/cargo', category: 'air', region: 'Asia' },
   { name: 'LOT Cargo', code: 'LO', trackingUrl: 'https://www.lotcargo.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Lucky Air', code: '8L', trackingUrl: 'https://www.luckyair.net/cargo', category: 'air', region: 'Asia' },
-  { name: 'Lufthansa Cargo', code: 'LH', trackingUrl: 'https://lufthansa-cargo.com/tracking', category: 'air', region: 'Europe' },
+  { name: 'Lufthansa Cargo', code: 'LH', trackingUrl: 'https://lufthansa-cargo.com/tracking', category: 'air', region: 'Europe', isMajor: true },
   // M
   { name: 'MasAir', code: 'M7', trackingUrl: 'https://www.masair.com/tracking', category: 'air', region: 'Americas' },
   { name: 'MASkargo', code: 'MH', trackingUrl: 'https://www.maskargo.com/tracking', category: 'air', region: 'Asia' },
@@ -400,7 +401,7 @@ const carriers: Carrier[] = [
   { name: 'Polar Air Cargo', code: 'PO', trackingUrl: 'https://www.polaraircargo.com/tracking', category: 'air', region: 'Americas' },
   // Q
   { name: 'Qantas Freight', code: 'QF', trackingUrl: 'https://freight.qantas.com/tracking', category: 'air', region: 'Oceania' },
-  { name: 'Qatar Airways Cargo', code: 'QR', trackingUrl: 'https://www.qrcargo.com/s/track-shipment', category: 'air', region: 'Middle East' },
+  { name: 'Qatar Airways Cargo', code: 'QR', trackingUrl: 'https://www.qrcargo.com/s/track-shipment', category: 'air', region: 'Middle East', isMajor: true },
   // R
   { name: 'Royal Air Maroc', code: 'AT', trackingUrl: 'https://cargo.royalairmaroc.com/tracking', category: 'air', region: 'Africa' },
   { name: 'Royal Brunei', code: 'BI', trackingUrl: 'https://www.royalbrunei.com/cargo', category: 'air', region: 'Asia' },
@@ -416,7 +417,7 @@ const carriers: Carrier[] = [
   { name: 'Sichuan Airlines', code: '3U', trackingUrl: 'https://www.sichuanair.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Silk Way Airlines', code: 'ZP', trackingUrl: 'https://www.silkwayairlines.com/tracking', category: 'air', region: 'Asia' },
   { name: 'Silk Way West Airlines', code: '7L', trackingUrl: 'https://www.silkwaywest.com/tracking', category: 'air', region: 'Asia' },
-  { name: 'Singapore Airlines Cargo', code: 'SQ', trackingUrl: 'https://www.siacargo.com/tracking/', category: 'air', region: 'Asia' },
+  { name: 'Singapore Airlines Cargo', code: 'SQ', trackingUrl: 'https://www.siacargo.com/tracking/', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Smartwings', code: 'QS', trackingUrl: 'https://www.smartwings.com/cargo', category: 'air', region: 'Europe' },
   { name: 'South African Airways', code: 'SA', trackingUrl: 'https://www.flysaa.com/cargo/tracking', category: 'air', region: 'Africa' },
   { name: 'Southwest Airlines', code: 'WN', trackingUrl: 'https://www.southwest.com/cargo', category: 'air', region: 'Americas' },
@@ -431,18 +432,18 @@ const carriers: Carrier[] = [
   { name: 'TAAG Angola', code: 'DT', trackingUrl: 'https://www.taag.com/cargo', category: 'air', region: 'Africa' },
   { name: 'TAP Air Cargo', code: 'TP', trackingUrl: 'https://www.tapcargo.com/tracking', category: 'air', region: 'Europe' },
   { name: 'Tarom', code: 'RO', trackingUrl: 'https://www.tarom.ro/cargo', category: 'air', region: 'Europe' },
-  { name: 'Thai Airways Cargo', code: 'TG', trackingUrl: 'https://www.thaicargo.com/tracking', category: 'air', region: 'Asia' },
+  { name: 'Thai Airways Cargo', code: 'TG', trackingUrl: 'https://www.thaicargo.com/tracking', category: 'air', region: 'Asia', isMajor: true },
   { name: 'Thai Lion Air', code: 'SL', trackingUrl: 'https://www.lionairthai.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Tianjin Air Cargo', code: 'HT', trackingUrl: 'https://www.tianjin-air.com/cargo', category: 'air', region: 'Asia' },
   { name: 'Tianjin Airlines', code: 'GS', trackingUrl: 'https://www.tianjin-air.com/cargo', category: 'air', region: 'Asia' },
   { name: 'TUI Cargo', code: 'TB', trackingUrl: 'https://www.tui.com/cargo', category: 'air', region: 'Europe' },
   { name: 'Tunisair Cargo', code: 'TU', trackingUrl: 'https://www.tunisair.com/cargo', category: 'air', region: 'Africa' },
-  { name: 'Turkish Cargo', code: 'TK', trackingUrl: 'https://www.turkishcargo.com.tr/en/e-services/track-trace', category: 'air', region: 'Europe' },
+  { name: 'Turkish Cargo', code: 'TK', trackingUrl: 'https://www.turkishcargo.com.tr/en/e-services/track-trace', category: 'air', region: 'Europe', isMajor: true },
   { name: 'Turkmenistan Airlines', code: 'T5', trackingUrl: 'https://www.turkmenistanairlines.com/cargo', category: 'air', region: 'Asia' },
   // U
   { name: 'Uganda Airlines', code: 'UR', trackingUrl: 'https://www.ugandairlines.com/cargo', category: 'air', region: 'Africa' },
-  { name: 'United Cargo', code: 'UA', trackingUrl: 'https://www.unitedcargo.com/tracking', category: 'air', region: 'Americas' },
-  { name: 'UPS Airlines', code: '5X', trackingUrl: 'https://www.ups.com/track', category: 'air', region: 'Global' },
+  { name: 'United Cargo', code: 'UA', trackingUrl: 'https://www.unitedcargo.com/tracking', category: 'air', region: 'Americas', isMajor: true },
+  { name: 'UPS Airlines', code: '5X', trackingUrl: 'https://www.ups.com/track', category: 'air', region: 'Global', isMajor: true },
   { name: 'Ural Airlines', code: 'U6', trackingUrl: 'https://www.uralairlines.ru/cargo', category: 'air', region: 'Europe' },
   { name: 'Uzbekistan Airways', code: 'HY', trackingUrl: 'https://www.uzairways.com/cargo', category: 'air', region: 'Asia' },
   // V
@@ -460,13 +461,13 @@ const carriers: Carrier[] = [
   { name: 'YTO Cargo Airlines', code: 'YG', trackingUrl: 'https://www.yto.net.cn/tracking', category: 'air', region: 'Asia' },
 
   // ============ 특송/택배 (Courier/Express) ============
-  { name: 'DHL Express', code: 'DHL', trackingUrl: 'https://www.dhl.com/kr-ko/home/tracking.html', category: 'courier', region: 'Global' },
-  { name: 'FedEx', code: 'FDX', trackingUrl: 'https://www.fedex.com/en-kr/tracking.html', category: 'courier', region: 'Global' },
-  { name: 'UPS', code: 'UPS', trackingUrl: 'https://www.ups.com/track', category: 'courier', region: 'Global' },
-  { name: 'TNT (FedEx)', code: 'TNT', trackingUrl: 'https://www.tnt.com/express/ko_kr/site/shipping-tools/tracking.html', category: 'courier', region: 'Global' },
-  { name: 'DB Schenker', code: 'DBS', trackingUrl: 'https://www.dbschenker.com/global/tracking', category: 'courier', region: 'Global' },
-  { name: 'Kuehne + Nagel', code: 'KN', trackingUrl: 'https://onlineservices.kuehne-nagel.com/public-tracking/', category: 'courier', region: 'Global' },
-  { name: 'DSV', code: 'DSV', trackingUrl: 'https://www.dsv.com/en/tools/track-and-trace', category: 'courier', region: 'Global' },
+  { name: 'DHL Express', code: 'DHL', trackingUrl: 'https://www.dhl.com/kr-ko/home/tracking.html', category: 'courier', region: 'Global', isMajor: true },
+  { name: 'FedEx', code: 'FDX', trackingUrl: 'https://www.fedex.com/en-kr/tracking.html', category: 'courier', region: 'Global', isMajor: true },
+  { name: 'UPS', code: 'UPS', trackingUrl: 'https://www.ups.com/track', category: 'courier', region: 'Global', isMajor: true },
+  { name: 'TNT (FedEx)', code: 'TNT', trackingUrl: 'https://www.tnt.com/express/ko_kr/site/shipping-tools/tracking.html', category: 'courier', region: 'Global', isMajor: true },
+  { name: 'DB Schenker', code: 'DBS', trackingUrl: 'https://www.dbschenker.com/global/tracking', category: 'courier', region: 'Global', isMajor: true },
+  { name: 'Kuehne + Nagel', code: 'KN', trackingUrl: 'https://onlineservices.kuehne-nagel.com/public-tracking/', category: 'courier', region: 'Global', isMajor: true },
+  { name: 'DSV', code: 'DSV', trackingUrl: 'https://www.dsv.com/en/tools/track-and-trace', category: 'courier', region: 'Global', isMajor: true },
   { name: 'Expeditors', code: 'EXPO', trackingUrl: 'https://www.expeditors.com/tracking', category: 'courier', region: 'Global' },
   { name: 'CH Robinson', code: 'CHRW', trackingUrl: 'https://www.chrobinson.com/en/navisphere-carrier/shipment-tracking/', category: 'courier', region: 'Global' },
   { name: 'Nippon Express', code: 'NX', trackingUrl: 'https://www.nipponexpress.com/service/tracking/', category: 'courier', region: 'Asia' },
@@ -478,24 +479,24 @@ const carriers: Carrier[] = [
   { name: 'Kerry Logistics', code: 'KLOG', trackingUrl: 'https://www.kerrylogistics.com/track-trace/', category: 'courier', region: 'Asia' },
   { name: 'Agility', code: 'AGIL', trackingUrl: 'https://www.agility.com/en/tools/track-and-trace/', category: 'courier', region: 'Global' },
   { name: 'Hellmann Worldwide', code: 'HWLD', trackingUrl: 'https://www.hellmann.com/en/tracking', category: 'courier', region: 'Global' },
-  { name: 'SF Express', code: 'SF', trackingUrl: 'https://www.sf-express.com/kr/ko/dynamic_function/waybill/', category: 'courier', region: 'Asia' },
+  { name: 'SF Express', code: 'SF', trackingUrl: 'https://www.sf-express.com/kr/ko/dynamic_function/waybill/', category: 'courier', region: 'Asia', isMajor: true },
   { name: 'YTO Express', code: 'YTO', trackingUrl: 'https://www.yto.net.cn/en/parcelTracking.html', category: 'courier', region: 'Asia' },
   { name: 'ZTO Express', code: 'ZTO', trackingUrl: 'https://www.zto.com/en/express/expressQuery', category: 'courier', region: 'Asia' },
-  { name: 'CJ Logistics', code: 'CJ', trackingUrl: 'https://www.cjlogistics.com/ko/tool/parcel/tracking', category: 'courier', region: 'Korea' },
-  { name: '한진택배', code: 'HANJIN', trackingUrl: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do', category: 'courier', region: 'Korea' },
-  { name: '롯데택배', code: 'LOTTE', trackingUrl: 'https://www.lotteglogis.com/home/reservation/tracking/linkView', category: 'courier', region: 'Korea' },
-  { name: '로젠택배', code: 'LOGEN', trackingUrl: 'https://www.ilogen.com/web/personal/trace', category: 'courier', region: 'Korea' },
-  { name: '우체국 EMS', code: 'EPOST', trackingUrl: 'https://service.epost.go.kr/trace.RetrieveEmsRi498.postal', category: 'courier', region: 'Korea' },
+  { name: 'CJ Logistics', code: 'CJ', trackingUrl: 'https://www.cjlogistics.com/ko/tool/parcel/tracking', category: 'courier', region: 'Korea', isMajor: true },
+  { name: '한진택배', code: 'HANJIN', trackingUrl: 'https://www.hanjin.com/kor/CMS/DeliveryMgr/WaybillResult.do', category: 'courier', region: 'Korea', isMajor: true },
+  { name: '롯데택배', code: 'LOTTE', trackingUrl: 'https://www.lotteglogis.com/home/reservation/tracking/linkView', category: 'courier', region: 'Korea', isMajor: true },
+  { name: '로젠택배', code: 'LOGEN', trackingUrl: 'https://www.ilogen.com/web/personal/trace', category: 'courier', region: 'Korea', isMajor: true },
+  { name: '우체국 EMS', code: 'EPOST', trackingUrl: 'https://service.epost.go.kr/trace.RetrieveEmsRi498.postal', category: 'courier', region: 'Korea', isMajor: true },
 
   // ============ 우편/EMS (Post/EMS) ============
   // 아시아
-  { name: 'Korea Post (우체국)', code: 'KPOST', trackingUrl: 'https://service.epost.go.kr/trace.RetrieveRegiPrclDeliv.postal', category: 'post', region: 'Korea' },
-  { name: 'Japan Post', code: 'JPPOST', trackingUrl: 'https://www.post.japanpost.jp/english/', category: 'post', region: 'Japan' },
-  { name: 'China Post', code: 'CNPOST', trackingUrl: 'http://english.chinapost.com.cn/', category: 'post', region: 'China' },
-  { name: 'Hong Kong Post', code: 'HKPOST', trackingUrl: 'https://www.hongkongpost.hk/', category: 'post', region: 'Hong Kong' },
+  { name: 'Korea Post (우체국)', code: 'KPOST', trackingUrl: 'https://service.epost.go.kr/trace.RetrieveRegiPrclDeliv.postal', category: 'post', region: 'Korea', isMajor: true },
+  { name: 'Japan Post', code: 'JPPOST', trackingUrl: 'https://www.post.japanpost.jp/english/', category: 'post', region: 'Japan', isMajor: true },
+  { name: 'China Post', code: 'CNPOST', trackingUrl: 'http://english.chinapost.com.cn/', category: 'post', region: 'China', isMajor: true },
+  { name: 'Hong Kong Post', code: 'HKPOST', trackingUrl: 'https://www.hongkongpost.hk/', category: 'post', region: 'Hong Kong', isMajor: true },
   { name: 'Macau CTT', code: 'MOPOST', trackingUrl: 'https://www.ctt.gov.mo/', category: 'post', region: 'Macau' },
   { name: 'Taiwan Post', code: 'TWPOST', trackingUrl: 'https://www.post.gov.tw/', category: 'post', region: 'Taiwan' },
-  { name: 'Singapore Post', code: 'SGPOST', trackingUrl: 'https://www.singpost.com/', category: 'post', region: 'Singapore' },
+  { name: 'Singapore Post', code: 'SGPOST', trackingUrl: 'https://www.singpost.com/', category: 'post', region: 'Singapore', isMajor: true },
   { name: 'Malaysia Pos', code: 'MYPOST', trackingUrl: 'https://www.pos.com.my/', category: 'post', region: 'Malaysia' },
   { name: 'Thailand Post', code: 'THPOST', trackingUrl: 'https://www.thailandpost.co.th/', category: 'post', region: 'Thailand' },
   { name: 'Vietnam Post', code: 'VNPOST', trackingUrl: 'http://www.vnpost.vn/', category: 'post', region: 'Vietnam' },
@@ -526,9 +527,9 @@ const carriers: Carrier[] = [
   { name: 'Iraq Post', code: 'IQPOST', trackingUrl: 'https://post.iq/en/', category: 'post', region: 'Iraq' },
   { name: 'Turkey PTT', code: 'TRPOST', trackingUrl: 'https://www.ptt.gov.tr/', category: 'post', region: 'Turkey' },
   // 유럽
-  { name: 'UK Royal Mail', code: 'GBPOST', trackingUrl: 'https://www.royalmail.com/', category: 'post', region: 'UK' },
-  { name: 'Germany Deutsche Post', code: 'DEPOST', trackingUrl: 'https://www.deutschepost.de/', category: 'post', region: 'Germany' },
-  { name: 'France La Poste', code: 'FRPOST', trackingUrl: 'https://laposte.fr/', category: 'post', region: 'France' },
+  { name: 'UK Royal Mail', code: 'GBPOST', trackingUrl: 'https://www.royalmail.com/', category: 'post', region: 'UK', isMajor: true },
+  { name: 'Germany Deutsche Post', code: 'DEPOST', trackingUrl: 'https://www.deutschepost.de/', category: 'post', region: 'Germany', isMajor: true },
+  { name: 'France La Poste', code: 'FRPOST', trackingUrl: 'https://laposte.fr/', category: 'post', region: 'France', isMajor: true },
   { name: 'Italy Poste', code: 'ITPOST', trackingUrl: 'https://www.poste.it/', category: 'post', region: 'Italy' },
   { name: 'Spain Correos', code: 'ESPOST', trackingUrl: 'https://www.correos.es/', category: 'post', region: 'Spain' },
   { name: 'Portugal CTT', code: 'PTPOST', trackingUrl: 'https://www.ctt.pt/', category: 'post', region: 'Portugal' },
@@ -579,8 +580,8 @@ const carriers: Carrier[] = [
   { name: 'Greenland Tusass', code: 'GLPOST', trackingUrl: 'https://www.tusass.gl/', category: 'post', region: 'Greenland' },
   { name: 'Åland Post', code: 'AXPOST', trackingUrl: 'https://www.alandpost.ax/', category: 'post', region: 'Åland' },
   // 미주
-  { name: 'USPS', code: 'USPOST', trackingUrl: 'https://www.usps.com/', category: 'post', region: 'USA' },
-  { name: 'Canada Post', code: 'CAPOST', trackingUrl: 'https://www.canadapost-postescanada.ca/', category: 'post', region: 'Canada' },
+  { name: 'USPS', code: 'USPOST', trackingUrl: 'https://www.usps.com/', category: 'post', region: 'USA', isMajor: true },
+  { name: 'Canada Post', code: 'CAPOST', trackingUrl: 'https://www.canadapost-postescanada.ca/', category: 'post', region: 'Canada', isMajor: true },
   { name: 'Mexico Correos', code: 'MXPOST', trackingUrl: 'http://www.correosdemexico.com.mx/', category: 'post', region: 'Mexico' },
   { name: 'Brazil Correios', code: 'BRPOST', trackingUrl: 'https://www.correios.com.br/', category: 'post', region: 'Brazil' },
   { name: 'Argentina Correo', code: 'ARPOST', trackingUrl: 'https://www.correoargentino.com.ar/', category: 'post', region: 'Argentina' },
@@ -611,7 +612,7 @@ const carriers: Carrier[] = [
   { name: 'Guyana Post', code: 'GYPOST', trackingUrl: 'https://guypost.gy/', category: 'post', region: 'Guyana' },
   { name: 'Suriname Surpost', code: 'SRPOST', trackingUrl: 'https://www.surpost.com/', category: 'post', region: 'Suriname' },
   // 오세아니아
-  { name: 'Australia Post', code: 'AUPOST', trackingUrl: 'https://auspost.com.au/', category: 'post', region: 'Australia' },
+  { name: 'Australia Post', code: 'AUPOST', trackingUrl: 'https://auspost.com.au/', category: 'post', region: 'Australia', isMajor: true },
   { name: 'New Zealand Post', code: 'NZPOST', trackingUrl: 'https://www.nzpost.co.nz/', category: 'post', region: 'New Zealand' },
   { name: 'Fiji Post', code: 'FJPOST', trackingUrl: 'https://www.postfiji.com.fj/', category: 'post', region: 'Fiji' },
   { name: 'Samoa Post', code: 'WSPOST', trackingUrl: 'https://www.samoapost.ws/', category: 'post', region: 'Samoa' },
@@ -778,7 +779,6 @@ const PackageIcon = ({ className }: { className?: string }) => (
 const categories = [
   { id: 'all', label: '전체', icon: PackageIcon, count: carriers.length },
   { id: 'container', label: '컨테이너 선사', icon: ShipIcon, count: carriers.filter(c => c.category === 'container').length },
-  { id: 'korean', label: '한국 선사', icon: ShipIcon, count: carriers.filter(c => c.category === 'korean').length },
   { id: 'air', label: '항공화물', icon: PlaneIcon, count: carriers.filter(c => c.category === 'air').length },
   { id: 'courier', label: '특송/택배', icon: TruckIcon, count: carriers.filter(c => c.category === 'courier').length },
   { id: 'post', label: '우편/EMS', icon: MailIcon, count: carriers.filter(c => c.category === 'post').length },
@@ -789,6 +789,7 @@ const categories = [
 const ContainerTracker: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [showMajorOnly, setShowMajorOnly] = useState(false);
 
   const filteredCarriers = useMemo(() => {
     return carriers.filter(carrier => {
@@ -797,9 +798,10 @@ const ContainerTracker: React.FC = () => {
         carrier.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (carrier.region?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
       const matchesCategory = activeCategory === 'all' || carrier.category === activeCategory;
-      return matchesSearch && matchesCategory;
+      const matchesMajor = !showMajorOnly || carrier.isMajor;
+      return matchesSearch && matchesCategory && matchesMajor;
     });
-  }, [searchTerm, activeCategory]);
+  }, [searchTerm, activeCategory, showMajorOnly]);
 
   // 알파벳순 정렬
   const sortedCarriers = useMemo(() => {
@@ -813,7 +815,6 @@ const ContainerTracker: React.FC = () => {
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'container': return <ShipIcon className="w-3 h-3" />;
-      case 'korean': return <ShipIcon className="w-3 h-3" />;
       case 'air': return <PlaneIcon className="w-3 h-3" />;
       case 'courier': return <TruckIcon className="w-3 h-3" />;
       case 'post': return <MailIcon className="w-3 h-3" />;
@@ -825,7 +826,6 @@ const ContainerTracker: React.FC = () => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'container': return 'bg-blue-500';
-      case 'korean': return 'bg-emerald-500';
       case 'air': return 'bg-purple-500';
       case 'courier': return 'bg-orange-500';
       case 'post': return 'bg-rose-500';
@@ -837,7 +837,6 @@ const ContainerTracker: React.FC = () => {
   const getCategoryLabel = (category: string) => {
     switch (category) {
       case 'container': return '해상';
-      case 'korean': return '한국';
       case 'air': return '항공';
       case 'courier': return '특송';
       case 'post': return '우편';
@@ -904,12 +903,24 @@ const ContainerTracker: React.FC = () => {
           })}
         </div>
 
-        {/* Results Count */}
+        {/* Results Count & Major Filter */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-slate-500">
-            {searchTerm && <span className="font-medium">"{searchTerm}" 검색 결과: </span>}
-            <span className="font-bold text-slate-700">{sortedCarriers.length}개</span> 운송사
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-sm text-slate-500">
+              {searchTerm && <span className="font-medium">"{searchTerm}" 검색 결과: </span>}
+              <span className="font-bold text-slate-700">{sortedCarriers.length}개</span> 운송사
+            </p>
+            {/* Major Only Toggle */}
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={showMajorOnly}
+                onChange={(e) => setShowMajorOnly(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500/20 cursor-pointer"
+              />
+              <span className="text-sm text-slate-600 font-medium">주요 항목만</span>
+            </label>
+          </div>
           {searchTerm && (
             <button
               onClick={() => setSearchTerm('')}
