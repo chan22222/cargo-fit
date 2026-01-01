@@ -211,7 +211,6 @@ const carriers: Carrier[] = [
   { name: 'ZIM World Freight', code: 'ZIMW', trackingUrl: 'https://www.zim.com/tools/track-a-shipment', category: 'container', region: 'Global' },
 
   // ============ B/L 추적 추가 (특수 선사) ============
-  { name: '4 Elephants Group', code: '4ELG', trackingUrl: 'https://www.track-trace.com/bol', category: 'container', region: 'Asia' },
   { name: 'Bahri (National Shipping)', code: 'BAHR', trackingUrl: 'https://www.bahri.sa/tracking', category: 'container', region: 'Middle East' },
   { name: 'CK LINE', code: 'CKLN', trackingUrl: 'https://www.ckline.co.kr/tracking', category: 'container', region: 'Asia' },
   { name: 'Eimskip', code: 'EIMS', trackingUrl: 'https://www.eimskip.com/tracking', category: 'container', region: 'Europe' },
@@ -221,20 +220,19 @@ const carriers: Carrier[] = [
   { name: 'MOL ACE', code: 'MOLA', trackingUrl: 'https://www.molgroup.com/tracking', category: 'container', region: 'Asia' },
   { name: 'Wallenius Wilhelmsen', code: 'WAWI', trackingUrl: 'https://www.walleniuswilhelmsen.com/tracking', category: 'container', region: 'Global' },
 
-  // ============ 한국 선사 (Korean Lines) - 35개+ ============
+  // ============ 한국 선사 (Korean Lines) ============
   // 컨테이너 선사
   { name: 'HMM (현대상선)', code: 'HDMU', trackingUrl: 'https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp', category: 'korean' },
-  { name: '장금상선 (Sinokor)', code: 'SKLU', trackingUrl: 'https://ebiz.sinokor.co.kr/Tracking', category: 'korean' },
+  { name: '장금상선 (Sinokor)', code: 'SKLU', trackingUrl: 'https://ebiz.sinokor.co.kr/tracking', category: 'korean' },
   { name: '고려해운 (KMTC)', code: 'KMTU', trackingUrl: 'https://www.ekmtc.com/index.html#/cargo-tracking', category: 'korean' },
-  { name: 'SM상선 (SM Line)', code: 'SMLM', trackingUrl: 'https://www.smlines.com/cargo-tracking', category: 'korean' },
-  { name: '흥아해운 (Heung-A)', code: 'HASU', trackingUrl: 'https://www.heung-a.com/cargo/tracking', category: 'korean' },
-  { name: '범주해운 (Pan Continental)', code: 'PCLU', trackingUrl: 'https://www.pancon.co.kr/kor/ship/trackingInfo', category: 'korean' },
-  { name: '남성해운 (Namsung)', code: 'NSSU', trackingUrl: 'https://www.namsung.co.kr/kor/service/cargo.asp', category: 'korean' },
-  { name: '천경해운 (CK Line)', code: 'CKLU', trackingUrl: 'https://www.ckline.co.kr/tracking', category: 'korean' },
-  { name: '동영해운 (Dong Young)', code: 'DYSH', trackingUrl: 'https://www.dongyoung.co.kr/', category: 'korean' },
-  { name: '동진상선 (Dongjin)', code: 'DJSC', trackingUrl: 'http://www.djship.co.kr/', category: 'korean' },
-  { name: 'HS라인 (HS Line)', code: 'HSLN', trackingUrl: 'http://www.hsln.co.kr/', category: 'korean' },
-  { name: '장금마리타임', code: 'JKMT', trackingUrl: 'https://www.sinokor.co.kr/', category: 'korean' },
+  { name: 'SM상선 (SM Line)', code: 'SMLM', trackingUrl: 'https://www.smlines.com/tracking', category: 'korean' },
+  { name: '흥아해운 (Heung-A)', code: 'HASU', trackingUrl: 'https://www.heung-a.com/', category: 'korean' },
+  { name: '범주해운 (Pan Continental)', code: 'PCLU', trackingUrl: 'https://www.pancon.co.kr/', category: 'korean' },
+  { name: '남성해운 (Namsung)', code: 'NSSU', trackingUrl: 'https://www.namsung.co.kr/', category: 'korean' },
+  { name: '천경해운 (CK Line)', code: 'CKLU', trackingUrl: 'https://www.ckline.co.kr/', category: 'korean' },
+  { name: '동영해운 (Dong Young)', code: 'DYSH', trackingUrl: 'https://www.pcsline.co.kr/', category: 'korean' },
+  { name: '동진상선 (Dongjin)', code: 'DJSC', trackingUrl: 'https://www.dongjin.com/', category: 'korean' },
+  { name: 'HS라인 (HS Line)', code: 'HSLN', trackingUrl: 'https://www.hsline.co.kr/', category: 'korean' },
   // 벌크/탱커 선사
   { name: '팬오션 (Pan Ocean)', code: 'PNOU', trackingUrl: 'https://www.panocean.com/', category: 'korean' },
   { name: 'SK해운 (SK Shipping)', code: 'SKSH', trackingUrl: 'https://www.skshipping.com/', category: 'korean' },
@@ -242,26 +240,14 @@ const carriers: Carrier[] = [
   { name: '폴라리스쉬핑 (Polaris)', code: 'PLRS', trackingUrl: 'https://www.polarisshipping.co.kr/', category: 'korean' },
   { name: 'KSS해운 (KSS Marine)', code: 'KSSM', trackingUrl: 'https://www.kssline.com/', category: 'korean' },
   { name: '에이치라인해운 (H-Line)', code: 'HLIN', trackingUrl: 'https://www.hlineshipping.com/', category: 'korean' },
-  { name: '태영상선 (Taiyoung)', code: 'TYSS', trackingUrl: 'https://www.taeyoung.co.kr/', category: 'korean' },
-  { name: '대양상선 (Dae Yang)', code: 'DYSS', trackingUrl: 'https://www.dayangshipping.com/', category: 'korean' },
   // 자동차운반선
   { name: '유코카캐리어스 (EUKOR)', code: 'EUKO', trackingUrl: 'https://www.eukor.com/', category: 'korean' },
   { name: '현대글로비스 (Hyundai Glovis)', code: 'GLVS', trackingUrl: 'https://www.glovis.net/', category: 'korean' },
-  // 근해/연안 선사
-  { name: '천일해운', code: 'CHIL', trackingUrl: 'https://www.chunil.co.kr/', category: 'korean' },
-  { name: '하나해운', code: 'HANA', trackingUrl: 'https://www.hanashipping.co.kr/', category: 'korean' },
-  { name: '동서해운', code: 'DSSH', trackingUrl: 'https://www.dongseoshipping.com/', category: 'korean' },
-  { name: '대아해운', code: 'DAEH', trackingUrl: 'https://www.daea.co.kr/', category: 'korean' },
-  { name: '동방해운', code: 'DBSH', trackingUrl: 'https://www.dongbang.co.kr/', category: 'korean' },
-  { name: '천해해운', code: 'CHHS', trackingUrl: 'https://www.chunhae.co.kr/', category: 'korean' },
-  { name: '대원해운', code: 'DWSH', trackingUrl: 'https://www.daewonshipping.com/', category: 'korean' },
-  { name: '파나스라인', code: 'PNAS', trackingUrl: 'https://www.panasline.com/', category: 'korean' },
-  // 카페리/여객선사
-  { name: '부관훼리 (Pukwan Ferry)', code: 'PKFR', trackingUrl: 'https://www.pukwan.co.kr/', category: 'korean' },
-  { name: 'DBS크루즈훼리', code: 'DBSF', trackingUrl: 'https://www.dbsferry.com/', category: 'korean' },
+  // 카페리
+  { name: '부관페리 (Pukwan Ferry)', code: 'PKFR', trackingUrl: 'https://www.pukwan.co.kr/', category: 'korean' },
+  { name: 'DBS크루즈페리', code: 'DBSF', trackingUrl: 'https://www.dbsferry.com/kr/', category: 'korean' },
   { name: '팬스타라인', code: 'PNST', trackingUrl: 'https://www.panstar.co.kr/', category: 'korean' },
-  { name: '대저해운 (Daejeo)', code: 'DJHS', trackingUrl: 'https://www.daejeo.co.kr/', category: 'korean' },
-  { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/', category: 'korean' },
+  { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'korean' },
 
   // ============ 항공화물 (Air Cargo) - 242개 ============
   // 한국 항공사
@@ -273,9 +259,7 @@ const carriers: Carrier[] = [
   { name: '에어프레미아 (Air Premia)', code: 'YP', trackingUrl: 'https://www.airpremia.com/cargo', category: 'air', region: 'Korea' },
   { name: '이스타항공 (Eastar Jet)', code: 'ZE', trackingUrl: 'https://www.eastarjet.com/cargo', category: 'air', region: 'Korea' },
   // A
-  { name: '7Air Cargo', code: '7C', trackingUrl: 'https://www.track-trace.com/aircargo', category: 'air', region: 'Global' },
   { name: 'Aegean Airlines', code: 'A3', trackingUrl: 'https://www.aegeanair.com/cargo', category: 'air', region: 'Europe' },
-  { name: 'Aercaribe Cargo', code: 'JK', trackingUrl: 'https://www.track-trace.com/aircargo', category: 'air', region: 'Americas' },
   { name: 'Aerolineas Argentinas', code: 'AR', trackingUrl: 'https://www.aerolineas.com.ar/cargo', category: 'air', region: 'Americas' },
   { name: 'Aeromexico Cargo', code: 'AM', trackingUrl: 'https://www.aeromexicocargo.com/tracking', category: 'air', region: 'Americas' },
   { name: 'AF-KL-MP Cargo', code: 'AF', trackingUrl: 'https://www.afklcargo.com/WW/en/common/tracking.jsp', category: 'air', region: 'Europe' },
