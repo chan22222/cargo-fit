@@ -214,6 +214,8 @@ const containerCarriers: Carrier[] = [
   { name: 'DBS크루즈페리', code: 'DBSF', trackingUrl: 'https://www.dbsferry.com/kr/', category: 'container', region: 'Korea' },
   { name: '팬스타라인', code: 'PNST', trackingUrl: 'https://www.panstar.co.kr/', category: 'container', region: 'Korea' },
   { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'container', region: 'Korea' },
+  // 중국 페리
+  { name: '연운항훼리 (Lianyungang Ferry)', code: 'LYFR', trackingUrl: 'https://www.lygferry.com/freight/search.html', category: 'container', region: 'China' },
 ];
 
 // BL Prefix → 선사 코드 매핑 (3-4자리 코드)
@@ -225,6 +227,7 @@ const blPrefixMap: Record<string, string> = {
   'MSCU': 'MSCU', // MSC
   'MEDU': 'MSCU', // MSC (alternative)
   'CMDU': 'CMDU', // CMA CGM
+  'SEL': 'CMDU',  // CMA CGM (3-letter alternative prefix)
   'COSU': 'COSU', // COSCO
   'HLCU': 'HLCU', // Hapag-Lloyd
   'ONEY': 'ONEY', // ONE
@@ -248,11 +251,13 @@ const blPrefixMap: Record<string, string> = {
   // 아시아 선사
   'WHLC': 'WHLC', // Wan Hai
   'SITC': 'SITC', // SITC
+  'SITI': 'SITC', // SITC (alternative prefix)
   'TSLU': 'TSLU', // T.S. Lines
   'RCLU': 'RCLU', // RCL
   'IALU': 'IALU', // Interasia
   'CNCU': 'CNCU', // CNC Line
   'AFW': 'CNCU',  // CNC Line (3-letter alternative prefix)
+  'LYFR': 'LYFR', // 연운항훼리 (Lianyungang Ferry)
   // 기타
   'CMCU': 'CMCU', // Crowley
   'SMLU': 'SMLU', // Seaboard Marine
@@ -309,7 +314,11 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
     'CMDU': () => `https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
     'COSU': () => `https://elines.coscoshipping.com/ebusiness/cargoTracking?trackingType=BOOKING&number=${cleaned}`,
     'HLCU': () => `https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html?blno=${cleaned}`,
-    'ONEY': () => `https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking?rNumbers=${cleaned}`,
+    'ONEY': () => {
+      // ONEY prefix 제거 (ONEYSELF... → SELF...)
+      const trackNo = cleaned.startsWith('ONEY') ? cleaned.slice(4) : cleaned;
+      return `https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking?trakNoParam=${trackNo}&trakNoTpCdParam=B`;
+    },
     'EGLV': () => `https://www.shipmentlink.com/tvs2/servlet/TDB1_CargoTracking.do?BL=${cleaned}`,
     'YMLU': () => `https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx?type=bl&blno=${cleaned}`,
     'HDMU': () => `https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp?type=bl&number=${cleaned}`,
@@ -324,9 +333,10 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
     'HASU': () => `http://www.heungaline.com/eng/tracking.asp?bl=${cleaned}`,
     // 아시아 선사
     'WHLC': () => `https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml?bl=${cleaned}`,
-    'SITC': () => `https://api.sitcline.com/sitcline/query/cargoTrack?blNo=${cleaned}`,
+    'SITC': () => `https://ebusiness.sitcline.com/#/topMenu/cargoTrack`,
     'TSLU': () => `https://www.tslines.com/en/tracking?bl=${cleaned}`,
     'CNCU': () => `https://www.cnc-line.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
+    'LYFR': () => `https://www.lygferry.com/freight/search.html`,
     // 기타
     'CMCU': () => `https://www.crowley.com/logistics/tracking/?bl=${cleaned}`,
     'SMLU': () => `https://www.seaboardmarine.com/tracking/?bl=${cleaned}`,
@@ -346,7 +356,7 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
 const autoBlCodes = new Set([
   'MAEU', 'MSCU', 'CMDU', 'COSU', 'HLCU', 'ONEY', 'EGLV', 'YMLU', 'HDMU', 'ZIMU',
   'PCIU', 'OOLU', 'APLU', 'SKLU', 'KMTU', 'SMLM', 'HASU', 'WHLC', 'SITC', 'TSLU',
-  'CMCU', 'SMLU', 'SEAU', 'ESPU', 'TRKU', 'XPRS', 'CNCU'
+  'CMCU', 'SMLU', 'SEAU', 'ESPU', 'TRKU', 'XPRS', 'CNCU', 'LYFR'
 ]);
 
 interface TrackerContainerProps {
