@@ -60,9 +60,10 @@ interface LandingPageProps {
   onNavigateToCbm?: () => void;
   onNavigateToCurrency?: () => void;
   onNavigateToRegulations?: () => void;
+  onNavigateToTracker?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations, onNavigateToTracker }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({});
@@ -868,11 +869,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               <div className="space-y-5 text-center md:text-left">
                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">Quick Links</h4>
                  <div className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-xs mx-auto md:max-w-none md:mx-0">
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToContainer?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
-                      컨테이너 시뮬레이터
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToTracker?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      화물 추적
                     </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToPallet?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
-                      팔레트 시뮬레이터
+                    <button onClick={(e) => { e.preventDefault(); onStart(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      3D 시뮬레이터
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToCbm?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       CBM 계산기
