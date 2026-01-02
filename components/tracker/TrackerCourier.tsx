@@ -83,6 +83,11 @@ const validateTrackingNo = (trackingNo: string): boolean => {
   return cleaned.length >= 8;
 };
 
+// 한글 포함 여부 체크
+const containsKorean = (text: string): boolean => {
+  return /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(text);
+};
+
 // 운송장 번호 포맷팅
 const formatTrackingNo = (value: string): string => {
   return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -146,10 +151,19 @@ const TrackerCourier: React.FC<TrackerCourierProps> = ({ adSlot }) => {
   const [showMajorOnly, setShowMajorOnly] = useState(false);
   const [detectedCarrier, setDetectedCarrier] = useState<Carrier | null>(null);
   const [showManualSelect, setShowManualSelect] = useState(false);
+  const [showKoreanWarning, setShowKoreanWarning] = useState(false);
 
   // 운송장 번호 입력 처리
   const handleTrackingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatTrackingNo(e.target.value);
+    const rawValue = e.target.value;
+
+    // 한글 입력 감지 시 경고 표시
+    if (containsKorean(rawValue)) {
+      setShowKoreanWarning(true);
+      setTimeout(() => setShowKoreanWarning(false), 1500);
+    }
+
+    const formatted = formatTrackingNo(rawValue);
     setTrackingInput(formatted);
 
     // 8자리 이상일 때 패턴 감지
@@ -237,8 +251,17 @@ const TrackerCourier: React.FC<TrackerCourierProps> = ({ adSlot }) => {
                 value={trackingInput}
                 onChange={handleTrackingChange}
                 maxLength={30}
-                className={`w-full h-full px-5 py-3.5 text-lg font-mono bg-white border rounded-xl focus:outline-none focus:ring-2 transition-colors border-slate-200 focus:ring-orange-500/20 focus:border-orange-400`}
+                className={`w-full h-full px-5 py-3.5 text-lg font-mono bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+                  showKoreanWarning
+                    ? 'border-orange-400 bg-orange-50 focus:ring-orange-500/20 focus:border-orange-500 animate-pulse'
+                    : 'border-slate-200 focus:ring-orange-500/20 focus:border-orange-400'
+                }`}
               />
+              {showKoreanWarning && (
+                <div className="absolute left-0 -bottom-6 text-xs text-orange-600 font-medium animate-fade-in">
+                  영문/숫자만 입력 가능합니다
+                </div>
+              )}
               {trackingInput && (
                 <button
                   onClick={() => {

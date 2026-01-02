@@ -398,6 +398,11 @@ const parseAwb = (awb: string): { prefix: string; number: string } | null => {
   };
 };
 
+// 숫자 외 문자 포함 여부 체크
+const containsNonNumeric = (text: string): boolean => {
+  return /[^\d\-]/.test(text);
+};
+
 // AWB 포맷팅 (123-12345678 형식으로)
 const formatAwb = (value: string): string => {
   const cleaned = value.replace(/[^\d]/g, '');
@@ -415,10 +420,19 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
   const [showMajorOnly, setShowMajorOnly] = useState(false);
   const [detectedCarrier, setDetectedCarrier] = useState<Carrier | null>(null);
   const [showManualSelect, setShowManualSelect] = useState(false);
+  const [showNumericWarning, setShowNumericWarning] = useState(false);
 
   // AWB 입력 처리
   const handleAwbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatAwb(e.target.value);
+    const rawValue = e.target.value;
+
+    // 숫자 외 입력 감지 시 경고 표시
+    if (containsNonNumeric(rawValue)) {
+      setShowNumericWarning(true);
+      setTimeout(() => setShowNumericWarning(false), 1500);
+    }
+
+    const formatted = formatAwb(rawValue);
     setAwbInput(formatted);
 
     // 11자리 완성됐을 때만 감지 실행
@@ -599,12 +613,19 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
                 value={awbInput}
                 onChange={handleAwbChange}
                 maxLength={12}
-                className={`w-full h-full px-5 py-3.5 text-lg font-mono bg-white border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
-                  awbInput && !isValidAwb
-                    ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500'
-                    : 'border-slate-200 focus:ring-teal-500/20 focus:border-teal-400'
+                className={`w-full h-full px-5 py-3.5 text-lg font-mono bg-white border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300 ${
+                  showNumericWarning
+                    ? 'border-orange-400 bg-orange-50 focus:ring-orange-500/20 focus:border-orange-500 animate-pulse'
+                    : awbInput && !isValidAwb
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500'
+                      : 'border-slate-200 focus:ring-teal-500/20 focus:border-teal-400'
                 }`}
               />
+              {showNumericWarning && (
+                <div className="absolute left-0 -bottom-6 text-xs text-orange-600 font-medium animate-fade-in">
+                  숫자만 입력 가능합니다
+                </div>
+              )}
               {awbInput && (
                 <button
                   onClick={() => {
