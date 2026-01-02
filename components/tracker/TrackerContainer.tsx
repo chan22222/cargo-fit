@@ -324,17 +324,17 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
       const trackNo = cleaned.startsWith('ONEY') ? cleaned.slice(4) : cleaned;
       return `https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking?trakNoParam=${trackNo}&trakNoTpCdParam=B`;
     },
-    'EGLV': () => `https://www.shipmentlink.com/tvs2/servlet/TDB1_CargoTracking.do?BL=${cleaned}`,
-    'YMLU': () => `https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx?type=bl&blno=${cleaned}`,
+    'EGLV': () => `https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=BL&BL=${cleaned}`,
+    'YMLU': () => `https://www.yangming.com/en/esolution/cargo_tracking?service=${cleaned}`,
     'HDMU': () => `https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp?type=bl&number=${cleaned}`,
     'ZIMU': () => `https://www.zim.com/tools/track-a-shipment?consnumber=${cleaned}`,
-    'PCIU': () => `https://www.pilship.com/en-our-solutions-ede-cargo-tracking/84/?searchBy=bl&reference=${cleaned}`,
+    'PCIU': () => `https://www.pilship.com/digital-solutions/?tab=customer&id=track-trace&label=containerTandT&module=TrackTraceBL&refNo=${cleaned}`,
     'OOLU': () => `https://www.oocl.com/eng/ourservices/eservices/cargotracking/?bl=${cleaned}`,
     'APLU': () => `https://www.apl.com/ebusiness/tracking?SearchBy=BL&Reference=${cleaned}`,
     // 한국 선사
     'SKLU': () => `https://ebiz.sinokor.co.kr/Tracking?blno=${cleaned}&cntrno=`,
     'KMTU': () => `https://www.ekmtc.com/index.html#/cargo-tracking?searchType=BL&searchNumber=${cleaned}`,
-    'SMLM': () => `https://www.smlines.com/cargo-tracking?type=bl&searchNumber=${cleaned}`,
+    'SMLM': () => `https://esvc.smlines.com/smline/CUP_HOM_3301.do?sessLocale=ko`,
     'HASU': () => `http://www.heungaline.com/eng/tracking.asp?bl=${cleaned}`,
     // 아시아 선사
     'WHLC': () => `https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml?bl=${cleaned}`,
