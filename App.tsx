@@ -22,7 +22,7 @@ import InsightDetail from './components/InsightDetail';
 import InsightsList from './components/InsightsList';
 import SelectionModal from './components/SelectionModal';
 import AdSense from './components/AdSense';
-import ContainerTracker from './components/ContainerTracker';
+import { Tracker } from './components/tracker';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
+  const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
 
   // Check for route on mount and URL changes
   useEffect(() => {
@@ -66,12 +67,27 @@ const App: React.FC = () => {
         setCurrentRoute('cbm');
       } else if (path === '/regulations') {
         setCurrentRoute('regulations');
-      } else if (path === '/tracker') {
+      } else if (path.startsWith('/tracker')) {
         setCurrentRoute('tracker');
+        setActiveTab('tracker');
+        // Parse tracker sub-route
+        const trackerPath = path.split('/')[2];
+        if (trackerPath === 'air') {
+          setTrackerCategory('air');
+        } else if (trackerPath === 'courier') {
+          setTrackerCategory('courier');
+        } else if (trackerPath === 'post') {
+          setTrackerCategory('post');
+        } else if (trackerPath === 'rail') {
+          setTrackerCategory('rail');
+        } else {
+          setTrackerCategory('container');
+        }
       } else if (path === '/admin') {
         setCurrentRoute('admin');
       } else {
         setCurrentRoute('home');
+        setActiveTab('home');
       }
     };
 
@@ -604,6 +620,25 @@ const App: React.FC = () => {
         return;
       }
 
+      // Handle tracker routes with categories
+      if (path.startsWith('/tracker')) {
+        setCurrentRoute('tracker');
+        setActiveTab('tracker');
+        const trackerPath = path.split('/')[2];
+        if (trackerPath === 'air') {
+          setTrackerCategory('air');
+        } else if (trackerPath === 'courier') {
+          setTrackerCategory('courier');
+        } else if (trackerPath === 'post') {
+          setTrackerCategory('post');
+        } else if (trackerPath === 'rail') {
+          setTrackerCategory('rail');
+        } else {
+          setTrackerCategory('container');
+        }
+        return;
+      }
+
       const route = routeMap[path];
       if (route) {
         setCurrentRoute(route);
@@ -1029,7 +1064,13 @@ const App: React.FC = () => {
       ) : activeTab === 'regulations' ? (
         <ImportRegulations />
       ) : activeTab === 'tracker' ? (
-        <ContainerTracker />
+        <Tracker
+          category={trackerCategory}
+          onNavigate={(cat) => {
+            const path = cat === 'container' ? '/tracker' : `/tracker/${cat}`;
+            navigate(path);
+          }}
+        />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
