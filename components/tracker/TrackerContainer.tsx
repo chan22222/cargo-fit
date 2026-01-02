@@ -293,9 +293,53 @@ const extractBlPrefix = (bl: string): string | null => {
   return null;
 };
 
-// BL 번호 포맷팅
+// 한글 → 영문 키보드 매핑
+const korToEng: Record<string, string> = {
+  // 기본 자음
+  'ㅂ': 'q', 'ㅈ': 'w', 'ㄷ': 'e', 'ㄱ': 'r', 'ㅅ': 't', 'ㅛ': 'y', 'ㅕ': 'u', 'ㅑ': 'i', 'ㅐ': 'o', 'ㅔ': 'p',
+  'ㅁ': 'a', 'ㄴ': 's', 'ㅇ': 'd', 'ㄹ': 'f', 'ㅎ': 'g', 'ㅗ': 'h', 'ㅓ': 'j', 'ㅏ': 'k', 'ㅣ': 'l',
+  'ㅋ': 'z', 'ㅌ': 'x', 'ㅊ': 'c', 'ㅍ': 'v', 'ㅠ': 'b', 'ㅜ': 'n', 'ㅡ': 'm',
+  // 쌍자음
+  'ㅃ': 'Q', 'ㅉ': 'W', 'ㄸ': 'E', 'ㄲ': 'R', 'ㅆ': 'T', 'ㅒ': 'O', 'ㅖ': 'P',
+  // 복합 모음
+  'ㅘ': 'hk', 'ㅙ': 'ho', 'ㅚ': 'hl', 'ㅝ': 'nj', 'ㅞ': 'np', 'ㅟ': 'nl', 'ㅢ': 'ml',
+  // 복합 받침
+  'ㄳ': 'rt', 'ㄵ': 'sw', 'ㄶ': 'sg', 'ㄺ': 'fr', 'ㄻ': 'fa', 'ㄼ': 'fq', 'ㄽ': 'ft', 'ㄾ': 'fx', 'ㄿ': 'fv', 'ㅀ': 'fg', 'ㅄ': 'qt',
+};
+
+// 한글 완성형을 자모로 분해
+const decomposeHangul = (char: string): string => {
+  const code = char.charCodeAt(0);
+  if (code < 0xAC00 || code > 0xD7A3) return char; // 한글이 아니면 그대로
+
+  const offset = code - 0xAC00;
+  const cho = Math.floor(offset / 588);
+  const jung = Math.floor((offset % 588) / 28);
+  const jong = offset % 28;
+
+  const choList = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+  const jungList = ['ㅏ', 'ㅐ', 'ㅑ', 'ㅒ', 'ㅓ', 'ㅔ', 'ㅕ', 'ㅖ', 'ㅗ', 'ㅘ', 'ㅙ', 'ㅚ', 'ㅛ', 'ㅜ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅠ', 'ㅡ', 'ㅢ', 'ㅣ'];
+  const jongList = ['', 'ㄱ', 'ㄲ', 'ㄳ', 'ㄴ', 'ㄵ', 'ㄶ', 'ㄷ', 'ㄹ', 'ㄺ', 'ㄻ', 'ㄼ', 'ㄽ', 'ㄾ', 'ㄿ', 'ㅀ', 'ㅁ', 'ㅂ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+  return choList[cho] + jungList[jung] + jongList[jong];
+};
+
+// 한글을 영문으로 변환
+const convertKorToEng = (text: string): string => {
+  let result = '';
+  for (const char of text) {
+    const decomposed = decomposeHangul(char);
+    for (const jamo of decomposed) {
+      result += korToEng[jamo] || jamo;
+    }
+  }
+  return result;
+};
+
+// BL 번호 포맷팅 (한글 → 영문 변환 포함)
 const formatBl = (value: string): string => {
-  return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const converted = convertKorToEng(value);
+  return converted.toUpperCase().replace(/[^A-Z0-9]/g, '');
 };
 
 // BL 번호 유효성 검사 (최소 3-4자리 prefix + 숫자)
