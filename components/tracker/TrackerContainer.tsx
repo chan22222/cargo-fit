@@ -1,7 +1,6 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Carrier } from './types';
-import { ShipIcon } from './icons';
-import CarrierGrid from './CarrierGrid';
+import { ShipIcon, SearchIcon } from './icons';
 
 // 컨테이너 선사 데이터
 const containerCarriers: Carrier[] = [
@@ -217,20 +216,441 @@ const containerCarriers: Carrier[] = [
   { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'container', region: 'Korea' },
 ];
 
+// BL Prefix → 선사 코드 매핑 (4자리 SCAC 코드)
+const blPrefixMap: Record<string, string> = {
+  // 글로벌 메이저
+  'MAEU': 'MAEU', // Maersk
+  'MSKU': 'MAEU', // Maersk (alternative)
+  'MRKU': 'MAEU', // Maersk (alternative)
+  'MSCU': 'MSCU', // MSC
+  'MEDU': 'MSCU', // MSC (alternative)
+  'CMDU': 'CMDU', // CMA CGM
+  'COSU': 'COSU', // COSCO
+  'HLCU': 'HLCU', // Hapag-Lloyd
+  'ONEY': 'ONEY', // ONE
+  'EGLV': 'EGLV', // Evergreen
+  'YMLU': 'YMLU', // Yang Ming
+  'HDMU': 'HDMU', // HMM
+  'ZIMU': 'ZIMU', // ZIM
+  'PCIU': 'PCIU', // PIL
+  'OOLU': 'OOLU', // OOCL
+  'APLU': 'APLU', // APL
+  // 한국 선사
+  'SKLU': 'SKLU', // Sinokor
+  'KMTU': 'KMTU', // KMTC
+  'KMTC': 'KMTU', // KMTC (alternative prefix)
+  'SMLM': 'SMLM', // SM Line
+  'HASU': 'HASU', // Heung-A
+  'PCLU': 'PCLU', // Pan Continental
+  'NSSU': 'NSSU', // Namsung
+  'CKLU': 'CKLU', // CK Line
+  // 아시아 선사
+  'WHLC': 'WHLC', // Wan Hai
+  'SITC': 'SITC', // SITC
+  'TSLU': 'TSLU', // T.S. Lines
+  'RCLU': 'RCLU', // RCL
+  'IALU': 'IALU', // Interasia
+  // 기타
+  'CMCU': 'CMCU', // Crowley
+  'SMLU': 'SMLU', // Seaboard Marine
+  'SEAU': 'SEAU', // Sealand
+  'FESO': 'FESO', // FESCO
+  'ESPU': 'ESPU', // Emirates
+  'TRKU': 'TRKU', // Turkon
+  'XPRS': 'XPRS', // X-Press Feeders
+};
+
+// 선사 코드로 선사 정보 찾기
+const findCarrierByCode = (code: string): Carrier | undefined => {
+  return containerCarriers.find(c => c.code === code);
+};
+
+// BL 번호에서 prefix 추출 (4자리 알파벳)
+const extractBlPrefix = (bl: string): string | null => {
+  const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
+  const match = cleaned.match(/^([A-Z]{4})/);
+  return match ? match[1] : null;
+};
+
+// BL 번호 포맷팅
+const formatBl = (value: string): string => {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+};
+
+// BL 번호 유효성 검사 (최소 4자리 prefix + 숫자)
+const validateBlFormat = (bl: string): boolean => {
+  const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
+  return /^[A-Z]{4}[A-Z0-9]{4,}$/.test(cleaned);
+};
+
+// 선사별 BL 추적 URL 빌더
+const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
+  const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
+
+  const urlPatterns: Record<string, (base: string) => string> = {
+    'MAEU': () => `https://www.maersk.com/tracking/${cleaned}`,
+    'MSCU': () => `https://www.msc.com/track-a-shipment?agencyPath=msc&link=defined&bookingReference=${cleaned}`,
+    'CMDU': () => `https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
+    'COSU': () => `https://elines.coscoshipping.com/ebusiness/cargoTracking?trackingType=BOOKING&number=${cleaned}`,
+    'HLCU': () => `https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html?blno=${cleaned}`,
+    'ONEY': () => `https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking?rNumbers=${cleaned}`,
+    'EGLV': () => `https://www.shipmentlink.com/tvs2/servlet/TDB1_CargoTracking.do?BL=${cleaned}`,
+    'YMLU': () => `https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx?type=bl&blno=${cleaned}`,
+    'HDMU': () => `https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp?type=bl&number=${cleaned}`,
+    'ZIMU': () => `https://www.zim.com/tools/track-a-shipment?consnumber=${cleaned}`,
+    'PCIU': () => `https://www.pilship.com/en-our-solutions-ede-cargo-tracking/84/?searchBy=bl&reference=${cleaned}`,
+    'OOLU': () => `https://www.oocl.com/eng/ourservices/eservices/cargotracking/?bl=${cleaned}`,
+    'APLU': () => `https://www.apl.com/ebusiness/tracking?SearchBy=BL&Reference=${cleaned}`,
+    // 한국 선사
+    'SKLU': () => `https://ebiz.sinokor.co.kr/trackTrace?blNo=${cleaned}`,
+    'KMTU': () => `https://www.ekmtc.com/index.html#/cargo-tracking?searchType=BL&searchNumber=${cleaned}`,
+    'SMLM': () => `https://www.smlines.com/cargo-tracking?type=bl&searchNumber=${cleaned}`,
+    'HASU': () => `http://www.heungaline.com/eng/tracking.asp?bl=${cleaned}`,
+    // 아시아 선사
+    'WHLC': () => `https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml?bl=${cleaned}`,
+    'SITC': () => `https://api.sitcline.com/sitcline/query/cargoTrack?blNo=${cleaned}`,
+    'TSLU': () => `https://www.tslines.com/en/tracking?bl=${cleaned}`,
+    // 기타
+    'CMCU': () => `https://www.crowley.com/logistics/tracking/?bl=${cleaned}`,
+    'SMLU': () => `https://www.seaboardmarine.com/tracking/?bl=${cleaned}`,
+    'SEAU': () => `https://www.sealandmaersk.com/tracking/${cleaned}`,
+    'ESPU': () => `https://www.emiratesline.com/track-trace/?bl=${cleaned}`,
+    'TRKU': () => `https://www.turkon.com/en/track-trace?bl=${cleaned}`,
+    'XPRS': () => `https://www.x-pressfeeders.com/track-and-trace?bl=${cleaned}`,
+  };
+
+  if (urlPatterns[carrier.code]) {
+    return urlPatterns[carrier.code](carrier.trackingUrl);
+  }
+  return carrier.trackingUrl;
+};
+
+// 자동 BL 지원 선사 코드 목록
+const autoBlCodes = new Set([
+  'MAEU', 'MSCU', 'CMDU', 'COSU', 'HLCU', 'ONEY', 'EGLV', 'YMLU', 'HDMU', 'ZIMU',
+  'PCIU', 'OOLU', 'APLU', 'SKLU', 'KMTU', 'SMLM', 'HASU', 'WHLC', 'SITC', 'TSLU',
+  'CMCU', 'SMLU', 'SEAU', 'ESPU', 'TRKU', 'XPRS'
+]);
+
 interface TrackerContainerProps {
   adSlot?: React.ReactNode;
 }
 
 const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
+  const [blInput, setBlInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showMajorOnly, setShowMajorOnly] = useState(false);
+  const [detectedCarrier, setDetectedCarrier] = useState<Carrier | null>(null);
+  const [showManualSelect, setShowManualSelect] = useState(false);
+
+  // BL 입력 처리
+  const handleBlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatBl(e.target.value);
+    setBlInput(formatted);
+
+    // 4자리 이상일 때 prefix 감지
+    if (formatted.length >= 4) {
+      const prefix = extractBlPrefix(formatted);
+      if (prefix && blPrefixMap[prefix]) {
+        const carrierCode = blPrefixMap[prefix];
+        const carrier = findCarrierByCode(carrierCode);
+        setDetectedCarrier(carrier || null);
+      } else {
+        setDetectedCarrier(null);
+      }
+    } else {
+      setDetectedCarrier(null);
+    }
+  };
+
+  // 추적 실행
+  const handleTrack = (carrier?: Carrier) => {
+    const targetCarrier = carrier || detectedCarrier;
+    if (!targetCarrier) return;
+
+    // 클립보드에 복사
+    if (blInput) {
+      navigator.clipboard.writeText(blInput).catch(() => {});
+    }
+
+    const url = blInput ? buildBlTrackingUrl(targetCarrier, blInput) : targetCarrier.trackingUrl;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  // 수동 선택으로 추적
+  const handleManualTrack = (carrier: Carrier) => {
+    // 클립보드에 복사
+    if (blInput) {
+      navigator.clipboard.writeText(blInput).catch(() => {});
+    }
+
+    const url = blInput && validateBlFormat(blInput)
+      ? buildBlTrackingUrl(carrier, blInput)
+      : carrier.trackingUrl;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    setShowManualSelect(false);
+  };
+
+  // 필터링된 운송사 목록
+  const filteredCarriers = useMemo(() => {
+    return containerCarriers.filter(carrier => {
+      const matchesSearch =
+        carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        carrier.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (carrier.region?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+      const matchesMajor = !showMajorOnly || carrier.isMajor;
+      return matchesSearch && matchesMajor;
+    });
+  }, [searchTerm, showMajorOnly]);
+
+  const sortedCarriers = useMemo(() => {
+    return [...filteredCarriers].sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredCarriers]);
+
+  const isValidBl = validateBlFormat(blInput);
+  const detectedPrefix = extractBlPrefix(blInput);
+
   return (
-    <CarrierGrid
-      carriers={containerCarriers}
-      title="컨테이너 선사"
-      subtitle={`전세계 ${containerCarriers.length}개+ 컨테이너 선사 추적`}
-      icon={<ShipIcon className="w-5 h-5 text-white" />}
-      iconBgClass="bg-gradient-to-br from-blue-500 to-blue-600"
-      adSlot={adSlot}
-    />
+    <div className="space-y-4">
+      {/* BL 자동 추적 섹션 */}
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-xl border border-slate-200 p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          {/* 설명 영역 */}
+          <div className="lg:w-72 shrink-0">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center">
+                <ShipIcon className="w-3.5 h-3.5 text-white" />
+              </div>
+              <h3 className="font-bold text-slate-800">B/L 자동 추적</h3>
+            </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              B/L 번호 앞 4자리 코드로 선사를 자동 감지합니다.
+              <span className="text-slate-400 block mt-0.5">예: <span className="font-mono">MAEU</span>123456789 → Maersk</span>
+            </p>
+          </div>
+
+          {/* 입력 영역 */}
+          <div className="flex-1 flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className={`relative transition-[flex,width] duration-300 ease-out ${
+              blInput && isValidBl ? 'w-full sm:w-[40%] shrink-0' : 'flex-1'
+            }`}>
+              <input
+                type="text"
+                placeholder="MAEU123456789"
+                value={blInput}
+                onChange={handleBlChange}
+                maxLength={20}
+                className={`w-full h-full px-5 py-3.5 text-lg font-mono bg-white border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                  blInput && !isValidBl && blInput.length >= 4
+                    ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-slate-200 focus:ring-blue-500/20 focus:border-blue-400'
+                }`}
+              />
+              {blInput && (
+                <button
+                  onClick={() => {
+                    setBlInput('');
+                    setDetectedCarrier(null);
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* 감지 결과 & 버튼 */}
+            {blInput && isValidBl ? (
+              detectedCarrier ? (
+                <div className="flex items-stretch gap-2 flex-1 animate-fade-in">
+                  <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-xl flex-1 min-w-0">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0 animate-pulse"></div>
+                    <span className="text-sm font-bold text-slate-800 truncate">{detectedCarrier.name}</span>
+                    <span className="text-xs text-blue-600 font-mono bg-blue-100/80 px-2 py-0.5 rounded-md shrink-0">{detectedPrefix}</span>
+                  </div>
+                  <button
+                    onClick={() => handleTrack()}
+                    className="px-5 py-3.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-sm font-bold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg shadow-blue-500/25 shrink-0"
+                  >
+                    추적
+                  </button>
+                  <button
+                    onClick={() => setShowManualSelect(!showManualSelect)}
+                    className="px-3 py-3.5 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors whitespace-nowrap shrink-0"
+                  >
+                    변경
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-stretch gap-2 flex-1 animate-fade-in">
+                  <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-amber-50 to-white border border-amber-200 rounded-xl flex-1 min-w-0">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full shrink-0"></div>
+                    <span className="text-sm font-medium text-slate-700">미등록 코드</span>
+                    <span className="text-xs text-amber-600 font-mono bg-amber-100/80 px-2 py-0.5 rounded-md">{detectedPrefix}</span>
+                  </div>
+                  <button
+                    onClick={() => setShowManualSelect(true)}
+                    className="px-5 py-3.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-slate-900 transition-colors shadow-lg shadow-slate-800/25 whitespace-nowrap shrink-0"
+                  >
+                    직접 선택
+                  </button>
+                </div>
+              )
+            ) : (
+              <button
+                disabled
+                className="px-5 py-3.5 bg-slate-100 text-slate-400 text-sm font-medium rounded-xl cursor-not-allowed whitespace-nowrap shrink-0"
+              >
+                추적
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 수동 선택 모달/섹션 */}
+      {showManualSelect && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+            <h3 className="font-bold text-slate-700">선사 수동 선택</h3>
+            <button
+              onClick={() => setShowManualSelect(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="선사 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 pl-9 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+              {sortedCarriers.slice(0, 50).map((carrier, idx) => (
+                <button
+                  key={`${carrier.code}-${idx}`}
+                  onClick={() => handleManualTrack(carrier)}
+                  className="bg-white rounded border border-slate-200 px-3 py-2 hover:bg-blue-50 hover:border-blue-300 transition-all text-left"
+                >
+                  <span className="text-sm text-slate-700 block truncate">{carrier.name}</span>
+                  <span className="text-xs text-slate-400 font-mono">{carrier.code}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 전체 선사 목록 */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-slate-50 border-b border-slate-200 px-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-slate-700">전체 선사 목록</h3>
+              <p className="text-xs text-slate-500">직접 선사를 선택하여 추적 페이지로 이동</p>
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="선사, 코드, 지역 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full sm:w-64 px-4 py-2 pl-9 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+              />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Ad Slot */}
+        {adSlot && (
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+            {adSlot}
+          </div>
+        )}
+
+        <div className="p-4">
+          {/* Results Count & Major Filter */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-slate-500">
+                <span className="font-bold text-slate-700">{sortedCarriers.length}개</span> 선사
+              </p>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showMajorOnly}
+                  onChange={(e) => setShowMajorOnly(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500/20 cursor-pointer"
+                />
+                <span className="text-sm text-slate-600 font-medium">주요 선사만</span>
+              </label>
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-xs text-blue-500 hover:text-blue-700 font-medium"
+              >
+                검색 초기화
+              </button>
+            )}
+          </div>
+
+          {/* Carrier Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1">
+            {sortedCarriers.map((carrier, idx) => {
+              const hasAutoBl = autoBlCodes.has(carrier.code);
+              return (
+                <button
+                  key={`${carrier.code}-${idx}`}
+                  onClick={() => handleManualTrack(carrier)}
+                  className={`bg-white rounded border px-2 py-1.5 hover:bg-blue-50 hover:border-blue-300 transition-all text-left group flex items-center gap-1.5 ${
+                    hasAutoBl ? 'border-blue-200' : 'border-slate-200'
+                  }`}
+                >
+                  <div className={`w-5 h-5 rounded flex items-center justify-center text-white shrink-0 ${
+                    hasAutoBl ? 'bg-blue-600' : 'bg-blue-500'
+                  }`}>
+                    <ShipIcon className="w-3 h-3" />
+                  </div>
+                  <span className={`text-xs truncate flex-1 ${
+                    hasAutoBl ? 'font-bold text-slate-800' : 'text-slate-700'
+                  }`}>{carrier.name}</span>
+                  <span className="text-[10px] text-slate-400 font-mono shrink-0">{carrier.code}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Empty State */}
+          {sortedCarriers.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <SearchIcon className="w-6 h-6 text-slate-300" />
+              </div>
+              <h3 className="text-base font-bold text-slate-700 mb-1">검색 결과 없음</h3>
+              <p className="text-sm text-slate-500 mb-3">"{searchTerm}"에 해당하는 선사를 찾을 수 없습니다.</p>
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-4 py-2 bg-blue-500 text-white text-sm font-bold rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                전체 목록 보기
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 

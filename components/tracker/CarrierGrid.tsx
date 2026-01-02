@@ -34,7 +34,13 @@ const CarrierGrid: React.FC<CarrierGridProps> = ({
   }, [carriers, searchTerm, showMajorOnly]);
 
   const sortedCarriers = useMemo(() => {
-    return [...filteredCarriers].sort((a, b) => a.name.localeCompare(b.name));
+    return [...filteredCarriers].sort((a, b) => {
+      // 주요 항목 먼저
+      if (a.isMajor && !b.isMajor) return -1;
+      if (!a.isMajor && b.isMajor) return 1;
+      // 그 다음 이름순
+      return a.name.localeCompare(b.name);
+    });
   }, [filteredCarriers]);
 
   const handleTrack = (carrier: Carrier) => {
@@ -112,12 +118,16 @@ const CarrierGrid: React.FC<CarrierGridProps> = ({
             <button
               key={`${carrier.code}-${idx}`}
               onClick={() => handleTrack(carrier)}
-              className="bg-white rounded border border-slate-200 px-2 py-1.5 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-left group flex items-center gap-1.5"
+              className={`bg-white rounded border px-2 py-1.5 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-left group flex items-center gap-1.5 ${
+                carrier.isMajor ? 'border-indigo-200' : 'border-slate-200'
+              }`}
             >
               <div className={`w-5 h-5 ${getCategoryColor(carrier.category)} rounded flex items-center justify-center text-white shrink-0`}>
                 {getCategoryIcon(carrier.category)}
               </div>
-              <span className="text-xs text-slate-700 truncate flex-1">{carrier.name}</span>
+              <span className={`text-xs truncate flex-1 ${
+                carrier.isMajor ? 'font-bold text-slate-800' : 'text-slate-700'
+              }`}>{carrier.name}</span>
               <span className="text-[10px] text-slate-400 font-mono shrink-0">{carrier.code}</span>
             </button>
           ))}

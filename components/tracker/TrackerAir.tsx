@@ -24,7 +24,7 @@ const awbPrefixMap: Record<string, string> = {
   // 유럽 항공사
   '020': 'LH',   // Lufthansa
   '057': 'AF',   // Air France
-  '074': 'KL',   // KLM
+  '074': 'AF',   // KLM (AF-KL-MP Cargo)
   '125': 'BA',   // British Airways (IAG)
   '075': 'IB',   // Iberia
   '235': 'TK',   // Turkish Airlines
@@ -527,12 +527,22 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
     const targetCarrier = carrier || detectedCarrier;
     if (!targetCarrier) return;
 
+    // 클립보드에 복사
+    if (awbInput) {
+      navigator.clipboard.writeText(awbInput).catch(() => {});
+    }
+
     const url = awbInput ? buildTrackingUrl(targetCarrier, awbInput) : targetCarrier.trackingUrl;
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   // 수동 선택으로 추적
   const handleManualTrack = (carrier: Carrier) => {
+    // 클립보드에 복사
+    if (awbInput) {
+      navigator.clipboard.writeText(awbInput).catch(() => {});
+    }
+
     const url = awbInput && validateAwbFormat(awbInput)
       ? buildTrackingUrl(carrier, awbInput)
       : carrier.trackingUrl;
