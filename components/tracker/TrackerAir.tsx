@@ -1,7 +1,78 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Carrier } from './types';
-import { PlaneIcon } from './icons';
-import CarrierGrid from './CarrierGrid';
+import { PlaneIcon, SearchIcon } from './icons';
+
+// AWB Prefix Code 매핑 (3자리 IATA 항공사 숫자 코드)
+const awbPrefixMap: Record<string, string> = {
+  // 한국 항공사
+  '180': 'KE',   // Korean Air
+  '988': 'OZ',   // Asiana Airlines
+  '991': 'LJ',   // Jin Air
+  '992': '7C',   // Jeju Air
+  '993': 'TW',   // T'way Air
+  '994': 'YP',   // Air Premia
+  // 미국 항공사
+  '001': 'AA',   // American Airlines
+  '006': 'DL',   // Delta Air Lines
+  '016': 'UA',   // United Airlines
+  '027': 'AS',   // Alaska Airlines
+  '023': 'FX',   // FedEx
+  '406': '5X',   // UPS Airlines
+  '526': 'WN',   // Southwest Airlines
+  // 유럽 항공사
+  '020': 'LH',   // Lufthansa
+  '057': 'AF',   // Air France
+  '074': 'KL',   // KLM (AF-KL-MP uses AF code)
+  '114': 'BA',   // British Airways (IAG)
+  '235': 'TK',   // Turkish Airlines
+  '047': 'AY',   // Finnair
+  '053': 'SK',   // SAS
+  '082': 'LO',   // LOT Polish Airlines
+  '724': 'LX',   // Swiss International
+  '172': 'CV',   // Cargolux
+  // 아시아 항공사
+  '131': 'JL',   // Japan Airlines
+  '205': 'NH',   // All Nippon Airways (ANA)
+  '138': 'KZ',   // Nippon Cargo Airlines
+  '160': 'CX',   // Cathay Pacific
+  '695': 'CI',   // China Airlines
+  '695': 'BR',   // EVA Air (shares with CI sometimes)
+  '618': 'SQ',   // Singapore Airlines
+  '784': 'CA',   // Air China
+  '297': 'CZ',   // China Southern
+  '112': 'MU',   // China Eastern
+  '999': 'CK',   // China Cargo Airlines
+  '098': 'HU',   // Hainan Airlines
+  '217': 'TG',   // Thai Airways
+  '232': 'MH',   // Malaysia Airlines
+  '126': 'GA',   // Garuda Indonesia
+  '079': 'PR',   // Philippine Airlines
+  '738': 'VN',   // Vietnam Airlines
+  '851': 'AI',   // Air India
+  '086': 'PK',   // Pakistan International
+  // 중동 항공사
+  '176': 'EK',   // Emirates
+  '607': 'EY',   // Etihad Airways
+  '157': 'QR',   // Qatar Airways
+  '065': 'SV',   // Saudia
+  '229': 'GF',   // Gulf Air
+  '096': 'WY',   // Oman Air
+  '186': 'RJ',   // Royal Jordanian
+  '604': 'ME',   // Middle East Airlines
+  // 아프리카 항공사
+  '071': 'ET',   // Ethiopian Airlines
+  '077': 'KQ',   // Kenya Airways
+  '083': 'SA',   // South African Airways
+  // 오세아니아 항공사
+  '081': 'QF',   // Qantas
+  '086': 'NZ',   // Air New Zealand
+  // 아메리카 항공사
+  '014': 'AC',   // Air Canada
+  '045': 'LA',   // LATAM Airlines
+  '044': 'AV',   // Avianca
+  '230': 'CM',   // Copa Airlines
+  '139': 'AM',   // Aeromexico
+};
 
 // 항공화물 데이터
 const airCarriers: Carrier[] = [
@@ -233,20 +304,360 @@ const airCarriers: Carrier[] = [
   { name: 'YTO Cargo Airlines', code: 'YG', trackingUrl: 'https://www.yto.net.cn/tracking', category: 'air', region: 'Asia' },
 ];
 
+// AWB 형식 검증 (123-12345678)
+const validateAwbFormat = (awb: string): boolean => {
+  const cleaned = awb.replace(/[\s-]/g, '');
+  return /^\d{11}$/.test(cleaned);
+};
+
+// AWB 파싱 (prefix와 number 분리)
+const parseAwb = (awb: string): { prefix: string; number: string } | null => {
+  const cleaned = awb.replace(/[\s-]/g, '');
+  if (cleaned.length !== 11) return null;
+  return {
+    prefix: cleaned.substring(0, 3),
+    number: cleaned.substring(3),
+  };
+};
+
+// AWB 포맷팅 (123-12345678 형식으로)
+const formatAwb = (value: string): string => {
+  const cleaned = value.replace(/[^\d]/g, '');
+  if (cleaned.length <= 3) return cleaned;
+  return `${cleaned.substring(0, 3)}-${cleaned.substring(3, 11)}`;
+};
+
 interface TrackerAirProps {
   adSlot?: React.ReactNode;
 }
 
 const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
+  const [awbInput, setAwbInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showMajorOnly, setShowMajorOnly] = useState(false);
+  const [detectedCarrier, setDetectedCarrier] = useState<Carrier | null>(null);
+  const [showManualSelect, setShowManualSelect] = useState(false);
+
+  // AWB 입력 처리
+  const handleAwbChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatAwb(e.target.value);
+    setAwbInput(formatted);
+
+    // 자동 감지
+    const parsed = parseAwb(formatted);
+    if (parsed) {
+      const airlineCode = awbPrefixMap[parsed.prefix];
+      if (airlineCode) {
+        const carrier = airCarriers.find(c => c.code === airlineCode);
+        setDetectedCarrier(carrier || null);
+      } else {
+        setDetectedCarrier(null);
+      }
+    } else {
+      setDetectedCarrier(null);
+    }
+  };
+
+  // 추적 실행
+  const handleTrack = (carrier?: Carrier) => {
+    const targetCarrier = carrier || detectedCarrier;
+    if (!targetCarrier) return;
+
+    window.open(targetCarrier.trackingUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  // 수동 선택으로 추적
+  const handleManualTrack = (carrier: Carrier) => {
+    window.open(carrier.trackingUrl, '_blank', 'noopener,noreferrer');
+    setShowManualSelect(false);
+  };
+
+  // 필터링된 운송사 목록
+  const filteredCarriers = useMemo(() => {
+    return airCarriers.filter(carrier => {
+      const matchesSearch =
+        carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        carrier.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (carrier.region?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
+      const matchesMajor = !showMajorOnly || carrier.isMajor;
+      return matchesSearch && matchesMajor;
+    });
+  }, [searchTerm, showMajorOnly]);
+
+  const sortedCarriers = useMemo(() => {
+    return [...filteredCarriers].sort((a, b) => a.name.localeCompare(b.name));
+  }, [filteredCarriers]);
+
+  const isValidAwb = validateAwbFormat(awbInput);
+  const parsed = parseAwb(awbInput);
+
   return (
-    <CarrierGrid
-      carriers={airCarriers}
-      title="항공화물"
-      subtitle={`전세계 ${airCarriers.length}개+ 항공사 추적`}
-      icon={<PlaneIcon className="w-5 h-5 text-white" />}
-      iconBgClass="bg-gradient-to-br from-purple-500 to-purple-600"
-      adSlot={adSlot}
-    />
+    <div className="space-y-4">
+      {/* AWB 추적 입력 섹션 */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-purple-500 to-purple-600 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 bg-white/20 rounded-xl">
+              <PlaneIcon className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-white">항공화물 추적</h2>
+              <p className="text-purple-100 text-xs">AWB 번호로 자동 항공사 감지</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4">
+          {/* AWB 입력 */}
+          <div className="mb-4">
+            <label className="block text-sm font-bold text-slate-700 mb-2">
+              AWB (Air Waybill) 번호
+            </label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="123-12345678"
+                  value={awbInput}
+                  onChange={handleAwbChange}
+                  maxLength={12}
+                  className={`w-full px-4 py-3 text-lg font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                    awbInput && !isValidAwb
+                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500'
+                      : 'border-slate-200 focus:ring-purple-500/20 focus:border-purple-500'
+                  }`}
+                />
+                {awbInput && (
+                  <button
+                    onClick={() => {
+                      setAwbInput('');
+                      setDetectedCarrier(null);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => handleTrack()}
+                disabled={!isValidAwb || !detectedCarrier}
+                className={`px-6 py-3 font-bold rounded-lg transition-all ${
+                  isValidAwb && detectedCarrier
+                    ? 'bg-purple-500 text-white hover:bg-purple-600'
+                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                추적
+              </button>
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              형식: 3자리 항공사 코드 - 8자리 화물번호 (예: 180-12345678)
+            </p>
+          </div>
+
+          {/* 감지 결과 */}
+          {awbInput && (
+            <div className={`p-4 rounded-lg ${
+              isValidAwb && detectedCarrier
+                ? 'bg-green-50 border border-green-200'
+                : isValidAwb && !detectedCarrier
+                ? 'bg-yellow-50 border border-yellow-200'
+                : 'bg-slate-50 border border-slate-200'
+            }`}>
+              {isValidAwb ? (
+                detectedCarrier ? (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
+                        <PlaneIcon className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-green-800">항공사 감지됨</p>
+                        <p className="text-green-700 font-medium">{detectedCarrier.name}</p>
+                        <p className="text-xs text-green-600">코드: {detectedCarrier.code} | Prefix: {parsed?.prefix}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowManualSelect(!showManualSelect)}
+                      className="text-sm text-green-700 hover:text-green-800 underline"
+                    >
+                      다른 항공사 선택
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-yellow-800">항공사를 찾을 수 없음</p>
+                        <p className="text-yellow-700 text-sm">Prefix {parsed?.prefix}에 해당하는 항공사가 등록되어 있지 않습니다.</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowManualSelect(true)}
+                      className="px-4 py-2 bg-yellow-500 text-white font-bold rounded-lg hover:bg-yellow-600 transition-colors"
+                    >
+                      수동 선택
+                    </button>
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-slate-400 rounded-lg flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-600">AWB 형식 확인 중...</p>
+                    <p className="text-slate-500 text-sm">11자리 숫자를 입력해주세요 (123-12345678)</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 수동 선택 모달/섹션 */}
+      {showManualSelect && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+            <h3 className="font-bold text-slate-700">항공사 수동 선택</h3>
+            <button
+              onClick={() => setShowManualSelect(false)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-4">
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="항공사 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 pl-9 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+              />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-64 overflow-y-auto">
+              {sortedCarriers.slice(0, 50).map((carrier, idx) => (
+                <button
+                  key={`${carrier.code}-${idx}`}
+                  onClick={() => handleManualTrack(carrier)}
+                  className="bg-white rounded border border-slate-200 px-3 py-2 hover:bg-purple-50 hover:border-purple-300 transition-all text-left"
+                >
+                  <span className="text-sm text-slate-700 block truncate">{carrier.name}</span>
+                  <span className="text-xs text-slate-400 font-mono">{carrier.code}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 전체 항공사 목록 */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-slate-50 border-b border-slate-200 px-4 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-slate-700">전체 항공사 목록</h3>
+              <p className="text-xs text-slate-500">직접 항공사를 선택하여 추적 페이지로 이동</p>
+            </div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="항공사, 코드, 지역 검색..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full sm:w-64 px-4 py-2 pl-9 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500"
+              />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Ad Slot */}
+        {adSlot && (
+          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
+            {adSlot}
+          </div>
+        )}
+
+        <div className="p-4">
+          {/* Results Count & Major Filter */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-slate-500">
+                <span className="font-bold text-slate-700">{sortedCarriers.length}개</span> 항공사
+              </p>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={showMajorOnly}
+                  onChange={(e) => setShowMajorOnly(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-purple-500 focus:ring-purple-500/20 cursor-pointer"
+                />
+                <span className="text-sm text-slate-600 font-medium">주요 항공사만</span>
+              </label>
+            </div>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="text-xs text-purple-500 hover:text-purple-700 font-medium"
+              >
+                검색 초기화
+              </button>
+            )}
+          </div>
+
+          {/* Carrier Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1">
+            {sortedCarriers.map((carrier, idx) => (
+              <button
+                key={`${carrier.code}-${idx}`}
+                onClick={() => handleManualTrack(carrier)}
+                className="bg-white rounded border border-slate-200 px-2 py-1.5 hover:bg-purple-50 hover:border-purple-300 transition-all text-left group flex items-center gap-1.5"
+              >
+                <div className="w-5 h-5 bg-purple-500 rounded flex items-center justify-center text-white shrink-0">
+                  <PlaneIcon className="w-3 h-3" />
+                </div>
+                <span className="text-xs text-slate-700 truncate flex-1">{carrier.name}</span>
+                <span className="text-[10px] text-slate-400 font-mono shrink-0">{carrier.code}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Empty State */}
+          {sortedCarriers.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <SearchIcon className="w-6 h-6 text-slate-300" />
+              </div>
+              <h3 className="text-base font-bold text-slate-700 mb-1">검색 결과 없음</h3>
+              <p className="text-sm text-slate-500 mb-3">"{searchTerm}"에 해당하는 항공사를 찾을 수 없습니다.</p>
+              <button
+                onClick={() => setSearchTerm('')}
+                className="px-4 py-2 bg-purple-500 text-white text-sm font-bold rounded-lg hover:bg-purple-600 transition-colors"
+              >
+                전체 목록 보기
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };
 
