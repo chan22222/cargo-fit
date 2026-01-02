@@ -349,10 +349,11 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
     const formatted = formatAwb(e.target.value);
     setAwbInput(formatted);
 
-    // 자동 감지
-    const parsed = parseAwb(formatted);
-    if (parsed) {
-      const airlineCode = awbPrefixMap[parsed.prefix];
+    // 11자리 완성됐을 때만 감지 실행
+    const cleaned = formatted.replace(/[^\d]/g, '');
+    if (cleaned.length === 11) {
+      const prefix = cleaned.substring(0, 3);
+      const airlineCode = awbPrefixMap[prefix];
       if (airlineCode) {
         const carrier = airCarriers.find(c => c.code === airlineCode);
         setDetectedCarrier(carrier || null);
@@ -399,85 +400,101 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
 
   return (
     <div className="space-y-4">
-      {/* AWB 추적 입력 섹션 - 슬림 디자인 */}
-      <div className="bg-white rounded-xl border border-slate-200 p-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          {/* 입력 필드 */}
-          <div className="flex-1">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <PlaneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="AWB 번호 입력 (예: 180-12345678)"
-                  value={awbInput}
-                  onChange={handleAwbChange}
-                  maxLength={12}
-                  className={`w-full pl-10 pr-10 py-2.5 text-sm font-mono border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                    awbInput && !isValidAwb
-                      ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500'
-                      : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-500'
-                  }`}
-                />
-                {awbInput && (
-                  <button
-                    onClick={() => {
-                      setAwbInput('');
-                      setDetectedCarrier(null);
-                    }}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                )}
+      {/* AWB 자동 추적 섹션 */}
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100/50 rounded-xl border border-slate-200 p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          {/* 설명 영역 */}
+          <div className="lg:w-72 shrink-0">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-6 h-6 bg-teal-500 rounded-md flex items-center justify-center">
+                <PlaneIcon className="w-3.5 h-3.5 text-white" />
               </div>
-              <button
-                onClick={() => handleTrack()}
-                disabled={!isValidAwb || !detectedCarrier}
-                className={`px-5 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                  isValidAwb && detectedCarrier
-                    ? 'bg-indigo-500 text-white hover:bg-indigo-600'
-                    : 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                }`}
-              >
-                추적
-              </button>
+              <h3 className="font-bold text-slate-800">AWB 자동 추적</h3>
             </div>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              항공화물 번호 앞 3자리로 항공사를 자동 감지합니다.
+              <span className="text-slate-400 block mt-0.5">예: <span className="font-mono">180</span>-12345678 → 대한항공</span>
+            </p>
           </div>
 
-          {/* 감지 결과 - 인라인 */}
-          {awbInput && isValidAwb && (
-            <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
-              detectedCarrier
-                ? 'bg-green-50 text-green-700'
-                : 'bg-yellow-50 text-yellow-700'
+          {/* 입력 영역 */}
+          <div className="flex-1 flex flex-col sm:flex-row gap-3 items-stretch">
+            <div className={`relative transition-[flex,width] duration-300 ease-out ${
+              awbInput && isValidAwb ? 'w-full sm:w-[40%] shrink-0' : 'flex-1'
             }`}>
-              {detectedCarrier ? (
-                <>
-                  <span className="font-medium">{detectedCarrier.name}</span>
-                  <span className="text-xs opacity-75">({detectedCarrier.code}/{parsed?.prefix})</span>
+              <input
+                type="text"
+                placeholder="000-00000000"
+                value={awbInput}
+                onChange={handleAwbChange}
+                maxLength={12}
+                className={`w-full h-full px-5 py-3.5 text-lg font-mono bg-white border rounded-xl focus:outline-none focus:ring-2 transition-colors ${
+                  awbInput && !isValidAwb
+                    ? 'border-red-300 focus:ring-red-500/20 focus:border-red-500'
+                    : 'border-slate-200 focus:ring-teal-500/20 focus:border-teal-400'
+                }`}
+              />
+              {awbInput && (
+                <button
+                  onClick={() => {
+                    setAwbInput('');
+                    setDetectedCarrier(null);
+                  }}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+            {/* 감지 결과 & 버튼 */}
+            {awbInput && isValidAwb ? (
+              detectedCarrier ? (
+                <div className="flex items-stretch gap-2 flex-1 animate-fade-in">
+                  <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-teal-50 to-white border border-teal-200 rounded-xl flex-1 min-w-0">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full shrink-0 animate-pulse"></div>
+                    <span className="text-sm font-bold text-slate-800 truncate">{detectedCarrier.name}</span>
+                    <span className="text-xs text-teal-600 font-mono bg-teal-100/80 px-2 py-0.5 rounded-md shrink-0">{parsed?.prefix}</span>
+                  </div>
+                  <button
+                    onClick={() => handleTrack()}
+                    className="px-5 py-3.5 bg-gradient-to-r from-teal-500 to-teal-600 text-white text-sm font-bold rounded-xl hover:from-teal-600 hover:to-teal-700 transition-all shadow-lg shadow-teal-500/25 shrink-0"
+                  >
+                    추적
+                  </button>
                   <button
                     onClick={() => setShowManualSelect(!showManualSelect)}
-                    className="text-xs underline ml-1"
+                    className="px-3 py-3.5 text-xs text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors whitespace-nowrap shrink-0"
                   >
                     변경
                   </button>
-                </>
+                </div>
               ) : (
-                <>
-                  <span>미등록 항공사 ({parsed?.prefix})</span>
+                <div className="flex items-stretch gap-2 flex-1 animate-fade-in">
+                  <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-amber-50 to-white border border-amber-200 rounded-xl flex-1 min-w-0">
+                    <div className="w-2 h-2 bg-amber-500 rounded-full shrink-0"></div>
+                    <span className="text-sm font-medium text-slate-700">미등록 코드</span>
+                    <span className="text-xs text-amber-600 font-mono bg-amber-100/80 px-2 py-0.5 rounded-md">{parsed?.prefix}</span>
+                  </div>
                   <button
                     onClick={() => setShowManualSelect(true)}
-                    className="text-xs font-bold underline"
+                    className="px-5 py-3.5 bg-slate-800 text-white text-sm font-bold rounded-xl hover:bg-slate-900 transition-colors shadow-lg shadow-slate-800/25 whitespace-nowrap shrink-0"
                   >
-                    수동 선택
+                    직접 선택
                   </button>
-                </>
-              )}
-            </div>
-          )}
+                </div>
+              )
+            ) : (
+              <button
+                disabled
+                className="px-5 py-3.5 bg-slate-100 text-slate-400 text-sm font-medium rounded-xl cursor-not-allowed whitespace-nowrap shrink-0"
+              >
+                추적
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -502,7 +519,7 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
                 placeholder="항공사 검색..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 pl-9 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                className="w-full px-4 py-2 pl-9 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
               />
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             </div>
@@ -511,7 +528,7 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
                 <button
                   key={`${carrier.code}-${idx}`}
                   onClick={() => handleManualTrack(carrier)}
-                  className="bg-white rounded border border-slate-200 px-3 py-2 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-left"
+                  className="bg-white rounded border border-slate-200 px-3 py-2 hover:bg-teal-50 hover:border-teal-300 transition-all text-left"
                 >
                   <span className="text-sm text-slate-700 block truncate">{carrier.name}</span>
                   <span className="text-xs text-slate-400 font-mono">
@@ -564,7 +581,7 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
                   type="checkbox"
                   checked={showMajorOnly}
                   onChange={(e) => setShowMajorOnly(e.target.checked)}
-                  className="w-4 h-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-500/20 cursor-pointer"
+                  className="w-4 h-4 rounded border-slate-300 text-teal-500 focus:ring-teal-500/20 cursor-pointer"
                 />
                 <span className="text-sm text-slate-600 font-medium">주요 항공사만</span>
               </label>
@@ -572,7 +589,7 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="text-xs text-indigo-500 hover:text-indigo-700 font-medium"
+                className="text-xs text-teal-500 hover:text-teal-700 font-medium"
               >
                 검색 초기화
               </button>
@@ -585,9 +602,9 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
               <button
                 key={`${carrier.code}-${idx}`}
                 onClick={() => handleManualTrack(carrier)}
-                className="bg-white rounded border border-slate-200 px-2 py-1.5 hover:bg-indigo-50 hover:border-indigo-300 transition-all text-left group flex items-center gap-1.5"
+                className="bg-white rounded border border-slate-200 px-2 py-1.5 hover:bg-teal-50 hover:border-teal-300 transition-all text-left group flex items-center gap-1.5"
               >
-                <div className="w-5 h-5 bg-indigo-500 rounded flex items-center justify-center text-white shrink-0">
+                <div className="w-5 h-5 bg-teal-500 rounded flex items-center justify-center text-white shrink-0">
                   <PlaneIcon className="w-3 h-3" />
                 </div>
                 <span className="text-xs text-slate-700 truncate flex-1">{carrier.name}</span>
@@ -608,7 +625,7 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
               <p className="text-sm text-slate-500 mb-3">"{searchTerm}"에 해당하는 항공사를 찾을 수 없습니다.</p>
               <button
                 onClick={() => setSearchTerm('')}
-                className="px-4 py-2 bg-indigo-500 text-white text-sm font-bold rounded-lg hover:bg-indigo-600 transition-colors"
+                className="px-4 py-2 bg-teal-500 text-white text-sm font-bold rounded-lg hover:bg-teal-600 transition-colors"
               >
                 전체 목록 보기
               </button>
