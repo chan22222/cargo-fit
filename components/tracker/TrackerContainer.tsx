@@ -491,7 +491,7 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
               />
               {showKoreanWarning && (
                 <div className="absolute left-0 -bottom-6 text-xs text-orange-600 font-medium animate-fade-in">
-                  영문만 입력 가능합니다
+                  영문/숫자만 입력 가능합니다
                 </div>
               )}
               {blInput && (
