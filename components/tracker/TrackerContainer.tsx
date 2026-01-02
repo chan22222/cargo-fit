@@ -216,7 +216,7 @@ const containerCarriers: Carrier[] = [
   { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'container', region: 'Korea' },
 ];
 
-// BL Prefix → 선사 코드 매핑 (4자리 SCAC 코드)
+// BL Prefix → 선사 코드 매핑 (3-4자리 코드)
 const blPrefixMap: Record<string, string> = {
   // 글로벌 메이저
   'MAEU': 'MAEU', // Maersk
@@ -237,6 +237,7 @@ const blPrefixMap: Record<string, string> = {
   'APLU': 'APLU', // APL
   // 한국 선사
   'SKLU': 'SKLU', // Sinokor
+  'SNKO': 'SKLU', // Sinokor (alternative prefix)
   'KMTU': 'KMTU', // KMTC
   'KMTC': 'KMTU', // KMTC (alternative prefix)
   'SMLM': 'SMLM', // SM Line
@@ -250,6 +251,8 @@ const blPrefixMap: Record<string, string> = {
   'TSLU': 'TSLU', // T.S. Lines
   'RCLU': 'RCLU', // RCL
   'IALU': 'IALU', // Interasia
+  'CNCU': 'CNCU', // CNC Line
+  'AFW': 'CNCU',  // CNC Line (3-letter alternative prefix)
   // 기타
   'CMCU': 'CMCU', // Crowley
   'SMLU': 'SMLU', // Seaboard Marine
@@ -265,11 +268,24 @@ const findCarrierByCode = (code: string): Carrier | undefined => {
   return containerCarriers.find(c => c.code === code);
 };
 
-// BL 번호에서 prefix 추출 (4자리 알파벳)
+// BL 번호에서 prefix 추출 (3-4자리 알파벳)
 const extractBlPrefix = (bl: string): string | null => {
   const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
-  const match = cleaned.match(/^([A-Z]{4})/);
-  return match ? match[1] : null;
+  // 4자리 먼저 시도
+  const match4 = cleaned.match(/^([A-Z]{4})/);
+  if (match4 && blPrefixMap[match4[1]]) {
+    return match4[1];
+  }
+  // 4자리가 없으면 3자리 시도
+  const match3 = cleaned.match(/^([A-Z]{3})/);
+  if (match3 && blPrefixMap[match3[1]]) {
+    return match3[1];
+  }
+  // 4자리가 있지만 매핑이 없는 경우 4자리 반환
+  if (match4) {
+    return match4[1];
+  }
+  return null;
 };
 
 // BL 번호 포맷팅
@@ -277,10 +293,10 @@ const formatBl = (value: string): string => {
   return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 };
 
-// BL 번호 유효성 검사 (최소 4자리 prefix + 숫자)
+// BL 번호 유효성 검사 (최소 3-4자리 prefix + 숫자)
 const validateBlFormat = (bl: string): boolean => {
   const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
-  return /^[A-Z]{4}[A-Z0-9]{4,}$/.test(cleaned);
+  return /^[A-Z]{3,4}[A-Z0-9]{4,}$/.test(cleaned);
 };
 
 // 선사별 BL 추적 URL 빌더
@@ -289,7 +305,7 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
 
   const urlPatterns: Record<string, (base: string) => string> = {
     'MAEU': () => `https://www.maersk.com/tracking/${cleaned}`,
-    'MSCU': () => `https://www.msc.com/track-a-shipment?agencyPath=msc&link=defined&bookingReference=${cleaned}`,
+    'MSCU': () => `https://www.msc.com/en/track-a-shipment?agencyPath=msc&link=defined&bookingReference=${cleaned}`,
     'CMDU': () => `https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
     'COSU': () => `https://elines.coscoshipping.com/ebusiness/cargoTracking?trackingType=BOOKING&number=${cleaned}`,
     'HLCU': () => `https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html?blno=${cleaned}`,
@@ -302,7 +318,7 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
     'OOLU': () => `https://www.oocl.com/eng/ourservices/eservices/cargotracking/?bl=${cleaned}`,
     'APLU': () => `https://www.apl.com/ebusiness/tracking?SearchBy=BL&Reference=${cleaned}`,
     // 한국 선사
-    'SKLU': () => `https://ebiz.sinokor.co.kr/trackTrace?blNo=${cleaned}`,
+    'SKLU': () => `https://ebiz.sinokor.co.kr/Tracking?blno=${cleaned}&cntrno=`,
     'KMTU': () => `https://www.ekmtc.com/index.html#/cargo-tracking?searchType=BL&searchNumber=${cleaned}`,
     'SMLM': () => `https://www.smlines.com/cargo-tracking?type=bl&searchNumber=${cleaned}`,
     'HASU': () => `http://www.heungaline.com/eng/tracking.asp?bl=${cleaned}`,
@@ -310,6 +326,7 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
     'WHLC': () => `https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml?bl=${cleaned}`,
     'SITC': () => `https://api.sitcline.com/sitcline/query/cargoTrack?blNo=${cleaned}`,
     'TSLU': () => `https://www.tslines.com/en/tracking?bl=${cleaned}`,
+    'CNCU': () => `https://www.cnc-line.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
     // 기타
     'CMCU': () => `https://www.crowley.com/logistics/tracking/?bl=${cleaned}`,
     'SMLU': () => `https://www.seaboardmarine.com/tracking/?bl=${cleaned}`,
@@ -329,7 +346,7 @@ const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
 const autoBlCodes = new Set([
   'MAEU', 'MSCU', 'CMDU', 'COSU', 'HLCU', 'ONEY', 'EGLV', 'YMLU', 'HDMU', 'ZIMU',
   'PCIU', 'OOLU', 'APLU', 'SKLU', 'KMTU', 'SMLM', 'HASU', 'WHLC', 'SITC', 'TSLU',
-  'CMCU', 'SMLU', 'SEAU', 'ESPU', 'TRKU', 'XPRS'
+  'CMCU', 'SMLU', 'SEAU', 'ESPU', 'TRKU', 'XPRS', 'CNCU'
 ]);
 
 interface TrackerContainerProps {
@@ -348,8 +365,8 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
     const formatted = formatBl(e.target.value);
     setBlInput(formatted);
 
-    // 4자리 이상일 때 prefix 감지
-    if (formatted.length >= 4) {
+    // 3자리 이상일 때 prefix 감지 (3-4자리 prefix 지원)
+    if (formatted.length >= 3) {
       const prefix = extractBlPrefix(formatted);
       if (prefix && blPrefixMap[prefix]) {
         const carrierCode = blPrefixMap[prefix];
@@ -424,8 +441,8 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
               <h3 className="font-bold text-slate-800">B/L 자동 추적</h3>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              B/L 번호 앞 4자리 코드로 선사를 자동 감지합니다.
-              <span className="text-slate-400 block mt-0.5">예: <span className="font-mono">MAEU</span>123456789 → Maersk</span>
+              B/L 번호 앞 3-4자리 코드로 선사를 자동 감지합니다.
+              <span className="text-slate-400 block mt-0.5">예: <span className="font-mono">MAEU</span>123456789, <span className="font-mono">AFW</span>0276932</span>
             </p>
           </div>
 
