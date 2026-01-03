@@ -677,27 +677,26 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                      const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
-                     // 2025년 말 ~ 2026년 초 공휴일 데이터
+                     // 2026년 공휴일 데이터
                      const allHolidays = [
-                        { date: '2025-12-25', name: '크리스마스', flag: '🇰🇷', country: '한국' },
-                        { date: '2025-12-25', name: 'Christmas', flag: '🇺🇸', country: '미국' },
-                        { date: '2025-12-25', name: 'Christmas', flag: '🇬🇧', country: '영국' },
-                        { date: '2025-12-26', name: 'Boxing Day', flag: '🇬🇧', country: '영국' },
-                        { date: '2025-12-31', name: '大晦日', flag: '🇯🇵', country: '일본' },
-                        { date: '2026-01-01', name: '신정', flag: '🇰🇷', country: '한국' },
-                        { date: '2026-01-01', name: '元日', flag: '🇯🇵', country: '일본' },
-                        { date: '2026-01-01', name: "New Year's Day", flag: '🇺🇸', country: '미국' },
-                        { date: '2026-01-01', name: '元旦', flag: '🇨🇳', country: '중국' },
                         { date: '2026-01-12', name: '成人の日', flag: '🇯🇵', country: '일본' },
                         { date: '2026-01-19', name: 'MLK Day', flag: '🇺🇸', country: '미국' },
                         { date: '2026-01-26', name: 'Australia Day', flag: '🇦🇺', country: '호주' },
+                        { date: '2026-02-11', name: '建国記念の日', flag: '🇯🇵', country: '일본' },
+                        { date: '2026-02-16', name: 'Presidents Day', flag: '🇺🇸', country: '미국' },
                         { date: '2026-02-17', name: '春节', flag: '🇨🇳', country: '중국' },
                         { date: '2026-02-17', name: '설날', flag: '🇰🇷', country: '한국' },
                         { date: '2026-02-17', name: 'Tết', flag: '🇻🇳', country: '베트남' },
                         { date: '2026-03-01', name: '삼일절', flag: '🇰🇷', country: '한국' },
+                        { date: '2026-04-03', name: 'Good Friday', flag: '🇬🇧', country: '영국' },
+                        { date: '2026-04-05', name: '清明节', flag: '🇨🇳', country: '중국' },
+                        { date: '2026-04-06', name: 'Easter Monday', flag: '🇬🇧', country: '영국' },
+                        { date: '2026-05-01', name: '勞動節', flag: '🇨🇳', country: '중국' },
+                        { date: '2026-05-05', name: '어린이날', flag: '🇰🇷', country: '한국' },
+                        { date: '2026-05-25', name: 'Memorial Day', flag: '🇺🇸', country: '미국' },
                      ].filter(h => h.date >= todayStr);
 
-                     const displayHolidays = expandHolidays ? allHolidays : allHolidays.slice(0, 4);
+                     const displayHolidays = expandHolidays ? allHolidays.slice(0, 11) : allHolidays.slice(0, 4);
 
                      return (
                         <>
@@ -737,7 +736,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                                  {expandHolidays ? (
                                     <>접기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg></>
                                  ) : (
-                                    <>+{allHolidays.length - 4}개 더보기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></>
+                                    <>+{Math.min(allHolidays.length, 11) - 4}개 더보기 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg></>
                                  )}
                               </button>
                            )}
