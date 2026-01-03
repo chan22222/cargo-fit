@@ -10,7 +10,7 @@ const FSSC: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 데이터 로드
+  // 초기 데이터 로드
   const loadData = async () => {
     setLoading(true);
     setError(null);
@@ -23,6 +23,17 @@ const FSSC: React.FC = () => {
       setError(err instanceof Error ? err.message : '데이터를 불러오는 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 데이터 새로고침 (로딩 상태 변경 없이)
+  const refreshData = async () => {
+    try {
+      const { data, error: fetchError } = await db.fssc.getAll();
+      if (fetchError) throw new Error(fetchError.message);
+      setRecords(data || []);
+    } catch (err) {
+      // 조용히 실패
     }
   };
 
@@ -68,7 +79,7 @@ const FSSC: React.FC = () => {
         ) : (
           /* 분석 도구 - 1열 레이아웃 */
           <div className="space-y-4">
-            <FSSCCalculator records={records} />
+            <FSSCCalculator records={records} onRefresh={refreshData} />
             <FSSCCompareChart records={records} />
             <FSSCHistoryChart records={records} />
           </div>

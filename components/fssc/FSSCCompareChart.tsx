@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { FSSCRecord, CurrencyType, AIRLINE_CODES } from '../../types/fssc';
 
 interface FSSCCompareChartProps {
   records: FSSCRecord[];
 }
 
-// 환율
-const EXCHANGE_RATES: Record<CurrencyType, number> = {
+// 기본 환율 (localStorage에 없을 경우 사용)
+const DEFAULT_RATES: Record<CurrencyType, number> = {
   KRW: 1,
   USD: 1450,
   EUR: 1580,
@@ -17,6 +17,21 @@ const EXCHANGE_RATES: Record<CurrencyType, number> = {
 const FSSCCompareChart: React.FC<FSSCCompareChartProps> = ({ records }) => {
   const [chartType, setChartType] = useState<'FS' | 'SC'>('FS');
   const [sortBy, setSortBy] = useState<'asc' | 'desc'>('desc');
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_RATES);
+
+  // localStorage에서 환율 가져오기
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const cached = localStorage.getItem(`unipass_rates_${today}`);
+    if (cached) {
+      try {
+        const rates = JSON.parse(cached);
+        setExchangeRates({ ...DEFAULT_RATES, ...rates });
+      } catch (e) {
+        // 파싱 실패 시 기본값 사용
+      }
+    }
+  }, []);
 
   // 유효한 레코드만 (현재 날짜 기준)
   const validRecords = useMemo(() => {
@@ -34,7 +49,8 @@ const FSSCCompareChart: React.FC<FSSCCompareChartProps> = ({ records }) => {
 
     validRecords.forEach(r => {
       if (!r.over_charge) return;
-      const krwRate = (r.over_charge || 0) * EXCHANGE_RATES[r.currency];
+      const rate = exchangeRates[r.currency] || DEFAULT_RATES[r.currency] || 1;
+      const krwRate = (r.over_charge || 0) * rate;
 
       if (!grouped[r.carrier_code]) {
         grouped[r.carrier_code] = { total: 0, count: 0, records: [] };
@@ -55,11 +71,15 @@ const FSSCCompareChart: React.FC<FSSCCompareChartProps> = ({ records }) => {
     return result.sort((a, b) =>
       sortBy === 'desc' ? b.avgRate - a.avgRate : a.avgRate - b.avgRate
     );
-  }, [validRecords, sortBy]);
+  }, [validRecords, sortBy, exchangeRates]);
 
-  // 최대값 (차트 스케일용)
-  const maxRate = useMemo(() => {
-    return Math.max(...carrierData.map(d => d.avgRate), 1);
+  // 차트 스케일 (최소~최대 범위 기준)
+  const { minRate, maxRate } = useMemo(() => {
+    const values = carrierData.map(d => d.avgRate).filter(v => v > 0);
+    if (values.length === 0) return { minRate: 0, maxRate: 1 };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return { minRate: min, maxRate: max };
   }, [carrierData]);
 
   // 상위 10개만 표시
@@ -119,7 +139,11 @@ const FSSCCompareChart: React.FC<FSSCCompareChartProps> = ({ records }) => {
       {displayData.length > 0 ? (
         <div className="space-y-2">
           {displayData.map((item, index) => {
-            const percentage = (item.avgRate / maxRate) * 100;
+            // 최소값~최대값 범위에서 20%~100%로 스케일링
+            const range = maxRate - minRate;
+            const percentage = range > 0
+              ? ((item.avgRate - minRate) / range) * 80 + 20
+              : 50;
             const isTop3 = index < 3 && sortBy === 'desc';
             const isBottom3 = index < 3 && sortBy === 'asc';
 

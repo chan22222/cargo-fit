@@ -10,9 +10,8 @@ interface FSSCCalculatorProps {
 const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords, onRefresh }) => {
   const [selectedCarriers, setSelectedCarriers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const today = new Date().toISOString().split('T')[0];
-  const [referenceDate, setReferenceDate] = useState(today); // 날짜 선택용
-  const [appliedDate, setAppliedDate] = useState(today); // 실제 필터링용
+  const [referenceDate, setReferenceDate] = useState(() => new Date().toISOString().split('T')[0]); // 날짜 선택용
+  const [appliedDate, setAppliedDate] = useState(() => new Date().toISOString().split('T')[0]); // 실제 필터링용
   const [isFetching, setIsFetching] = useState(false);
   const [localRecords, setLocalRecords] = useState<FSSCRecord[]>(initialRecords);
 
@@ -50,13 +49,19 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
     }
   };
 
-  // 선택된 항공사의 레코드 (최신순 정렬)
+  // 선택된 항공사의 레코드 (검색 필터 + 최신순 정렬)
   const selectedRecords = useMemo(() => {
     if (selectedCarriers.size === 0) return [];
+    const query = searchQuery.toLowerCase().trim();
     return validRecords
-      .filter(r => selectedCarriers.has(r.carrier_code))
+      .filter(r => {
+        if (!selectedCarriers.has(r.carrier_code)) return false;
+        if (!query) return true;
+        const name = AIRLINE_CODES[r.carrier_code] || '';
+        return r.carrier_code.toLowerCase().includes(query) || name.toLowerCase().includes(query);
+      })
       .sort((a, b) => b.start_date.localeCompare(a.start_date));
-  }, [validRecords, selectedCarriers]);
+  }, [validRecords, selectedCarriers, searchQuery]);
 
   // 날짜 포맷
   const formatDate = (dateStr: string) => {
@@ -229,14 +234,14 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-2 py-2 text-left font-semibold text-slate-700">유형</th>
-                  <th className="px-2 py-2 text-left font-semibold text-slate-700">항공사</th>
-                  <th className="px-2 py-2 text-center font-semibold text-slate-700">시작일</th>
-                  <th className="px-2 py-2 text-center font-semibold text-slate-700">종료일</th>
-                  <th className="px-2 py-2 text-center font-semibold text-slate-700 hidden sm:table-cell">통화</th>
-                  <th className="px-2 py-2 text-right font-semibold text-slate-700 hidden md:table-cell">최소</th>
-                  <th className="px-2 py-2 text-right font-semibold text-slate-700">초과</th>
-                  <th className="px-2 py-2 text-left font-semibold text-slate-700 hidden sm:table-cell">적용구간</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700">유형</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700">항공사</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700 hidden sm:table-cell">통화</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700 hidden md:table-cell">최소</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700">초과</th>
+                  <th className="px-2 py-2 text-center font-semibold text-slate-700 hidden sm:table-cell w-[270px]">적용구간</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700">시작일</th>
+                  <th className="px-1 py-2 text-center font-semibold text-slate-700">종료일</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -245,34 +250,34 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
 
                   return (
                     <tr key={record.id} className="hover:bg-slate-50">
-                      <td className="px-2 py-2">
+                      <td className="px-1 py-2 text-center">
                         <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${
                           record.type === 'FS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
                         }`}>
                           {record.type}
                         </span>
                       </td>
-                      <td className="px-2 py-2">
+                      <td className="px-1 py-2 text-center">
                         <span className="font-medium">{record.carrier_code}</span>
                         <span className="text-slate-400 text-[10px] block">
                           {record.carrier_name || AIRLINE_CODES[record.carrier_code] || ''}
                         </span>
                       </td>
-                      <td className="px-2 py-2 text-center text-slate-600">{formatDate(record.start_date)}</td>
-                      <td className="px-2 py-2 text-center text-slate-600">
+                      <td className="px-1 py-2 text-center text-slate-500 hidden sm:table-cell">{record.currency}</td>
+                      <td className="px-1 py-2 text-center text-slate-600 hidden md:table-cell">
+                        {record.min_charge?.toLocaleString() || '-'}
+                      </td>
+                      <td className="px-1 py-2 text-center text-slate-900 font-medium">
+                        {record.over_charge?.toLocaleString() || '-'}
+                      </td>
+                      <td className="px-2 py-2 text-center text-slate-600 hidden sm:table-cell w-[270px] truncate" title={record.route}>
+                        {record.route}
+                      </td>
+                      <td className="px-1 py-2 text-center text-slate-600">{formatDate(record.start_date)}</td>
+                      <td className="px-1 py-2 text-center text-slate-600">
                         {isNoExpiry ? (
                           <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-gray-200 text-gray-600">기한없음</span>
                         ) : formatDate(record.end_date)}
-                      </td>
-                      <td className="px-2 py-2 text-center text-slate-500 hidden sm:table-cell">{record.currency}</td>
-                      <td className="px-2 py-2 text-right text-slate-600 hidden md:table-cell">
-                        {record.min_charge?.toLocaleString() || '-'}
-                      </td>
-                      <td className="px-2 py-2 text-right text-slate-900 font-medium">
-                        {record.over_charge?.toLocaleString() || '-'}
-                      </td>
-                      <td className="px-2 py-2 text-slate-600 truncate max-w-[150px] hidden sm:table-cell" title={record.route}>
-                        {record.route}
                       </td>
                     </tr>
                   );

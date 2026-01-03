@@ -1,12 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { FSSCRecord, CurrencyType, AIRLINE_CODES } from '../../types/fssc';
 
 interface FSSCHistoryChartProps {
   records: FSSCRecord[];
 }
 
-// 환율
-const EXCHANGE_RATES: Record<CurrencyType, number> = {
+// 기본 환율 (localStorage에 없을 경우 사용)
+const DEFAULT_RATES: Record<CurrencyType, number> = {
   KRW: 1,
   USD: 1450,
   EUR: 1580,
@@ -17,6 +17,21 @@ const EXCHANGE_RATES: Record<CurrencyType, number> = {
 const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
   const [selectedCarrier, setSelectedCarrier] = useState<string>('');
   const [chartType, setChartType] = useState<'FS' | 'SC'>('FS');
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>(DEFAULT_RATES);
+
+  // localStorage에서 환율 가져오기
+  useEffect(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const cached = localStorage.getItem(`unipass_rates_${today}`);
+    if (cached) {
+      try {
+        const rates = JSON.parse(cached);
+        setExchangeRates({ ...DEFAULT_RATES, ...rates });
+      } catch (e) {
+        // 파싱 실패 시 기본값 사용
+      }
+    }
+  }, []);
 
   // 고유 항공사 목록
   const uniqueCarriers = useMemo(() => {
@@ -37,7 +52,8 @@ const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
     filtered.forEach(r => {
       if (!r.over_charge) return;
       const month = r.start_date.slice(0, 7); // YYYY-MM
-      const krwRate = r.over_charge * EXCHANGE_RATES[r.currency];
+      const rate = exchangeRates[r.currency] || DEFAULT_RATES[r.currency] || 1;
+      const krwRate = r.over_charge * rate;
 
       if (!grouped[month]) {
         grouped[month] = { total: 0, count: 0, min: Infinity, max: -Infinity };
@@ -60,11 +76,15 @@ const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
       }))
       .sort((a, b) => a.month.localeCompare(b.month))
       .slice(-12);
-  }, [records, selectedCarrier, chartType]);
+  }, [records, selectedCarrier, chartType, exchangeRates]);
 
-  // 차트 스케일
-  const maxValue = useMemo(() => {
-    return Math.max(...monthlyData.map(d => d.max), 1);
+  // 차트 스케일 (최소~최대 범위 기준)
+  const { minValue, maxValue } = useMemo(() => {
+    const values = monthlyData.map(d => d.avg).filter(v => v > 0);
+    if (values.length === 0) return { minValue: 0, maxValue: 1 };
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    return { minValue: min, maxValue: max };
   }, [monthlyData]);
 
   // 변동률 계산
@@ -142,15 +162,19 @@ const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
       {/* 차트 */}
       {monthlyData.length > 0 ? (
         <div>
-          <div className="flex items-end gap-1 h-[120px] mb-2">
+          <div className="flex items-end gap-1 h-[160px] mb-2">
             {monthlyData.map((data, index) => {
-              const height = (data.avg / maxValue) * 100;
+              // 최소값~최대값 범위에서 20%~100%로 스케일링
+              const range = maxValue - minValue;
+              const height = range > 0
+                ? ((data.avg - minValue) / range) * 80 + 20
+                : 50;
               const isLast = index === monthlyData.length - 1;
 
               return (
                 <div
                   key={data.month}
-                  className="flex-1 flex flex-col items-center group relative"
+                  className="flex-1 flex flex-col items-end justify-end group relative h-full"
                 >
                   {/* 툴팁 */}
                   <div className="absolute bottom-full mb-2 hidden group-hover:block z-10">
@@ -168,7 +192,7 @@ const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
                     className={`w-full rounded-t transition-all duration-300 cursor-pointer ${
                       chartType === 'FS' ? 'bg-blue-500' : 'bg-green-500'
                     } ${isLast ? 'opacity-100' : 'opacity-60'} hover:opacity-100`}
-                    style={{ height: `${height}%`, minHeight: data.avg > 0 ? '4px' : '0' }}
+                    style={{ height: `${Math.round(height * 1.6)}px` }}
                   />
                 </div>
               );
