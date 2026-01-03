@@ -72,17 +72,10 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
     return `${y.slice(-2)}.${m}.${d}`;
   };
 
-  // 고유 항공사 목록 (전체 레코드에서 추출, 최신 적용일 기준 정렬)
+  // 고유 항공사 목록 (전체 레코드에서 추출, A-Z 정렬)
   const uniqueCarriers = useMemo(() => {
-    const carrierLatestDate: Record<string, string> = {};
-    localRecords.forEach(r => {
-      if (!carrierLatestDate[r.carrier_code] || r.start_date > carrierLatestDate[r.carrier_code]) {
-        carrierLatestDate[r.carrier_code] = r.start_date;
-      }
-    });
-    return Object.keys(carrierLatestDate).sort((a, b) =>
-      carrierLatestDate[b].localeCompare(carrierLatestDate[a])
-    );
+    const carriers = new Set(localRecords.map(r => r.carrier_code));
+    return Array.from(carriers).sort();
   }, [localRecords]);
 
   // 검색 필터링된 항공사
