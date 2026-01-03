@@ -229,7 +229,7 @@ const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
             </div>
           </div>
           <div>
-            데이터: {monthlyData.reduce((s, d) => s + d.count, 0)}건
+            전체 {chartType === 'FS' ? 'FSC' : 'SCC'}: {records.filter(r => r.type === chartType).length}건
           </div>
         </div>
       )}
