@@ -391,6 +391,14 @@ export const db = {
         .insert(recordsWithTimestamp)
         .select();
       return { data: data as FSSCRecord[] | null, error };
+    },
+
+    // 외부 소스에서 데이터 가져오기
+    fetchFromExternal: async (date: string, force: boolean = false) => {
+      const { data, error } = await supabase.functions.invoke('fetch-fssc', {
+        body: { date, force }
+      });
+      return { data, error };
     }
   }
 };

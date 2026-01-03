@@ -14,6 +14,12 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
   const [showForm, setShowForm] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FSSCRecord | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 100;
+
+  // 동기화 관련
+  const [syncDate, setSyncDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // 엑셀 업로드 관련
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -55,6 +61,28 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
   useEffect(() => {
     loadData();
   }, []);
+
+  // 외부 데이터 동기화 (강제 모드)
+  const handleSync = async () => {
+    if (isSyncing) return;
+
+    setIsSyncing(true);
+    try {
+      const { data, error } = await db.fssc.fetchFromExternal(syncDate, true); // force: true
+      if (error) {
+        alert('동기화 실패: ' + (error.message || '알 수 없는 오류'));
+      } else if (data?.count > 0) {
+        alert(`동기화 완료: ${data.count}건`);
+        loadData();
+      } else {
+        alert('해당 날짜의 데이터가 없습니다.');
+      }
+    } catch (e) {
+      alert('동기화 중 오류가 발생했습니다.');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // 날짜가 2050년 이후인지 확인 (기한 없음)
   const isNoExpiry = (dateStr: string) => {
@@ -378,40 +406,63 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
   return (
     <div className={containerClass}>
       <div className={embedded ? "" : "max-w-7xl mx-auto"}>
-        {/* 만료 알림 배너 */}
-        {(expiredRecords.length > 0 || expiringRecords.length > 0) && (
-          <div className={`rounded-xl p-4 mb-6 ${expiredRecords.length > 0 ? 'bg-red-50 border border-red-200' : 'bg-yellow-50 border border-yellow-200'}`}>
+        {/* 통계 */}
+        <div className="mb-6 grid grid-cols-5 gap-4">
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <p className="text-xs text-gray-500 font-semibold">전체</p>
+            <p className="text-2xl font-bold text-gray-900">{records.length}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <p className="text-xs text-blue-500 font-semibold">FSC</p>
+            <p className="text-2xl font-bold text-blue-600">{records.filter(r => r.type === 'FS').length}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <p className="text-xs text-green-500 font-semibold">SCC</p>
+            <p className="text-2xl font-bold text-green-600">{records.filter(r => r.type === 'SC').length}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <p className="text-xs text-red-500 font-semibold">만료됨</p>
+            <p className="text-2xl font-bold text-red-600">{expiredRecords.length}</p>
+          </div>
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
+            <p className="text-xs text-yellow-500 font-semibold">곧 만료</p>
+            <p className="text-2xl font-bold text-yellow-600">{expiringRecords.length}</p>
+          </div>
+        </div>
+
+        {/* 동기화 위젯 */}
+        <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span className="font-medium text-gray-900">데이터 동기화</span>
+            </div>
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${expiredRecords.length > 0 ? 'bg-red-100' : 'bg-yellow-100'}`}>
-                <svg className={`w-5 h-5 ${expiredRecords.length > 0 ? 'text-red-600' : 'text-yellow-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className={`font-semibold ${expiredRecords.length > 0 ? 'text-red-700' : 'text-yellow-700'}`}>
-                  데이터 업데이트가 필요합니다
-                </p>
-                <p className={`text-sm ${expiredRecords.length > 0 ? 'text-red-600' : 'text-yellow-600'}`}>
-                  {expiredRecords.length > 0 && `만료된 데이터 ${expiredRecords.length}건`}
-                  {expiredRecords.length > 0 && expiringRecords.length > 0 && ', '}
-                  {expiringRecords.length > 0 && `7일 내 만료 예정 ${expiringRecords.length}건`}
-                </p>
-              </div>
-              <a
-                href="http://www.cosmoair.com/index.php?mid=z_fsc&m=0"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  expiredRecords.length > 0
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-yellow-600 text-white hover:bg-yellow-700'
-                }`}
+              <input
+                type="date"
+                value={syncDate}
+                onChange={(e) => setSyncDate(e.target.value)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="px-4 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                cosmoair에서 다운로드
-              </a>
+                {isSyncing ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    동기화 중...
+                  </>
+                ) : (
+                  '데이터 가져오기'
+                )}
+              </button>
             </div>
           </div>
-        )}
+        </div>
 
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-6">
@@ -707,7 +758,7 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {records.map((record) => (
+                  {records.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((record) => (
                     <tr key={record.id} className="hover:bg-gray-50 text-xs">
                       <td className="px-2 py-2">
                         <input
@@ -770,31 +821,36 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
               </table>
             </div>
           )}
+
+          {/* 페이지네이션 */}
+          {records.length > itemsPerPage && (
+            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
+              <p className="text-sm text-gray-500">
+                총 {records.length}건 중 {(currentPage - 1) * itemsPerPage + 1}-{Math.min(currentPage * itemsPerPage, records.length)}건
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  이전
+                </button>
+                <span className="text-sm text-gray-600">
+                  {currentPage} / {Math.ceil(records.length / itemsPerPage)}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(Math.ceil(records.length / itemsPerPage), p + 1))}
+                  disabled={currentPage >= Math.ceil(records.length / itemsPerPage)}
+                  className="px-3 py-1 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  다음
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* 통계 */}
-        <div className="mt-6 grid grid-cols-5 gap-4">
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-xs text-gray-500 font-semibold">전체</p>
-            <p className="text-2xl font-bold text-gray-900">{records.length}</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-xs text-blue-500 font-semibold">FSC</p>
-            <p className="text-2xl font-bold text-blue-600">{records.filter(r => r.type === 'FS').length}</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-xs text-green-500 font-semibold">SCC</p>
-            <p className="text-2xl font-bold text-green-600">{records.filter(r => r.type === 'SC').length}</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-xs text-red-500 font-semibold">만료됨</p>
-            <p className="text-2xl font-bold text-red-600">{expiredRecords.length}</p>
-          </div>
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <p className="text-xs text-yellow-500 font-semibold">곧 만료</p>
-            <p className="text-2xl font-bold text-yellow-600">{expiringRecords.length}</p>
-          </div>
-        </div>
 
         {/* 엑셀 업로드 확인 모달 */}
         {showUploadModal && (
