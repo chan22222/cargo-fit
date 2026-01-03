@@ -122,7 +122,7 @@ export const AIRLINE_CODES: Record<string, string> = {
   'MY': 'MASwings',
   'NH': 'All Nippon Airways',
   'NW': 'Northwest Airlines',
-  'OM': 'MIAT Mongolian Airlines',
+  'OM': 'MIAT Mongolian',
   'OZ': 'Asiana Airlines',
   'PO': 'Polar Air Cargo',
   'PR': 'Philippine Airlines',

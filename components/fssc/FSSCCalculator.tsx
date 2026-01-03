@@ -7,27 +7,42 @@ interface FSSCCalculatorProps {
   onRefresh?: () => void;
 }
 
-const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records, onRefresh }) => {
+const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords, onRefresh }) => {
   const [selectedCarriers, setSelectedCarriers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const [referenceDate, setReferenceDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const today = new Date().toISOString().split('T')[0];
+  const [referenceDate, setReferenceDate] = useState(today); // 날짜 선택용
+  const [appliedDate, setAppliedDate] = useState(today); // 실제 필터링용
   const [isFetching, setIsFetching] = useState(false);
+  const [localRecords, setLocalRecords] = useState<FSSCRecord[]>(initialRecords);
 
-  // 기준일 기준으로 유효한 레코드만 필터링
+  // 부모 records가 변경되면 로컬에도 반영
+  useEffect(() => {
+    setLocalRecords(initialRecords);
+  }, [initialRecords]);
+
+  // 적용된 기준일 기준으로 유효한 레코드만 필터링
   const validRecords = useMemo(() => {
-    return records.filter(r => r.start_date <= referenceDate && r.end_date >= referenceDate);
-  }, [records, referenceDate]);
+    return localRecords.filter(r => r.start_date <= appliedDate && r.end_date >= appliedDate);
+  }, [localRecords, appliedDate]);
 
-  // 조회 버튼 클릭 시 동기화
+  // 조회 버튼 클릭 시 동기화 및 적용
   const handleSearch = async () => {
     if (isFetching) return;
 
+    const targetDate = referenceDate;
+    setAppliedDate(targetDate);
     setIsFetching(true);
+
     try {
-      const { data, error } = await db.fssc.fetchFromExternal(referenceDate);
-      if (!error && data?.count > 0 && !data?.skipped) {
-        onRefresh?.();
+      // 외부 데이터 동기화
+      await db.fssc.fetchFromExternal(targetDate);
+      // DB에서 직접 데이터 가져오기
+      const { data } = await db.fssc.getAll();
+      if (data) {
+        setLocalRecords(data);
       }
+      onRefresh?.(); // 부모도 갱신
     } catch (e) {
       // 조용히 실패
     } finally {
@@ -169,7 +184,7 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records, onRefresh }) =
           </div>
         ) : uniqueCarriers.length === 0 ? (
           <div className="text-center py-4 text-slate-400 text-sm">
-            {referenceDate} 기준 데이터가 없습니다
+            {appliedDate} 기준 데이터가 없습니다
           </div>
         ) : filteredCarriers.length > 0 ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-1">
@@ -186,11 +201,10 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records, onRefresh }) =
                       ? 'bg-blue-600 text-white'
                       : 'bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
-                  title={name}
                 >
                   <span className="text-xs font-bold">{code}</span>
-                  <span className={`text-[9px] truncate hidden sm:inline ${isSelected ? 'text-blue-200' : 'text-slate-400'}`}>
-                    {name.split(' ')[0]}
+                  <span className={`text-[9px] ${isSelected ? 'text-blue-200' : 'text-slate-400'}`}>
+                    {name}
                   </span>
                   {isSelected && (
                     <svg className="w-2.5 h-2.5 ml-auto flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -215,14 +229,14 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records, onRefresh }) =
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="px-2 py-2 text-left font-semibold text-slate-700">TYPE</th>
+                  <th className="px-2 py-2 text-left font-semibold text-slate-700">유형</th>
                   <th className="px-2 py-2 text-left font-semibold text-slate-700">항공사</th>
-                  <th className="px-2 py-2 text-center font-semibold text-slate-700">시작</th>
-                  <th className="px-2 py-2 text-center font-semibold text-slate-700">종료</th>
-                  <th className="px-2 py-2 text-center font-semibold text-slate-700 hidden sm:table-cell">화폐</th>
-                  <th className="px-2 py-2 text-right font-semibold text-slate-700 hidden md:table-cell">MIN</th>
-                  <th className="px-2 py-2 text-right font-semibold text-slate-700">OVER</th>
-                  <th className="px-2 py-2 text-left font-semibold text-slate-700 hidden sm:table-cell">적용대상</th>
+                  <th className="px-2 py-2 text-center font-semibold text-slate-700">시작일</th>
+                  <th className="px-2 py-2 text-center font-semibold text-slate-700">종료일</th>
+                  <th className="px-2 py-2 text-center font-semibold text-slate-700 hidden sm:table-cell">통화</th>
+                  <th className="px-2 py-2 text-right font-semibold text-slate-700 hidden md:table-cell">최소</th>
+                  <th className="px-2 py-2 text-right font-semibold text-slate-700">초과</th>
+                  <th className="px-2 py-2 text-left font-semibold text-slate-700 hidden sm:table-cell">적용구간</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -238,9 +252,9 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records, onRefresh }) =
                           {record.type}
                         </span>
                       </td>
-                      <td className="px-2 py-2 max-w-[100px]" title={record.carrier_name || AIRLINE_CODES[record.carrier_code] || ''}>
+                      <td className="px-2 py-2">
                         <span className="font-medium">{record.carrier_code}</span>
-                        <span className="text-slate-400 text-[10px] block truncate">
+                        <span className="text-slate-400 text-[10px] block">
                           {record.carrier_name || AIRLINE_CODES[record.carrier_code] || ''}
                         </span>
                       </td>
