@@ -21,7 +21,7 @@ const containerCarriers: Carrier[] = [
   { name: 'ACL (Atlantic Container Line)', code: 'ACLU', trackingUrl: 'https://www.aclcargo.com/', category: 'container', region: 'Europe' },
   { name: 'ANL Container Line', code: 'ANLU', trackingUrl: 'https://www.anl.com.au/', category: 'container', region: 'Oceania' },
   { name: 'APL', code: 'APLU', trackingUrl: 'https://www.apl.com/ebusiness/tracking', category: 'container', region: 'Global', isMajor: true },
-  { name: 'Arkas Line', code: 'ARKU', trackingUrl: 'http://arkasline.com.tr/', category: 'container', region: 'Europe' },
+  { name: 'Arkas Line', code: 'ARKU', trackingUrl: 'https://arkasline.com.tr/en/online-tracking/', category: 'container', region: 'Europe' },
   { name: 'Asyad Line', code: 'ASYD', trackingUrl: 'https://www.asyadline.om/', category: 'container', region: 'Middle East' },
   { name: 'Avana Logistek', code: 'AVAN', trackingUrl: 'https://www.unifeeder.com/avana-logistek', category: 'container', region: 'Asia' },
   // B
@@ -153,7 +153,7 @@ const containerCarriers: Carrier[] = [
 
   // B/L 추적 추가 (특수 선사)
   { name: 'Bahri (National Shipping)', code: 'BAHR', trackingUrl: 'https://www.bahri.sa/tracking', category: 'container', region: 'Middle East' },
-  { name: 'Eimskip', code: 'EIMS', trackingUrl: 'https://www.eimskip.com/tracking', category: 'container', region: 'Europe' },
+  { name: 'Eimskip', code: 'EIMS', trackingUrl: 'https://www.eimskip.com/find-shipment/', category: 'container', region: 'Europe' },
   { name: 'EUKOR Car Carriers', code: 'EUKO', trackingUrl: 'https://www.eukor.com/tracking', category: 'container', region: 'Global' },
   { name: 'Höegh Autoliners', code: 'HOEG', trackingUrl: 'https://www.hoeghautoliners.com/tracking', category: 'container', region: 'Global' },
   { name: 'MOL ACE', code: 'MOLA', trackingUrl: 'https://www.molgroup.com/tracking', category: 'container', region: 'Asia' },
@@ -180,8 +180,7 @@ const containerCarriers: Carrier[] = [
   { name: '현대글로비스 (Hyundai Glovis)', code: 'GLVS', trackingUrl: 'https://www.glovis.net/', category: 'container', region: 'Korea', isMajor: true },
   // 카페리
   { name: '부관페리 (Pukwan Ferry)', code: 'PKFR', trackingUrl: 'https://www.pukwan.co.kr/', category: 'container', region: 'Korea' },
-  { name: 'DBS크루즈페리', code: 'DBSF', trackingUrl: 'https://www.dbsferry.com/kr/', category: 'container', region: 'Korea' },
-  { name: '팬스타라인', code: 'PNST', trackingUrl: 'https://www.panstar.co.kr/', category: 'container', region: 'Korea' },
+  { name: '팬스타라인', code: 'PNST', trackingUrl: 'https://www.panstar.co.kr/en/business/express/tracking#', category: 'container', region: 'Korea' },
   { name: '카멜리아라인 (Camellia)', code: 'CMLA', trackingUrl: 'https://www.camellia-line.co.jp/kr/', category: 'container', region: 'Korea' },
   // 중국 페리
   { name: '연운항훼리 (Lianyungang Ferry)', code: 'LYFR', trackingUrl: 'https://www.lygferry.com/freight/search.html', category: 'container', region: 'China' },
@@ -193,46 +192,197 @@ const blPrefixMap: Record<string, string> = {
   'MAEU': 'MAEU', // Maersk
   'MSKU': 'MAEU', // Maersk (alternative)
   'MRKU': 'MAEU', // Maersk (alternative)
+  'MAEI': 'MAEU', // Maersk (alternative)
   'MSCU': 'MSCU', // MSC
   'MEDU': 'MSCU', // MSC (alternative)
+  'MSDU': 'MSCU', // MSC (alternative)
   'CMDU': 'CMDU', // CMA CGM
+  'ANLU': 'CMDU', // CMA CGM (ANL)
+  'APHU': 'CMDU', // CMA CGM (APL Hub)
   'COSU': 'COSU', // COSCO
+  'CBHU': 'COSU', // COSCO (alternative)
+  'CCLU': 'COSU', // COSCO (alternative)
+  'CSNU': 'COSU', // COSCO (alternative)
   'HLCU': 'HLCU', // Hapag-Lloyd
+  'HLXU': 'HLCU', // Hapag-Lloyd (alternative)
   'ONEY': 'ONEY', // ONE
+  'NYKU': 'ONEY', // ONE (NYK)
+  'MOLU': 'ONEY', // ONE (MOL)
+  'KLLU': 'ONEY', // ONE (K-Line)
   'EGLV': 'EGLV', // Evergreen
+  'EGHU': 'EGLV', // Evergreen (alternative)
+  'EGSU': 'EGLV', // Evergreen (alternative)
+  'EITU': 'EGLV', // Evergreen (alternative)
   'YMLU': 'YMLU', // Yang Ming
+  'YMMU': 'YMLU', // Yang Ming (alternative)
   'HDMU': 'HDMU', // HMM
+  'HMMU': 'HDMU', // HMM (alternative)
   'ZIMU': 'ZIMU', // ZIM
+  'ZCSU': 'ZIMU', // ZIM (alternative)
   'PCIU': 'PCIU', // PIL
+  'PILU': 'PCIU', // PIL (alternative)
   'OOLU': 'OOLU', // OOCL
+  'OOCU': 'OOLU', // OOCL (alternative)
   'APLU': 'APLU', // APL
+  'AELU': 'APLU', // APL (alternative)
+
   // 한국 선사
   'SKLU': 'SKLU', // Sinokor
   'SNKO': 'SKLU', // Sinokor (alternative prefix)
+  'SKOK': 'SKLU', // Sinokor (alternative prefix)
   'KMTU': 'KMTU', // KMTC
   'KMTC': 'KMTU', // KMTC (alternative prefix)
   'SMLM': 'SMLM', // SM Line
+  'SMLI': 'SMLM', // SM Line (alternative)
   'HASU': 'HASU', // Heung-A
+  'HASL': 'HASU', // Heung-A (alternative)
   'PCLU': 'PCLU', // Pan Continental
   'NSSU': 'NSSU', // Namsung
   'CKLU': 'CKLU', // CK Line
+
   // 아시아 선사
   'WHLC': 'WHLC', // Wan Hai
+  'WHLU': 'WHLC', // Wan Hai (alternative)
   'SITC': 'SITC', // SITC
+  'SITU': 'SITC', // SITC (alternative - SITINTA 등)
   'SITI': 'SITC', // SITC (alternative prefix)
   'TSLU': 'TSLU', // T.S. Lines
   'RCLU': 'RCLU', // RCL
   'IALU': 'IALU', // Interasia
   'CNCU': 'CNCU', // CNC Line
   'LYFR': 'LYFR', // 연운항훼리 (Lianyungang Ferry)
-  // 기타
+  'PNOU': 'PNOU', // Pan Ocean
+  'CULU': 'CULU', // CULines
+  'MRTU': 'MRTU', // Meratus
+
+  // 일본/대만 선사
+  'KKLU': 'KKLU', // Kambara Kisen
+  'KWLU': 'KWLU', // Kanway Line
+
+  // 유럽 선사
+  'GRIU': 'GRIU', // Grimaldi
+  'SAMU': 'SAMU', // Samskip
+  'UNFE': 'UNFE', // Unifeeder
+  'FINN': 'FINN', // Finnlines
+  'ACLU': 'ACLU', // ACL
+  'WECL': 'WECL', // WEC Lines
+
+  // 중동/인도
+  'ESPU': 'ESPU', // Emirates
+  'IRIU': 'IRIU', // IRIS Lines
+  'SCIU': 'SCIU', // SCI India
+
+  // 미주 선사
   'CMCU': 'CMCU', // Crowley
   'SMLU': 'SMLU', // Seaboard Marine
   'SEAU': 'SEAU', // Sealand
+  'SLND': 'SEAU', // Sealand (alternative)
+  'MATS': 'MATS', // Matson
+  'TOTE': 'TOTE', // TOTE Maritime
+  'TRBR': 'TRBR', // Trailer Bridge
+  'PSHI': 'PSHI', // Pasha Hawaii
+  'TSLA': 'TSLA', // Tropical Shipping
+
+  // 러시아
   'FESO': 'FESO', // FESCO
-  'ESPU': 'ESPU', // Emirates
+  'FESU': 'FESO', // FESCO (alternative)
+
+  // 터키
   'TRKU': 'TRKU', // Turkon
+  'ARKU': 'ARKU', // Arkas
+
+  // 기타
   'XPRS': 'XPRS', // X-Press Feeders
+  'XPRU': 'XPRS', // X-Press Feeders (alternative)
+  'SNTU': 'SNTU', // Sinotrans
+  'GLBU': 'GLBU', // Globelink Unimar
+  'SWRE': 'SWRE', // Swire Shipping
+
+  // 추가 선사 prefix 매핑
+  'GSLU': 'GSLU', // Gold Star Line
+  'EMKY': 'EMKY', // Emkay Line
+  'MELL': 'MELL', // Mariana Express Lines (PIL)
+  'MXCN': 'MXCN', // Maxicon
+  'MDKN': 'MDKN', // MEDKON Lines
+  'MSNU': 'MSNU', // Messina Line
+  'SPIL': 'SPIL', // SPIL
+  'SMDR': 'SMDR', // Samudera
+  'SRJK': 'SRJK', // Sarjak
+  'TNTO': 'TNTO', // Tanto
+  'TCIU': 'TCIU', // TCI Seaways
+  'TRRS': 'TRRS', // Tarros
+  'BLTU': 'BLTU', // Balticon
+  'STLT': 'STLT', // Stolt Tank
+  'DLRF': 'DLRF', // Dalreftrans
+  'NRNT': 'NRNT', // Nirint
+  'RMOC': 'RMOC', // Romocean
+  'VLTA': 'VLTA', // Volta
+  'MACS': 'MACS', // MACS
+  'MRGV': 'MRGV', // Marguisa
+  'PSLN': 'PSLN', // PSL Navegação
+  'TWND': 'TWND', // Tailwind
+  'TISL': 'TISL', // TIS-logistic
+  'TVSN': 'TVSN', // Transvision
+  'SLSD': 'SLSD', // SeaLead
+  'SEAD': 'SEAD', // SeaLead (alternative)
+  'SHWK': 'SHWK', // Sea Hawk
+  'SETH': 'SETH', // SETH Shipping
+  'TRTN': 'TRTN', // Triton International
+  'HCNY': 'HCNY', // Hecny
+  'HEDE': 'HEDE', // Hede
+  'INOX': 'INOX', // Inox
+  'CRDA': 'CRDA', // Cordelia
+  'EXPW': 'EXPW', // Expressway
+  'NPDL': 'NPDL', // NPDL
+  'OCAX': 'OCAX', // Ocean Axis
+  'OSLU': 'OSLU', // Oceanic Star
+  'STGL': 'STGL', // STG Logistics
+  'UWLU': 'UWLU', // UWL
+  'TOPC': 'TOPC', // Topocean
+  'TSMR': 'TSMR', // Transmar
+  'TASU': 'TASU', // Trans Asia
+  'WDSU': 'WDSU', // World Direct
+  'WTOU': 'WTOU', // WTO
+  'WWAU': 'WWAU', // WorldWide Alliance
+  'NSAU': 'NSAU', // National Shipping America
+  'NKLN': 'NKLN', // Nauka Lines
+  'NCLU': 'NCLU', // NCL
+  'NPTN': 'NPTN', // Neptune
+  'RYLC': 'RYLC', // Royal Cargo
+  'HKRU': 'HKRU', // Hikaru
+  'ASYD': 'ASYD', // Asyad
+  'AVAN': 'AVAN', // Avana
+  'BRHD': 'BRHD', // Bridgehead
+  'BLWL': 'BLWL', // Blue Water Lines
+  'CRPS': 'CRPS', // Carpenters
+  'CSRT': 'CSRT', // Consort
+  'GSLN': 'GSLN', // GS Lines
+  'MRGT': 'MRGT', // Margarita
+  'MNSO': 'MNSO', // Minsheng
+  'SNMR': 'SNMR', // Sunmarine
+  'YXEL': 'YXEL', // YXE Line
+  'XIAN': 'XIAN', // Xi'an
+  'ZIMW': 'ZIMW', // ZIM World Freight
+  'SFAN': 'SFAN', // Sofrana ANL
+  'CONC': 'CONC', // CONCOR
+  'DHLG': 'DHLG', // DHL
+  'ESLS': 'ESLS', // ESL
+  'LXPT': 'LXPT', // LX Pantos
+
+  // 한국 선사 추가
+  'DYSH': 'DYSH', // 동영해운
+  'DJSC': 'DJSC', // 동진상선
+  'HSLN': 'HSLN', // HS라인
+
+  // 특수 선사
+  'BAHR': 'BAHR', // Bahri
+  'EIMS': 'EIMS', // Eimskip
+  'HOEG': 'HOEG', // Höegh
+  'MOLA': 'MOLA', // MOL ACE
+  'WAWI': 'WAWI', // Wallenius Wilhelmsen
+  'GLVS': 'GLVS', // Hyundai Glovis
+  'PKFR': 'PKFR', // 부관페리
+  'PNST': 'PNST', // 팬스타라인
 };
 
 // 선사 코드로 선사 정보 찾기
@@ -261,65 +411,359 @@ const formatBl = (value: string): string => {
   return value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 };
 
-// BL 번호 유효성 검사 (최소 3-4자리 prefix + 숫자)
+// BL 번호 유효성 검사 (최소 3-4자리 prefix + 알파벳/숫자 혼합)
 const validateBlFormat = (bl: string): boolean => {
   const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
   return /^[A-Z]{3,4}[A-Z0-9]{4,}$/.test(cleaned);
+};
+
+// ISO 6346 컨테이너 체크 디지트 검증
+const containerCheckDigitMap: Record<string, number> = {
+  A: 10, B: 12, C: 13, D: 14, E: 15, F: 16, G: 17, H: 18, I: 19,
+  J: 20, K: 21, L: 23, M: 24, N: 25, O: 26, P: 27, Q: 28, R: 29,
+  S: 30, T: 31, U: 32, V: 34, W: 35, X: 36, Y: 37, Z: 38,
+  '0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9
+};
+
+const validateContainerCheckDigit = (containerNo: string): boolean => {
+  const cleaned = containerNo.replace(/[\s-]/g, '').toUpperCase();
+
+  // 11자리 컨테이너 번호 (4글자 + 7숫자)
+  if (/^[A-Z]{4}[0-9]{7}$/i.test(cleaned)) {
+    let sum = 0;
+    const chars = cleaned.substring(0, 10);
+    for (let i = 0; i < chars.length; i++) {
+      const val = containerCheckDigitMap[chars[i]];
+      if (val === undefined) return false;
+      sum += val * Math.pow(2, i);
+    }
+    let checkDigit = sum % 11;
+    if (checkDigit === 10) checkDigit = 0;
+    return checkDigit === parseInt(cleaned.slice(-1));
+  }
+
+  // 10자리 컨테이너 번호 (4글자 + 6숫자) - 체크 디지트 없이 유효
+  if (/^[A-Z]{4}[0-9]{6}$/i.test(cleaned)) {
+    return true;
+  }
+
+  return false;
+};
+
+// 컨테이너 번호 포맷 체크 (4글자 + 6-7숫자, 끝이 U로 끝나는 prefix)
+const isContainerFormat = (input: string): boolean => {
+  const cleaned = input.replace(/[\s-]/g, '').toUpperCase();
+  // XXX + U + 6-7 숫자 형식 (표준 컨테이너 번호)
+  if (/^[A-Z]{3}U[0-9]{6,7}$/i.test(cleaned)) {
+    return true;
+  }
+  // 4글자 + 6-7 숫자 (일반적인 컨테이너 형식)
+  if (/^[A-Z]{4}[0-9]{6,7}$/i.test(cleaned)) {
+    return true;
+  }
+  return false;
+};
+
+// 입력 타입 감지 (컨테이너 vs B/L)
+type InputType = 'container' | 'bol' | 'unknown';
+const detectInputType = (input: string): InputType => {
+  const cleaned = input.replace(/[\s-]/g, '').toUpperCase();
+
+  // 컨테이너 형식 체크 (XXX + U + 숫자 6-7개)
+  if (/^[A-Z]{3}U[0-9]{6,7}$/i.test(cleaned)) {
+    return 'container';
+  }
+
+  // 4글자 + 숫자만 6-7개 = 컨테이너 가능성
+  if (/^[A-Z]{4}[0-9]{6,7}$/i.test(cleaned)) {
+    // 체크 디지트 검증으로 확인
+    if (validateContainerCheckDigit(cleaned)) {
+      return 'container';
+    }
+    // 6자리 숫자면 컨테이너일 가능성 높음
+    if (/^[A-Z]{4}[0-9]{6}$/i.test(cleaned)) {
+      return 'container';
+    }
+  }
+
+  // B/L 형식: 4글자 prefix + 알파벳/숫자 혼합 (예: SITINTA083063G)
+  if (/^[A-Z]{4}[A-Z0-9]+$/i.test(cleaned) && cleaned.length >= 8) {
+    return 'bol';
+  }
+
+  return 'unknown';
 };
 
 // 선사별 BL 추적 URL 빌더
 const buildBlTrackingUrl = (carrier: Carrier, bl: string): string => {
   const cleaned = bl.replace(/[\s-]/g, '').toUpperCase();
 
-  const urlPatterns: Record<string, (base: string) => string> = {
+  const urlPatterns: Record<string, () => string> = {
+    // 글로벌 메이저
     'MAEU': () => `https://www.maersk.com/tracking/${cleaned}`,
     'MSCU': () => `https://www.msc.com/en/track-a-shipment?agencyPath=msc&link=defined&bookingReference=${cleaned}`,
     'CMDU': () => `https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
     'COSU': () => `https://elines.coscoshipping.com/ebusiness/cargoTracking?trackingType=BOOKING&number=${cleaned}`,
     'HLCU': () => `https://www.hapag-lloyd.com/en/online-business/track/track-by-booking-solution.html?blno=${cleaned}`,
     'ONEY': () => {
-      // ONEY prefix 제거 (ONEYSELF... → SELF...)
       const trackNo = cleaned.startsWith('ONEY') ? cleaned.slice(4) : cleaned;
       return `https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking?trakNoParam=${trackNo}&trakNoTpCdParam=B`;
     },
-    'EGLV': () => `https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=BL&BL=${cleaned}`,
-    'YMLU': () => `https://www.yangming.com/en/esolution/cargo_tracking?service=${cleaned}`,
+    'EGLV': () => `https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=BL&BL=${cleaned}&NO=${cleaned}&SEL=s_bl`,
+    'YMLU': () => `https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx?TYPE=BL&NO=${cleaned}`,
     'HDMU': () => `https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp?type=bl&number=${cleaned}`,
     'ZIMU': () => `https://www.zim.com/tools/track-a-shipment?consnumber=${cleaned}`,
     'PCIU': () => `https://www.pilship.com/digital-solutions/?tab=customer&id=track-trace&label=containerTandT&module=TrackTraceBL&refNo=${cleaned}`,
     'OOLU': () => `https://www.oocl.com/eng/ourservices/eservices/cargotracking/?bl=${cleaned}`,
     'APLU': () => `https://www.apl.com/ebusiness/tracking?SearchBy=BL&Reference=${cleaned}`,
+
     // 한국 선사
     'SKLU': () => `https://ebiz.sinokor.co.kr/Tracking?blno=${cleaned}&cntrno=`,
     'KMTU': () => `https://www.ekmtc.com/index.html#/cargo-tracking?searchType=BL&searchNumber=${cleaned}`,
-    'SMLM': () => `https://esvc.smlines.com/smline/CUP_HOM_3301.do?sessLocale=ko`,
-    'HASU': () => `http://www.heungaline.com/eng/tracking.asp?bl=${cleaned}`,
+    'SMLM': () => `https://esvc.smlines.com/smline/CUP_HOM_3301.do?blNo=${cleaned}`,
+    'HASU': () => `https://ebiz.heungaline.com/Tracking?blno=${cleaned}`,
+    'PCLU': () => `http://www.pancon.co.kr/eng/trace/trace.asp?bl=${cleaned}`,
+    'NSSU': () => `https://www.namsung.co.kr/cargo/cargoresult?blNo=${cleaned}`,
+    'PNOU': () => `https://container.panocean.com/trace?bl=${cleaned}`,
+    'DJSC': () => `https://esvc.djship.co.kr/gnoss/CUP_HOM_3301.do?sessLocale=en&trakNoTpCdParam=B&trakNoParam=${cleaned}`,
+
     // 아시아 선사
     'WHLC': () => `https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml?bl=${cleaned}`,
-    'SITC': () => `https://ebusiness.sitcline.com/#/topMenu/cargoTrack`,
-    'TSLU': () => `https://www.tslines.com/en/tracking?bl=${cleaned}`,
+    'SITC': () => `https://api.sitcline.com/sitcline/query/cargoTrack?cargoNo=${cleaned}&type=BL`,
+    'TSLU': () => `https://www.tslines.com/en/tracking?type=bl&no=${cleaned}`,
     'CNCU': () => `https://www.cnc-line.com/ebusiness/tracking/search?SearchBy=BL&Reference=${cleaned}`,
-    'LYFR': () => `https://www.lygferry.com/freight/search.html`,
-    // 기타
-    'CMCU': () => `https://www.crowley.com/logistics/tracking/?bl=${cleaned}`,
+    'RCLU': () => `https://www.rclgroup.com/tracking/?number=${cleaned}&type=bl`,
+    'IALU': () => `https://www.interasia.cc/tracking?bl=${cleaned}`,
+    'CULU': () => `https://www.culines.com/en/site/bill?reg=${cleaned}`,
+    'MRTU': () => `https://www.meratus.com/en/guest/quick-tracking?query=${cleaned}`,
+    'LYFR': () => `https://www.lygferry.com/freight/search.html?bl=${cleaned}`,
+    'CRDA': () => `https://cordelialine.com/container-tracking/?contno=${cleaned}`,
+    'KKLU': () => `https://algesvc.kambara-kisen.co.jp/gnoss/CUP_HOM_3301.do?redir=Y&trakNoTpCdParam=B&trakNoParam=${cleaned}&sessLocale=en`,
+    'HCNY': () => `https://www.hecny.com/en/track-and-trace?keyword=${cleaned}`,
+    'INOX': () => `https://www.inoxshipping.com/track-shipment.php?ref=${cleaned}`,
+    'LXPT': () => `https://view.lxpantos.com/portal/openapi/getQuickSearch?inpSrch=${cleaned}`,
+
+    // 유럽 선사
+    'ACLU': () => `https://www.aclcargo.com/track-cargo/?ShipmentNumber=${cleaned}`,
+    'GRIU': () => `https://www.grimaldi.napoli.it/tracking?bl=${cleaned}`,
+    'SAMU': () => `https://www.samskip.com/tracking/?number=${cleaned}`,
+    'UNFE': () => `https://www.unifeeder.com/track-trace?bl=${cleaned}`,
+    'ARKU': () => `https://arkasline.com.tr/en/online-tracking/`,
+    'TRKU': () => `https://www.turkon.com/en/track-trace?bl=${cleaned}`,
+    'MFTU': () => `https://www.marfret.fr/en/tracking?bl=${cleaned}`,
+    'ITMU': () => `https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=BL&BL=${cleaned}&NO=${cleaned}&SEL=s_bl`,
+
+    // 미주 선사
+    'CMCU': () => `https://www.crowley.com/logistics/tracking?bl=${cleaned}`,
     'SMLU': () => `https://www.seaboardmarine.com/tracking/?bl=${cleaned}`,
     'SEAU': () => `https://www.sealandmaersk.com/tracking/${cleaned}`,
-    'ESPU': () => `https://www.emiratesline.com/track-trace/?bl=${cleaned}`,
-    'TRKU': () => `https://www.turkon.com/en/track-trace?bl=${cleaned}`,
+    'MATS': () => `https://www.matson.com/shipment-tracking.html?bl=${cleaned}`,
+    'TOTE': () => `https://www.totemaritime.com/tracking?bl=${cleaned}`,
+    'TRBR': () => `https://www.trailerbridge.com/tracking/?bl=${cleaned}`,
+    'PSHI': () => `https://www.pashahawaii.com/tracking?bl=${cleaned}`,
+    'TSLA': () => `https://www.tropical.com/eTropical/Tracking?bl=${cleaned}`,
+
+    // 러시아
+    'FESO': () => `https://www.fesco.ru/en/clients/tracking?bl=${cleaned}`,
+
+    // 중동/인도
+    'ESPU': () => `https://www.emiratesline.com/cargo-tracking/?url=${cleaned}`,
+    'SCIU': () => `https://www.shipindia.com/tracking?bl=${cleaned}`,
+    'IRIU': () => `https://rocmnl.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+
+    // 오세아니아
+    'SWRE': () => `https://www.swireshipping.com/tracking?bl=${cleaned}`,
+    'ANLU': () => `https://www.anl.com.au/ebusiness/tracking/search?SearchViewModel.Reference=${cleaned}&SearchViewModel.SearchBy=BL`,
+
+    // 기타
     'XPRS': () => `https://www.x-pressfeeders.com/track-and-trace?bl=${cleaned}`,
+    'BLWL': () => `https://bluewaterlines.net/Login/BLCntrTracking?RefType=BL&RefID=${cleaned}`,
+    'DLRF': () => `https://my.fesco.com/tracking?tab=${cleaned}`,
+    'CSRT': () => `https://cpeprd.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+    'GLBU': () => `https://globelink-unimar.com/online-freight-tracking/?trackId=${cleaned}`,
+    'MRGT': () => `https://margritashipping.com/track_record?tracking_number=${cleaned}`,
+    'MDKN': () => `https://portal.medkonlines.com/Home/Tracking?ContainerNo=${cleaned}`,
+    'NSAU': () => `https://n48prd.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+    'NPDL': () => `https://nepprd.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+    'NPTN': () => `https://oms.nbstrans.com/tracerQuery?num=${cleaned}`,
+    'PSLN': () => `https://tracking.pslnavegacao.com:8081/tracking_resposta.asp?contrNumber=${cleaned}`,
+    'SETH': () => `https://www.sethshipping.com/tracking_shipment?id=${cleaned}`,
+    'STLT': () => `https://track.stolttankcontainers.com/trackandtrace/trackbookingfromurl.aspx?SearchValue=${cleaned}`,
+    'VLTA': () => `https://voltacontainerline.com/track-shipment/?bill_id=${cleaned}`,
+    'TRTN': () => `https://tools.tritoncontainer.com/tritoncontainer/unitStatus/show/${cleaned}`,
+    'SEAD': () => `https://www.sea-lead.com/track-shipment/?container_id=${cleaned}`,
+    'SLSD': () => `https://www.sea-lead.com/track-shipment/?container_id=${cleaned}`,
+    'SPIL': () => `https://www.myspil.com/myspilcom/Front/tracktrace?blorcont=${cleaned}`,
+
+    // 한국 페리/특수
+    'CMLA': () => `http://183.111.65.71/clt/CUP_HOM_3301.do?sessLocale=en&trakNoTpCdParam=B&trakNoParam=${cleaned}`,
+    'EIMS': () => `https://www.eimskip.com/find-shipment/?id=${cleaned}`,
+    'PNST': () => `https://www.panstar.co.kr/en/business/express/tracking#`,
+    'MELL': () => `https://www.pilship.com/digital-solutions/?tab=customer&id=track-trace&label=containerTandT&module=TrackTraceBL&refNo=${cleaned}`,
+    'DHLG': () => `https://www.dhl.com/global-en/home/tracking.html?tracking-id=${cleaned}`,
   };
 
   if (urlPatterns[carrier.code]) {
-    return urlPatterns[carrier.code](carrier.trackingUrl);
+    return urlPatterns[carrier.code]();
   }
+
+  // 기본 fallback: prefix로 선사 찾기
+  const prefix = cleaned.substring(0, 4);
+  if (blPrefixMap[prefix]) {
+    const mappedCode = blPrefixMap[prefix];
+    if (urlPatterns[mappedCode]) {
+      return urlPatterns[mappedCode]();
+    }
+  }
+
   return carrier.trackingUrl;
 };
 
-// 자동 BL 지원 선사 코드 목록
+// 컨테이너 번호 전용 추적 URL 빌더
+const buildContainerTrackingUrl = (carrier: Carrier, containerNo: string): string => {
+  const cleaned = containerNo.replace(/[\s-]/g, '').toUpperCase();
+
+  const urlPatterns: Record<string, () => string> = {
+    // 글로벌 메이저
+    'MAEU': () => `https://www.maersk.com/tracking/${cleaned}`,
+    'MSCU': () => `https://www.msc.com/en/track-a-shipment?agencyPath=msc&link=defined&bookingReference=${cleaned}`,
+    'CMDU': () => `https://www.cma-cgm.com/ebusiness/tracking/search?SearchBy=Container&Reference=${cleaned}`,
+    'COSU': () => `https://elines.coscoshipping.com/ebusiness/cargoTracking?trackingType=CONTAINER&number=${cleaned}`,
+    'HLCU': () => `https://www.hapag-lloyd.com/en/online-business/track/track-by-container-solution.html?container=${cleaned}`,
+    'ONEY': () => `https://ecomm.one-line.com/one-ecom/manage-shipment/cargo-tracking?trakNoParam=${cleaned}&trakNoTpCdParam=C`,
+    'EGLV': () => `https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=CNTR&CNTR=${cleaned}&NO=${cleaned}&SEL=s_cntr`,
+    'YMLU': () => `https://www.yangming.com/e-service/track_trace/track_trace_cargo_tracking.aspx?TYPE=CT&NO=${cleaned}`,
+    'HDMU': () => `https://www.hmm21.com/cms/business/ebiz/trackTrace/trackTrace/index.jsp?type=container&number=${cleaned}`,
+    'ZIMU': () => `https://www.zim.com/tools/track-a-shipment?consnumber=${cleaned}`,
+    'PCIU': () => `https://www.pilship.com/digital-solutions/?tab=customer&id=track-trace&label=containerTandT&module=TrackTraceContainer&refNo=${cleaned}`,
+    'OOLU': () => `https://www.oocl.com/eng/ourservices/eservices/cargotracking/?cntr=${cleaned}`,
+    'APLU': () => `https://www.apl.com/ebusiness/tracking?SearchBy=Container&Reference=${cleaned}`,
+
+    // 한국 선사
+    'SKLU': () => `https://ebiz.sinokor.co.kr/Tracking?blno=&cntrno=${cleaned}`,
+    'KMTU': () => `https://www.ekmtc.com/index.html#/cargo-tracking?searchType=CNTR&searchNumber=${cleaned}`,
+    'HASU': () => `https://ebiz.heungaline.com/Tracking?cntrno=${cleaned}`,
+    'SMLM': () => `https://esvc.smlines.com/smline/CUP_HOM_3301.do?cntrNo=${cleaned}`,
+    'PCLU': () => `http://www.pancon.co.kr/eng/trace/trace.asp?cntr=${cleaned}`,
+    'NSSU': () => `https://www.namsung.co.kr/cargo/cargoresult?cntrNo=${cleaned}`,
+    'PNOU': () => `https://container.panocean.com/trace?cntr=${cleaned}`,
+    'DJSC': () => `https://esvc.djship.co.kr/gnoss/CUP_HOM_3301.do?sessLocale=en&trakNoTpCdParam=C&trakNoParam=${cleaned}`,
+
+    // 아시아 선사
+    'WHLC': () => `https://www.wanhai.com/views/cargoTrack/CargoTrack.xhtml?cntr=${cleaned}`,
+    'SITC': () => `https://api.sitcline.com/sitcline/query/cargoTrack?cargoNo=${cleaned}&type=CNTR`,
+    'TSLU': () => `https://www.tslines.com/en/tracking?type=container&no=${cleaned}`,
+    'CNCU': () => `https://www.cnc-line.com/ebusiness/tracking/search?SearchBy=Container&Reference=${cleaned}`,
+    'RCLU': () => `https://www.rclgroup.com/tracking/?number=${cleaned}&type=container`,
+    'IALU': () => `https://www.interasia.cc/tracking?cntr=${cleaned}`,
+    'CULU': () => `https://www.culines.com/en/site/bill?reg=${cleaned}`,
+    'MRTU': () => `https://www.meratus.com/en/guest/quick-tracking?query=${cleaned}`,
+    'CRDA': () => `https://cordelialine.com/container-tracking/?contno=${cleaned}`,
+    'KKLU': () => `https://algesvc.kambara-kisen.co.jp/gnoss/CUP_HOM_3301.do?redir=Y&trakNoTpCdParam=C&trakNoParam=${cleaned}&sessLocale=en`,
+    'HCNY': () => `https://www.hecny.com/en/track-and-trace?keyword=${cleaned}`,
+    'INOX': () => `https://www.inoxshipping.com/track-shipment.php?ref=${cleaned}`,
+    'LXPT': () => `https://view.lxpantos.com/portal/openapi/getQuickSearch?inpSrch=${cleaned}`,
+
+    // 유럽 선사
+    'ACLU': () => `https://www.aclcargo.com/track-cargo/?ShipmentNumber=${cleaned}`,
+    'GRIU': () => `https://www.grimaldi.napoli.it/tracking?container=${cleaned}`,
+    'SAMU': () => `https://www.samskip.com/tracking/?number=${cleaned}`,
+    'UNFE': () => `https://www.unifeeder.com/track-trace?container=${cleaned}`,
+    'FINN': () => `https://www.finnlines.com/freight/tracking?container=${cleaned}`,
+    'ARKU': () => `https://arkasline.com.tr/en/online-tracking/`,
+    'TRKU': () => `https://www.turkon.com/en/track-trace?container=${cleaned}`,
+    'MFTU': () => `https://www.marfret.fr/en/tracking?cntr=${cleaned}`,
+    'ITMU': () => `https://ct.shipmentlink.com/servlet/TDB1_CargoTracking.do?TYPE=CNTR&CNTR=${cleaned}&NO=${cleaned}&SEL=s_cntr`,
+
+    // 미주 선사
+    'CMCU': () => `https://www.crowley.com/logistics/tracking?container=${cleaned}`,
+    'SMLU': () => `https://www.seaboardmarine.com/tracking/?container=${cleaned}`,
+    'SEAU': () => `https://www.sealandmaersk.com/tracking/${cleaned}`,
+    'MATS': () => `https://www.matson.com/shipment-tracking.html?container=${cleaned}`,
+    'TOTE': () => `https://www.totemaritime.com/tracking?cntr=${cleaned}`,
+    'TRBR': () => `https://www.trailerbridge.com/tracking/?container=${cleaned}`,
+    'PSHI': () => `https://www.pashahawaii.com/tracking?container=${cleaned}`,
+    'TSLA': () => `https://www.tropical.com/eTropical/Tracking?container=${cleaned}`,
+
+    // 러시아
+    'FESO': () => `https://www.fesco.ru/en/clients/tracking?container=${cleaned}`,
+
+    // 중동/인도
+    'ESPU': () => `https://www.emiratesline.com/cargo-tracking/?url=${cleaned}`,
+    'SCIU': () => `https://www.shipindia.com/tracking?cntr=${cleaned}`,
+    'IRIU': () => `https://rocmnl.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+
+    // 오세아니아
+    'SWRE': () => `https://www.swireshipping.com/tracking?container=${cleaned}`,
+    'ANLU': () => `https://www.anl.com.au/ebusiness/tracking/search?SearchViewModel.Reference=${cleaned}&SearchViewModel.SearchBy=Container`,
+
+    // 기타
+    'XPRS': () => `https://www.x-pressfeeders.com/track-and-trace?container=${cleaned}`,
+    'BLWL': () => `https://bluewaterlines.net/Login/BLCntrTracking?RefType=Container&RefID=${cleaned}`,
+    'DLRF': () => `https://my.fesco.com/tracking?tab=${cleaned}`,
+    'CSRT': () => `https://cpeprd.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+    'GLBU': () => `https://globelink-unimar.com/online-freight-tracking/?trackId=${cleaned}`,
+    'MRGT': () => `https://margritashipping.com/track_record?tracking_number=${cleaned}`,
+    'MDKN': () => `https://portal.medkonlines.com/Home/Tracking?ContainerNo=${cleaned}`,
+    'NSAU': () => `https://n48prd.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+    'NPDL': () => `https://nepprd.webtracker.wisegrid.net/Login/Login.aspx?ContainerQuickViewNumber=${cleaned}`,
+    'NPTN': () => `https://oms.nbstrans.com/tracerQuery?num=${cleaned}`,
+    'PSLN': () => `https://tracking.pslnavegacao.com:8081/tracking_resposta.asp?contrNumber=${cleaned}`,
+    'SETH': () => `https://www.sethshipping.com/tracking_shipment?id=${cleaned}`,
+    'STLT': () => `https://track.stolttankcontainers.com/trackandtrace/trackbookingfromurl.aspx?SearchValue=${cleaned}`,
+    'VLTA': () => `https://voltacontainerline.com/track-shipment/?bill_id=${cleaned}`,
+    'TRTN': () => `https://tools.tritoncontainer.com/tritoncontainer/unitStatus/show/${cleaned}`,
+    'SEAD': () => `https://www.sea-lead.com/track-shipment/?container_id=${cleaned}`,
+    'SLSD': () => `https://www.sea-lead.com/track-shipment/?container_id=${cleaned}`,
+    'SPIL': () => `https://www.myspil.com/myspilcom/Front/tracktrace?blorcont=${cleaned}`,
+
+    // 한국 페리/특수
+    'CMLA': () => `http://183.111.65.71/clt/CUP_HOM_3301.do?sessLocale=en&trakNoTpCdParam=C&trakNoParam=${cleaned}`,
+    'EIMS': () => `https://www.eimskip.com/find-shipment/?id=${cleaned}`,
+    'PNST': () => `https://www.panstar.co.kr/en/business/express/tracking#`,
+    'MELL': () => `https://www.pilship.com/digital-solutions/?tab=customer&id=track-trace&label=containerTandT&module=TrackTraceContainer&refNo=${cleaned}`,
+    'DHLG': () => `https://www.dhl.com/global-en/home/tracking.html?tracking-id=${cleaned}`,
+  };
+
+  if (urlPatterns[carrier.code]) {
+    return urlPatterns[carrier.code]();
+  }
+
+  // 기본 fallback: prefix로 선사 찾기
+  const prefix = cleaned.substring(0, 4);
+  if (blPrefixMap[prefix]) {
+    const mappedCode = blPrefixMap[prefix];
+    if (urlPatterns[mappedCode]) {
+      return urlPatterns[mappedCode]();
+    }
+  }
+
+  return carrier.trackingUrl;
+};
+
+// 자동 BL 지원 선사 코드 목록 (직접 추적 URL이 있는 선사들)
 const autoBlCodes = new Set([
+  // 글로벌 메이저
   'MAEU', 'MSCU', 'CMDU', 'COSU', 'HLCU', 'ONEY', 'EGLV', 'YMLU', 'HDMU', 'ZIMU',
-  'PCIU', 'OOLU', 'APLU', 'SKLU', 'KMTU', 'SMLM', 'HASU', 'WHLC', 'SITC', 'TSLU',
-  'CMCU', 'SMLU', 'SEAU', 'ESPU', 'TRKU', 'XPRS', 'CNCU', 'LYFR'
+  'PCIU', 'OOLU', 'APLU',
+  // 한국 선사
+  'SKLU', 'KMTU', 'SMLM', 'HASU', 'PCLU', 'NSSU', 'PNOU', 'DJSC',
+  // 아시아 선사
+  'WHLC', 'SITC', 'TSLU', 'CNCU', 'RCLU', 'IALU', 'CULU', 'MRTU', 'LYFR', 'CRDA',
+  'KKLU', 'HCNY', 'INOX', 'LXPT',
+  // 유럽 선사
+  'ACLU', 'GRIU', 'SAMU', 'UNFE', 'FINN', 'ARKU', 'TRKU', 'MFTU', 'ITMU', 'BLWL',
+  // 미주 선사
+  'CMCU', 'SMLU', 'SEAU', 'MATS', 'TOTE', 'TRBR', 'PSHI', 'TSLA',
+  // 러시아/기타
+  'FESO', 'XPRS', 'DLRF', 'CSRT', 'GLBU', 'MRGT', 'MDKN', 'NSAU', 'NPDL', 'NPTN',
+  'PSLN', 'SETH', 'STLT', 'VLTA', 'TRTN', 'SEAD', 'SLSD', 'SPIL',
+  // 중동/인도
+  'ESPU', 'SCIU', 'IRIU',
+  // 오세아니아
+  'SWRE', 'ANLU',
+  // 특수 선사
+  'CMLA', 'EIMS', 'PNST', 'MELL', 'DHLG',
 ]);
 
 interface TrackerContainerProps {
@@ -333,6 +777,8 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
   const [detectedCarrier, setDetectedCarrier] = useState<Carrier | null>(null);
   const [showManualSelect, setShowManualSelect] = useState(false);
   const [showKoreanWarning, setShowKoreanWarning] = useState(false);
+  const [inputType, setInputType] = useState<InputType>('unknown');
+  const [isValidContainer, setIsValidContainer] = useState(false);
 
   // BL 입력 처리
   const handleBlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -347,6 +793,17 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
     const formatted = formatBl(rawValue);
     setBlInput(formatted);
 
+    // 입력 타입 감지 (컨테이너 vs B/L)
+    const detectedType = detectInputType(formatted);
+    setInputType(detectedType);
+
+    // 컨테이너 번호 유효성 검사 (체크 디지트)
+    if (detectedType === 'container' && formatted.length === 11) {
+      setIsValidContainer(validateContainerCheckDigit(formatted));
+    } else {
+      setIsValidContainer(detectedType === 'container');
+    }
+
     // 4자리 이상일 때 prefix 감지 (4자리 prefix만 지원)
     if (formatted.length >= 4) {
       const prefix = extractBlPrefix(formatted);
@@ -358,13 +815,14 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
       } else {
         // SCAC 코드가 없으면 자동으로 수동 선택 표시
         setDetectedCarrier(null);
-        if (validateBlFormat(formatted)) {
+        if (validateBlFormat(formatted) || detectedType === 'container') {
           setShowManualSelect(true);
         }
       }
     } else {
       setDetectedCarrier(null);
       setShowManualSelect(false);
+      setInputType('unknown');
     }
   };
 
@@ -378,7 +836,15 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
       navigator.clipboard.writeText(blInput).catch(() => {});
     }
 
-    const url = blInput ? buildBlTrackingUrl(targetCarrier, blInput) : targetCarrier.trackingUrl;
+    // 입력 타입에 따라 다른 URL 빌더 사용
+    let url: string;
+    if (!blInput) {
+      url = targetCarrier.trackingUrl;
+    } else if (inputType === 'container') {
+      url = buildContainerTrackingUrl(targetCarrier, blInput);
+    } else {
+      url = buildBlTrackingUrl(targetCarrier, blInput);
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
@@ -389,9 +855,17 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
       navigator.clipboard.writeText(blInput).catch(() => {});
     }
 
-    const url = blInput && validateBlFormat(blInput)
-      ? buildBlTrackingUrl(carrier, blInput)
-      : carrier.trackingUrl;
+    // 입력 타입에 따라 다른 URL 빌더 사용
+    let url: string;
+    if (!blInput) {
+      url = carrier.trackingUrl;
+    } else if (inputType === 'container') {
+      url = buildContainerTrackingUrl(carrier, blInput);
+    } else if (validateBlFormat(blInput)) {
+      url = buildBlTrackingUrl(carrier, blInput);
+    } else {
+      url = carrier.trackingUrl;
+    }
     window.open(url, '_blank', 'noopener,noreferrer');
     setShowManualSelect(false);
   };
@@ -412,8 +886,9 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
     return [...filteredCarriers].sort((a, b) => a.name.localeCompare(b.name));
   }, [filteredCarriers]);
 
-  const isValidBl = validateBlFormat(blInput);
+  const isValidBl = validateBlFormat(blInput) || inputType === 'container';
   const detectedPrefix = extractBlPrefix(blInput);
+  const inputTypeLabel = inputType === 'container' ? 'CNTR' : inputType === 'bol' ? 'B/L' : null;
 
   return (
     <div className="space-y-4">
@@ -426,11 +901,11 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
               <div className="w-6 h-6 bg-blue-500 rounded-md flex items-center justify-center">
                 <ShipIcon className="w-3.5 h-3.5 text-white" />
               </div>
-              <h3 className="font-bold text-slate-800">B/L 자동 추적</h3>
+              <h3 className="font-bold text-slate-800">B/L · 컨테이너 추적</h3>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
-              B/L 번호 앞 4자리 코드로 선사를 자동 감지합니다.
-              <span className="text-slate-400 block mt-0.5">예: <span className="font-mono">MAEU</span>123456789, <span className="font-mono">COSU</span>1234567890</span>
+              B/L 또는 컨테이너 번호로 선사를 자동 감지합니다.
+              <span className="text-slate-400 block mt-0.5">예: <span className="font-mono">MAEU</span>123456789, <span className="font-mono">TCLU</span>1234567</span>
             </p>
           </div>
 
@@ -463,6 +938,8 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
                   onClick={() => {
                     setBlInput('');
                     setDetectedCarrier(null);
+                    setInputType('unknown');
+                    setIsValidContainer(false);
                   }}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 >
@@ -480,6 +957,11 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
                   <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-xl flex-1 min-w-0">
                     <div className="w-2 h-2 bg-blue-500 rounded-full shrink-0 animate-pulse"></div>
                     <span className="text-sm font-bold text-slate-800 truncate">{detectedCarrier.name}</span>
+                    {inputTypeLabel && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                        inputType === 'container' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'
+                      }`}>{inputTypeLabel}</span>
+                    )}
                     <span className="text-xs text-blue-600 font-mono bg-blue-100/80 px-2 py-0.5 rounded-md shrink-0">{detectedPrefix}</span>
                   </div>
                   <button
@@ -500,6 +982,11 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
                   <div className="flex items-center gap-3 px-5 py-3.5 bg-gradient-to-r from-amber-50 to-white border border-amber-200 rounded-xl flex-1 min-w-0">
                     <div className="w-2 h-2 bg-amber-500 rounded-full shrink-0"></div>
                     <span className="text-sm font-medium text-slate-700">미등록 코드</span>
+                    {inputTypeLabel && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${
+                        inputType === 'container' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                      }`}>{inputTypeLabel}</span>
+                    )}
                     <span className="text-xs text-amber-600 font-mono bg-amber-100/80 px-2 py-0.5 rounded-md">{detectedPrefix}</span>
                   </div>
                   <button
