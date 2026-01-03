@@ -816,7 +816,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                 </table>
               </div>
               <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-center">
-                <span className="text-sm text-blue-600 font-bold">전체 보기 →</span>
+                <span className="text-sm text-blue-600 font-bold">전세계 데이터 보기 →</span>
               </div>
             </div>
           </div>
