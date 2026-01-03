@@ -123,6 +123,8 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
               type="date"
               value={referenceDate}
               onChange={(e) => setReferenceDate(e.target.value)}
+              min={new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0]}
+              max={new Date().toISOString().split('T')[0]}
               className="px-2 py-1 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
