@@ -23,6 +23,7 @@ import InsightsList from './components/InsightsList';
 import SelectionModal from './components/SelectionModal';
 import AdSense from './components/AdSense';
 import { Tracker } from './components/tracker';
+import FSSC from './components/fssc';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -30,7 +31,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
   const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
 
@@ -67,6 +68,8 @@ const App: React.FC = () => {
         setCurrentRoute('cbm');
       } else if (path === '/regulations') {
         setCurrentRoute('regulations');
+      } else if (path === '/fssc') {
+        setCurrentRoute('fssc');
       } else if (path.startsWith('/tracker')) {
         setCurrentRoute('tracker');
         setActiveTab('tracker');
@@ -118,7 +121,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -611,6 +614,7 @@ const App: React.FC = () => {
         '/cbm': 'cbm',
         '/regulations': 'regulations',
         '/tracker': 'tracker',
+        '/fssc': 'fssc',
         '/admin': 'admin',
       };
 
@@ -715,6 +719,8 @@ const App: React.FC = () => {
       setActiveTab('regulations');
     } else if (currentRoute === 'tracker') {
       setActiveTab('tracker');
+    } else if (currentRoute === 'fssc') {
+      setActiveTab('fssc');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -1011,7 +1017,7 @@ const App: React.FC = () => {
              <button
                onClick={() => setOpenDropdown(openDropdown === 'info' ? null : 'info')}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
-                 activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+                 activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
@@ -1019,7 +1025,7 @@ const App: React.FC = () => {
                <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'info' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
-               {(activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
+               {(activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
              </button>
              <div className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'info' ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[180px] overflow-hidden">
@@ -1049,6 +1055,15 @@ const App: React.FC = () => {
                    >
                      <div className="text-sm font-bold">수입 규제</div>
                      <div className="text-[10px] text-slate-400">국가별 수입 규제</div>
+                   </button>
+                   <button
+                     onClick={() => { setActiveTab('fssc'); navigate('/fssc'); setOpenDropdown(null); }}
+                     className={`w-full px-5 py-2.5 text-center transition-all ${
+                       activeTab === 'fssc' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                     }`}
+                   >
+                     <div className="text-sm font-bold">FS/SC 조회</div>
+                     <div className="text-[10px] text-slate-400">유류할증료/보안료</div>
                    </button>
                  </div>
                </div>
@@ -1267,7 +1282,7 @@ const App: React.FC = () => {
                 <button
                   onClick={() => setMobileAccordion(mobileAccordion === 'info' ? null : 'info')}
                   className={`w-full text-left px-4 py-3 font-bold transition-all flex items-center justify-between ${
-                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   정보
@@ -1316,6 +1331,19 @@ const App: React.FC = () => {
                       </span>
                       수입규제
                     </button>
+                    <button
+                      onClick={() => { setActiveTab('fssc'); navigate('/fssc'); setMobileMenuOpen(false); }}
+                      className={`w-full text-left px-6 py-2.5 text-sm font-medium transition-all flex items-center gap-3 ${
+                        activeTab === 'fssc' ? 'text-blue-600' : 'text-slate-600'
+                      }`}
+                    >
+                      <span className="w-7 h-7 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </span>
+                      FS/SC 조회
+                    </button>
                   </div>
                 )}
               </div>
@@ -1363,6 +1391,8 @@ const App: React.FC = () => {
             navigate(path);
           }}
         />
+      ) : activeTab === 'fssc' ? (
+        <FSSC onNavigateBack={() => { setActiveTab('home'); navigate('/'); }} />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab

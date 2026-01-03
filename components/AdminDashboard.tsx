@@ -3,12 +3,13 @@ import { Insight } from '../types/insights';
 import { Feedback } from '../types/feedback';
 import { db } from '../lib/supabase';
 import TiptapEditor from './TiptapEditor';
+import FSSCAdmin from './fssc/FSSCAdmin';
 
 interface AdminDashboardProps {
   onNavigateHome: () => void;
 }
 
-type MenuSection = 'dashboard' | 'insights' | 'feedbacks' | 'analytics' | 'settings';
+type MenuSection = 'dashboard' | 'insights' | 'feedbacks' | 'fssc' | 'analytics' | 'settings';
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [activeSection, setActiveSection] = useState<MenuSection>('dashboard');
@@ -369,6 +370,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
             </li>
             <li>
               <button
+                onClick={() => setActiveSection('fssc')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  activeSection === 'fssc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {!sidebarCollapsed && <span className="font-medium">FS/SC 관리</span>}
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={() => setActiveSection('analytics')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   activeSection === 'analytics' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700'
@@ -421,6 +435,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                 {activeSection === 'dashboard' && '대시보드'}
                 {activeSection === 'insights' && '콘텐츠 관리'}
                 {activeSection === 'feedbacks' && '피드백 관리'}
+                {activeSection === 'fssc' && 'FS/SC 관리'}
                 {activeSection === 'analytics' && '분석'}
                 {activeSection === 'settings' && '설정'}
               </h1>
@@ -946,6 +961,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                 </div>
               </div>
             </div>
+          )}
+
+          {activeSection === 'fssc' && (
+            <FSSCAdmin embedded={true} />
           )}
 
           {activeSection === 'analytics' && (

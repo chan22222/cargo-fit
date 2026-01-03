@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { FSSCRecord, FSSCFormData, FSSCFilter } from '../types/fssc';
 
 // Supabase 설정 - 환경 변수 사용
 // Vercel에서는 환경 변수를 대시보드에서 설정
@@ -273,6 +274,123 @@ export const db = {
         .select('*', { count: 'exact', head: true })
         .eq('read', false);
       return { count, error };
+    }
+  },
+
+  // FS/SC (유류할증료/보안료) 관련 함수
+  fssc: {
+    // 모든 FS/SC 데이터 가져오기
+    getAll: async () => {
+      const { data, error } = await supabase
+        .from('fssc')
+        .select('*')
+        .order('carrier_code', { ascending: true })
+        .order('start_date', { ascending: false });
+      return { data: data as FSSCRecord[] | null, error };
+    },
+
+    // 필터링된 FS/SC 데이터 가져오기
+    getFiltered: async (filter: FSSCFilter) => {
+      let query = supabase.from('fssc').select('*');
+
+      // 타입 필터 (A: 전체가 아닌 경우)
+      if (filter.type && filter.type !== 'A') {
+        query = query.eq('type', filter.type);
+      }
+
+      // 항공사 코드 필터
+      if (filter.carrier_code) {
+        query = query.ilike('carrier_code', `%${filter.carrier_code}%`);
+      }
+
+      // 기준일 필터 (해당 날짜가 적용 기간 내에 있는 경우)
+      if (filter.date) {
+        query = query
+          .lte('start_date', filter.date)
+          .gte('end_date', filter.date);
+      }
+
+      const { data, error } = await query
+        .order('carrier_code', { ascending: true })
+        .order('start_date', { ascending: false });
+
+      return { data: data as FSSCRecord[] | null, error };
+    },
+
+    // FS/SC 레코드 생성
+    create: async (record: FSSCFormData) => {
+      const { data, error } = await supabase
+        .from('fssc')
+        .insert([{
+          ...record,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select();
+      return { data: data as FSSCRecord[] | null, error };
+    },
+
+    // FS/SC 레코드 수정
+    update: async (id: string, updates: Partial<FSSCFormData>) => {
+      const { data, error } = await supabase
+        .from('fssc')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
+        .select();
+      return { data: data as FSSCRecord[] | null, error };
+    },
+
+    // FS/SC 레코드 삭제
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('fssc')
+        .delete()
+        .eq('id', id);
+      return { error };
+    },
+
+    // 여러 레코드 삭제
+    deleteMany: async (ids: string[]) => {
+      const { error } = await supabase
+        .from('fssc')
+        .delete()
+        .in('id', ids);
+      return { error };
+    },
+
+    // 항공사 코드 목록 가져오기 (중복 제거)
+    getCarrierCodes: async () => {
+      const { data, error } = await supabase
+        .from('fssc')
+        .select('carrier_code, carrier_name')
+        .order('carrier_code', { ascending: true });
+
+      if (error) return { data: null, error };
+
+      // 중복 제거
+      const uniqueCarriers = Array.from(
+        new Map(data?.map(item => [item.carrier_code, item]) || []).values()
+      );
+
+      return { data: uniqueCarriers, error: null };
+    },
+
+    // 대량 데이터 추가 (CSV 임포트 등)
+    bulkCreate: async (records: FSSCFormData[]) => {
+      const recordsWithTimestamp = records.map(record => ({
+        ...record,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }));
+
+      const { data, error } = await supabase
+        .from('fssc')
+        .insert(recordsWithTimestamp)
+        .select();
+      return { data: data as FSSCRecord[] | null, error };
     }
   }
 };
