@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Insight } from '../types/insights';
+import { FSSCRecord, AIRLINE_CODES } from '../types/fssc';
 import { db } from '../lib/supabase';
 import ContainerDemo from './ContainerDemo';
 import FeedbackModal from './FeedbackModal';
@@ -61,11 +62,13 @@ interface LandingPageProps {
   onNavigateToCurrency?: () => void;
   onNavigateToRegulations?: () => void;
   onNavigateToTracker?: () => void;
+  onNavigateToFssc?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations, onNavigateToTracker }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations, onNavigateToTracker, onNavigateToFssc }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
+  const [fsscRecords, setFsscRecords] = useState<FSSCRecord[]>([]);
   const [exchangeRates, setExchangeRates] = useState<{ [key: string]: number }>({});
   const [rateSource, setRateSource] = useState<string>('');
   const [rateDate, setRateDate] = useState<string>('');
@@ -155,6 +158,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     return () => {
       window.removeEventListener('insightsUpdated', handleInsightsUpdate);
     };
+  }, []);
+
+  // Load FSSC data
+  useEffect(() => {
+    const loadFsscData = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const { data, error } = await db.fssc.getFiltered({ date: today });
+        if (!error && data) {
+          setFsscRecords(data);
+        }
+      } catch (error) {
+        console.error('Error loading FSSC data:', error);
+      }
+    };
+    loadFsscData();
   }, []);
 
   useEffect(() => {
@@ -573,7 +592,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       </section>
 
       {/* Incoterms & World Holidays Preview */}
-      <section className="py-32 px-10 bg-gradient-to-b from-slate-50 to-white">
+      <section className="py-32 px-10 bg-slate-50">
          <div className="max-w-7xl mx-auto">
             <div className="grid lg:grid-cols-2 gap-20 items-start">
                {/* Left: Incoterms Preview */}
@@ -728,6 +747,121 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                </div>
             </div>
          </div>
+      </section>
+
+      {/* FSSC Preview Section */}
+      {fsscRecords.length > 0 && (
+        <section className="py-32 px-10 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-10">
+              <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">FSC/SCC Rates</h2>
+              <p className="text-4xl font-black text-slate-900 tracking-tight mt-2">항공 유류할증료</p>
+            </div>
+
+            <div
+              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={onNavigateToFssc}
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-slate-50 border-b border-slate-200">
+                      <th className="px-4 py-3 text-center font-bold text-slate-700">유형</th>
+                      <th className="px-4 py-3 text-center font-bold text-slate-700">항공사</th>
+                      <th className="px-4 py-3 text-center font-bold text-slate-700">통화</th>
+                      <th className="px-4 py-3 text-center font-bold text-slate-700">요금/kg</th>
+                      <th className="px-4 py-3 text-center font-bold text-slate-700 hidden md:table-cell">적용구간</th>
+                      <th className="px-4 py-3 text-center font-bold text-slate-700">적용기간</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {fsscRecords
+                      .filter(r => r.over_charge && r.over_charge > 0)
+                      .sort((a, b) => {
+                        const priority = ['KE', 'KJ'];
+                        const aIdx = priority.indexOf(a.carrier_code);
+                        const bIdx = priority.indexOf(b.carrier_code);
+                        if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+                        if (aIdx !== -1) return -1;
+                        if (bIdx !== -1) return 1;
+                        return a.carrier_code.localeCompare(b.carrier_code);
+                      })
+                      .slice(0, 6)
+                      .map((record) => (
+                      <tr key={record.id} className="hover:bg-blue-50 transition-colors">
+                        <td className="px-4 py-3 text-center">
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${
+                            record.type === 'FS' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                          }`}>
+                            {record.type === 'FS' ? 'FSC' : 'SCC'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="font-bold text-slate-900">{record.carrier_code}</span>
+                          <span className="text-slate-400 text-xs block">{AIRLINE_CODES[record.carrier_code] || ''}</span>
+                        </td>
+                        <td className="px-4 py-3 text-center text-slate-600">{record.currency}</td>
+                        <td className="px-4 py-3 text-center font-bold text-slate-900">
+                          {record.over_charge?.toLocaleString() || '-'}
+                        </td>
+                        <td className="px-4 py-3 text-center text-slate-600 hidden md:table-cell truncate max-w-[200px]" title={record.route}>
+                          {record.route}
+                        </td>
+                        <td className="px-4 py-3 text-center text-slate-600 text-xs">
+                          {record.start_date.slice(2).replace(/-/g, '.')} ~ {parseInt(record.end_date.split('-')[0]) >= 2050 ? '기한없음' : record.end_date.slice(2).replace(/-/g, '.')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-center">
+                <span className="text-sm text-blue-600 font-bold">전체 보기 →</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Import Regulations Preview Section */}
+      <section className="py-32 px-10 bg-slate-50">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="flex items-center justify-center gap-3">
+              <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Import Regulations</h2>
+              <button
+                onClick={onNavigateToRegulations}
+                className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
+              >
+                자세히 보기
+              </button>
+            </div>
+            <p className="text-4xl font-black text-slate-900 tracking-tight mt-2">국가별 수입규제</p>
+          </div>
+
+          <div
+            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 cursor-pointer"
+            onClick={onNavigateToRegulations}
+          >
+            {[
+              { country: '미국', flag: '🇺🇸', code: 'US', info: '한-미 FTA 적용' },
+              { country: '중국', flag: '🇨🇳', code: 'CN', info: 'CCC 인증 필수' },
+              { country: '일본', flag: '🇯🇵', code: 'JP', info: '한-일 RCEP 적용' },
+              { country: '유럽연합', flag: '🇪🇺', code: 'EU', info: 'CE 마크 필수' },
+              { country: '베트남', flag: '🇻🇳', code: 'VN', info: '한-베 FTA 적용' },
+              { country: '호주', flag: '🇦🇺', code: 'AU', info: '한-호 FTA 적용' },
+            ].map((item) => (
+              <div
+                key={item.code}
+                className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-blue-300 transition-all group text-center"
+              >
+                <span className="text-4xl block mb-3">{item.flag}</span>
+                <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{item.country}</div>
+                <div className="text-xs text-slate-500 mt-1">{item.info}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/* Logistics News / Blog Section */}
@@ -886,6 +1020,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       세계 공휴일
+                    </button>
+                    <button onClick={(e) => { e.preventDefault(); onNavigateToFssc?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                      FSC/SCC 조회
                     </button>
                     <button onClick={(e) => { e.preventDefault(); onNavigateToRegulations?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       수입규제 정보

@@ -1021,7 +1021,7 @@ const App: React.FC = () => {
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
-               <span className="relative">정보</span>
+               <span className="relative">수/출입 정보</span>
                <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'info' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
@@ -1285,7 +1285,7 @@ const App: React.FC = () => {
                     activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  정보
+                  수/출입 정보
                   <svg className={`w-4 h-4 transition-transform duration-200 ${mobileAccordion === 'info' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -1368,6 +1368,7 @@ const App: React.FC = () => {
           onNavigateToCurrency={() => { setActiveTab('currency'); navigate('/currency'); }}
           onNavigateToRegulations={() => { setActiveTab('regulations'); navigate('/regulations'); }}
           onNavigateToTracker={() => { setActiveTab('tracker'); setTrackerCategory('container'); navigate('/tracker'); }}
+          onNavigateToFssc={() => { setActiveTab('fssc'); navigate('/fssc'); }}
         />
       ) : activeTab === 'privacy' ? (
         <PrivacyPolicy />
