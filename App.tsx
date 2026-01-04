@@ -138,6 +138,7 @@ const App: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && megaMenuOpen) {
         setMegaMenuOpen(false);
+        setOpenDropdown(null);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -867,7 +868,7 @@ const App: React.FC = () => {
              onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => { setOpenDropdown('simulator'); setMegaMenuOpen(!megaMenuOpen); }}
+               onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'simulator'); setMegaMenuOpen(!megaMenuOpen); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'container' || activeTab === 'pallet' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
@@ -913,7 +914,7 @@ const App: React.FC = () => {
              onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => { setOpenDropdown('tracker'); setMegaMenuOpen(!megaMenuOpen); }}
+               onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'tracker'); setMegaMenuOpen(!megaMenuOpen); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'tracker' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
@@ -986,7 +987,7 @@ const App: React.FC = () => {
              onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => { setOpenDropdown('calculator'); setMegaMenuOpen(!megaMenuOpen); }}
+               onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'calculator'); setMegaMenuOpen(!megaMenuOpen); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'cbm' || activeTab === 'currency' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
@@ -1032,7 +1033,7 @@ const App: React.FC = () => {
              onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => { setOpenDropdown('info'); setMegaMenuOpen(!megaMenuOpen); }}
+               onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'info'); setMegaMenuOpen(!megaMenuOpen); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
@@ -1101,16 +1102,18 @@ const App: React.FC = () => {
            {/* Desktop Hamburger Menu Button */}
            <button
              onClick={() => {
-               // 현재 활성화된 탭에 따라 카테고리 설정
-               const getDefaultCategory = () => {
+               // 현재 활성화된 탭에 따라 카테고리 설정 (기본값 없음)
+               const getDefaultCategory = (): string | null => {
                  if (activeTab === 'container' || activeTab === 'pallet') return 'simulator';
                  if (activeTab === 'tracker') return 'tracker';
                  if (activeTab === 'cbm' || activeTab === 'currency') return 'calculator';
                  if (activeTab === 'worldclock' || activeTab === 'holidays' || activeTab === 'incoterms' || activeTab === 'regulations' || activeTab === 'fssc') return 'info';
-                 return 'simulator';
+                 return null;
                };
                if (!megaMenuOpen) {
                  setOpenDropdown(getDefaultCategory());
+               } else {
+                 setOpenDropdown(null);
                }
                setMegaMenuOpen(!megaMenuOpen);
              }}
@@ -1198,7 +1201,7 @@ const App: React.FC = () => {
                         {openDropdown === 'info' && 'INFORMATION'}
                       </p>
                       <button
-                        onClick={() => setMegaMenuOpen(false)}
+                        onClick={() => { setMegaMenuOpen(false); setOpenDropdown(null); }}
                         className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1210,7 +1213,7 @@ const App: React.FC = () => {
                     {openDropdown === 'simulator' && (
                       <div className="grid grid-cols-2 gap-2">
                         <button
-                          onClick={() => { setActiveTab('container'); navigate('/container'); setMegaMenuOpen(false); }}
+                          onClick={() => { setActiveTab('container'); navigate('/container'); setMegaMenuOpen(false); setOpenDropdown(null); }}
                           className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === 'container' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                         >
                           <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1222,7 +1225,7 @@ const App: React.FC = () => {
                           </div>
                         </button>
                         <button
-                          onClick={() => { setActiveTab('pallet'); navigate('/pallet'); setMegaMenuOpen(false); }}
+                          onClick={() => { setActiveTab('pallet'); navigate('/pallet'); setMegaMenuOpen(false); setOpenDropdown(null); }}
                           className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === 'pallet' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                         >
                           <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1248,7 +1251,7 @@ const App: React.FC = () => {
                         ].map(item => (
                           <button
                             key={item.cat}
-                            onClick={() => { setActiveTab('tracker'); setTrackerCategory(item.cat as any); navigate(item.route); setMegaMenuOpen(false); }}
+                            onClick={() => { setActiveTab('tracker'); setTrackerCategory(item.cat as any); navigate(item.route); setMegaMenuOpen(false); setOpenDropdown(null); }}
                             className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === 'tracker' && trackerCategory === item.cat ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                           >
                             <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
@@ -1265,7 +1268,7 @@ const App: React.FC = () => {
                     {openDropdown === 'calculator' && (
                       <div className="grid grid-cols-2 gap-2">
                         <button
-                          onClick={() => { setActiveTab('cbm'); navigate('/cbm'); setMegaMenuOpen(false); }}
+                          onClick={() => { setActiveTab('cbm'); navigate('/cbm'); setMegaMenuOpen(false); setOpenDropdown(null); }}
                           className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === 'cbm' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                         >
                           <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1277,7 +1280,7 @@ const App: React.FC = () => {
                           </div>
                         </button>
                         <button
-                          onClick={() => { setActiveTab('currency'); navigate('/currency'); setMegaMenuOpen(false); }}
+                          onClick={() => { setActiveTab('currency'); navigate('/currency'); setMegaMenuOpen(false); setOpenDropdown(null); }}
                           className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === 'currency' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                         >
                           <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1303,7 +1306,7 @@ const App: React.FC = () => {
                         ].map(item => (
                           <button
                             key={item.tab}
-                            onClick={() => { setActiveTab(item.tab as any); navigate(item.route); setMegaMenuOpen(false); }}
+                            onClick={() => { setActiveTab(item.tab as any); navigate(item.route); setMegaMenuOpen(false); setOpenDropdown(null); }}
                             className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === item.tab ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                           >
                             <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">{item.icon}</svg>
@@ -1324,7 +1327,7 @@ const App: React.FC = () => {
                           <p className="text-xs text-slate-400 mt-0.5">Let us know what you need</p>
                         </div>
                         <button
-                          onClick={() => { setMegaMenuOpen(false); setIsFeedbackModalOpen(true); }}
+                          onClick={() => { setMegaMenuOpen(false); setOpenDropdown(null); setIsFeedbackModalOpen(true); }}
                           className="px-5 py-2 text-sm font-semibold text-slate-800 bg-white shadow-[0_1px_8px_-2px_rgba(0,0,0,0.1)] rounded-full hover:shadow-[0_2px_12px_-2px_rgba(0,0,0,0.15)] transition-all"
                         >
                           Request
@@ -1342,7 +1345,7 @@ const App: React.FC = () => {
         {megaMenuOpen && (
           <div
             className="hidden md:block fixed inset-0 z-40"
-            onClick={() => setMegaMenuOpen(false)}
+            onClick={() => { setMegaMenuOpen(false); setOpenDropdown(null); }}
           />
         )}
 
