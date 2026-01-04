@@ -47,19 +47,44 @@ const citiesData: CityInfo[] = [
   { city: 'Auckland', country: '뉴질랜드', zone: 'Pacific/Auckland', flag: '🇳🇿', region: '오세아니아', portInfo: '오클랜드항' },
 ];
 
+type SortType = 'business' | 'time' | 'name' | 'distance';
+
+// 서울 기준 시차 계산 (대략적인 UTC offset)
+const getUtcOffset = (zone: string): number => {
+  const offsets: Record<string, number> = {
+    'Asia/Seoul': 9, 'Asia/Tokyo': 9, 'Asia/Shanghai': 8, 'Asia/Hong_Kong': 8,
+    'Asia/Singapore': 8, 'Asia/Bangkok': 7, 'Asia/Ho_Chi_Minh': 7, 'Asia/Jakarta': 7,
+    'Asia/Kolkata': 5.5, 'Asia/Dubai': 4, 'Asia/Taipei': 8, 'Asia/Manila': 8,
+    'Europe/London': 0, 'Europe/Paris': 1, 'Europe/Berlin': 1, 'Europe/Amsterdam': 1,
+    'Europe/Madrid': 1, 'Europe/Rome': 1,
+    'America/New_York': -5, 'America/Los_Angeles': -8, 'America/Chicago': -6,
+    'America/Vancouver': -8, 'America/Toronto': -5, 'America/Sao_Paulo': -3, 'America/Mexico_City': -6,
+    'Australia/Sydney': 11, 'Australia/Melbourne': 11, 'Pacific/Auckland': 13
+  };
+  return offsets[zone] ?? 0;
+};
+
 const WorldClock: React.FC = () => {
-  const [times, setTimes] = useState<Record<string, { time: string; date: string }>>({});
+  const [times, setTimes] = useState<Record<string, { time: string; date: string; hour: number }>>({});
   const [selectedRegion, setSelectedRegion] = useState<string>('전체');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [sortType, setSortType] = useState<SortType>('business');
 
   const regions = ['전체', '아시아', '유럽', '미주', '오세아니아', '중동'];
+  const sortOptions: { value: SortType; label: string }[] = [
+    { value: 'business', label: '업무시간순' },
+    { value: 'time', label: '시간순' },
+    { value: 'name', label: '이름순' },
+    { value: 'distance', label: '서울 기준 가까운순' }
+  ];
 
   useEffect(() => {
     const updateTimes = () => {
-      const newTimes: Record<string, { time: string; date: string }> = {};
+      const newTimes: Record<string, { time: string; date: string; hour: number }> = {};
       citiesData.forEach(city => {
         const now = new Date();
+        const hour = parseInt(now.toLocaleTimeString('en-US', { timeZone: city.zone, hour: 'numeric', hour12: false }));
         newTimes[city.city] = {
           time: now.toLocaleTimeString('ko-KR', {
             timeZone: city.zone,
@@ -73,7 +98,8 @@ const WorldClock: React.FC = () => {
             month: 'short',
             day: 'numeric',
             weekday: 'short'
-          })
+          }),
+          hour
         };
       });
       setTimes(newTimes);
@@ -84,13 +110,44 @@ const WorldClock: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const filteredCities = citiesData.filter(city => {
-    const matchesRegion = selectedRegion === '전체' || city.region === selectedRegion;
-    const matchesSearch = !searchQuery ||
-      city.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      city.country.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesRegion && matchesSearch;
-  });
+  const filteredCities = citiesData
+    .filter(city => {
+      const matchesRegion = selectedRegion === '전체' || city.region === selectedRegion;
+      const matchesSearch = !searchQuery ||
+        city.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        city.country.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesRegion && matchesSearch;
+    })
+    .sort((a, b) => {
+      const seoulOffset = 9;
+      switch (sortType) {
+        case 'business': {
+          const aHour = times[a.city]?.hour ?? 0;
+          const bHour = times[b.city]?.hour ?? 0;
+          const aIsBusiness = aHour >= 9 && aHour < 18;
+          const bIsBusiness = bHour >= 9 && bHour < 18;
+          if (aIsBusiness && !bIsBusiness) return -1;
+          if (!aIsBusiness && bIsBusiness) return 1;
+          return a.city.localeCompare(b.city);
+        }
+        case 'time': {
+          const aHour = times[a.city]?.hour ?? 0;
+          const bHour = times[b.city]?.hour ?? 0;
+          return aHour - bHour;
+        }
+        case 'name':
+          return a.city.localeCompare(b.city);
+        case 'distance': {
+          const aOffset = getUtcOffset(a.zone);
+          const bOffset = getUtcOffset(b.zone);
+          const aDiff = Math.abs(aOffset - seoulOffset);
+          const bDiff = Math.abs(bOffset - seoulOffset);
+          return aDiff - bDiff;
+        }
+        default:
+          return 0;
+      }
+    });
 
   const getTimeStatus = (zone: string) => {
     const now = new Date();
@@ -118,30 +175,44 @@ const WorldClock: React.FC = () => {
                 <p className="text-slate-500 text-sm">World Clock - 주요 물류 거점 현지 시간</p>
               </div>
             </div>
-            {/* View Toggle */}
-            <div className="flex bg-white rounded-xl p-1 border border-slate-200">
-              <button
-                onClick={() => setViewMode('card')}
-                className={`px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1 ${
-                  viewMode === 'card' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-700'
-                }`}
+            {/* View Toggle & Sort */}
+            <div className="flex items-center gap-3">
+              {/* Sort Dropdown */}
+              <select
+                value={sortType}
+                onChange={(e) => setSortType(e.target.value as SortType)}
+                className="px-3 py-1.5 text-xs font-medium bg-white border border-slate-200 rounded-lg text-slate-700 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-                카드
-              </button>
-              <button
-                onClick={() => setViewMode('table')}
-                className={`px-3 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1 ${
-                  viewMode === 'table' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-700'
-                }`}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-                표
-              </button>
+                {sortOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+
+              {/* View Toggle */}
+              <div className="inline-flex bg-slate-100 rounded-lg p-1">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    viewMode === 'table' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  표
+                </button>
+                <button
+                  onClick={() => setViewMode('card')}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5 ${
+                    viewMode === 'card' ? 'bg-white text-slate-800 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                  </svg>
+                  카드
+                </button>
+              </div>
             </div>
           </div>
         </div>
