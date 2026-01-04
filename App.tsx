@@ -1393,36 +1393,32 @@ const App: React.FC = () => {
                   </svg>
                 </button>
                 {mobileAccordion === 'simulator' && (
-                  <div className="bg-slate-50 py-1">
+                  <div className="bg-white py-2 px-2 space-y-1">
                     <button
                       onClick={() => { setActiveTab('container'); navigate('/container'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'container' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'container' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">3D 컨테이너</span>
+                        <span className="text-sm font-semibold text-slate-700 block">3D 컨테이너</span>
                         <span className="text-[10px] text-slate-400 leading-tight">컨테이너 적재 시뮬레이션</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('pallet'); navigate('/pallet'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'pallet' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'pallet' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">3D 팔레트</span>
+                        <span className="text-sm font-semibold text-slate-700 block">3D 팔레트</span>
                         <span className="text-[10px] text-slate-400 leading-tight">팔레트 적재 시뮬레이션</span>
                       </div>
                     </button>
@@ -1444,84 +1440,74 @@ const App: React.FC = () => {
                   </svg>
                 </button>
                 {mobileAccordion === 'tracker' && (
-                  <div className="bg-slate-50 py-1">
+                  <div className="bg-white py-2 px-2 space-y-1">
                     <button
                       onClick={() => { setActiveTab('tracker'); setTrackerCategory('container'); navigate('/tracker'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'tracker' && trackerCategory === 'container' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'tracker' && trackerCategory === 'container' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">컨테이너</span>
+                        <span className="text-sm font-semibold text-slate-700 block">컨테이너</span>
                         <span className="text-[10px] text-slate-400 leading-tight">해상 컨테이너 추적</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('tracker'); setTrackerCategory('air'); navigate('/tracker/air'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'tracker' && trackerCategory === 'air' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'tracker' && trackerCategory === 'air' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">항공 화물</span>
+                        <span className="text-sm font-semibold text-slate-700 block">항공 화물</span>
                         <span className="text-[10px] text-slate-400 leading-tight">AWB 번호로 추적</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('tracker'); setTrackerCategory('courier'); navigate('/tracker/courier'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'tracker' && trackerCategory === 'courier' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'tracker' && trackerCategory === 'courier' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">택배/특송</span>
+                        <span className="text-sm font-semibold text-slate-700 block">택배/특송</span>
                         <span className="text-[10px] text-slate-400 leading-tight">DHL, FedEx, UPS 등</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('tracker'); setTrackerCategory('post'); navigate('/tracker/post'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'tracker' && trackerCategory === 'post' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'tracker' && trackerCategory === 'post' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">우편/EMS</span>
+                        <span className="text-sm font-semibold text-slate-700 block">우편/EMS</span>
                         <span className="text-[10px] text-slate-400 leading-tight">국제 우편물 추적</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('tracker'); setTrackerCategory('rail'); navigate('/tracker/rail'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'tracker' && trackerCategory === 'rail' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'tracker' && trackerCategory === 'rail' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-slate-500 to-slate-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17h6M9 17v4m6-4v4M4 9h16M4 9l2-4h12l2 4M4 9v4a2 2 0 002 2h12a2 2 0 002-2V9" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10h10zm0 0h6m-6 0l6-6" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">철도</span>
+                        <span className="text-sm font-semibold text-slate-700 block">철도</span>
                         <span className="text-[10px] text-slate-400 leading-tight">철도 화물 추적</span>
                       </div>
                     </button>
@@ -1543,36 +1529,32 @@ const App: React.FC = () => {
                   </svg>
                 </button>
                 {mobileAccordion === 'calculator' && (
-                  <div className="bg-slate-50 py-1">
+                  <div className="bg-white py-2 px-2 space-y-1">
                     <button
                       onClick={() => { setActiveTab('cbm'); navigate('/cbm'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'cbm' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'cbm' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-violet-500 to-violet-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">CBM 계산기</span>
+                        <span className="text-sm font-semibold text-slate-700 block">CBM 계산기</span>
                         <span className="text-[10px] text-slate-400 leading-tight">부피/중량 계산</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('currency'); navigate('/currency'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'currency' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'currency' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">환율 계산기</span>
+                        <span className="text-sm font-semibold text-slate-700 block">환율 계산기</span>
                         <span className="text-[10px] text-slate-400 leading-tight">실시간 환율 조회</span>
                       </div>
                     </button>
@@ -1594,89 +1576,95 @@ const App: React.FC = () => {
                   </svg>
                 </button>
                 {mobileAccordion === 'info' && (
-                  <div className="bg-slate-50 py-1">
+                  <div className="bg-white py-2 px-2 space-y-1">
                     <button
                       onClick={() => { setActiveTab('worldclock'); navigate('/worldclock'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'worldclock' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'worldclock' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">세계 시간</span>
+                        <span className="text-sm font-semibold text-slate-700 block">세계 시간</span>
                         <span className="text-[10px] text-slate-400 leading-tight">주요 도시 현재 시각</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('holidays'); navigate('/holidays'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'holidays' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'holidays' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">세계 공휴일</span>
+                        <span className="text-sm font-semibold text-slate-700 block">세계 공휴일</span>
                         <span className="text-[10px] text-slate-400 leading-tight">국가별 공휴일 정보</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('incoterms'); navigate('/incoterms'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'incoterms' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'incoterms' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-rose-500 to-rose-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">인코텀즈</span>
+                        <span className="text-sm font-semibold text-slate-700 block">인코텀즈</span>
                         <span className="text-[10px] text-slate-400 leading-tight">무역 조건 가이드</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('regulations'); navigate('/regulations'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'regulations' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'regulations' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">수입 규제</span>
+                        <span className="text-sm font-semibold text-slate-700 block">수입 규제</span>
                         <span className="text-[10px] text-slate-400 leading-tight">품목별 규제 확인</span>
                       </div>
                     </button>
                     <button
                       onClick={() => { setActiveTab('fssc'); navigate('/fssc'); setMobileMenuOpen(false); }}
-                      className={`w-full text-left px-6 py-2.5 transition-all flex items-center gap-3 ${
-                        activeTab === 'fssc' ? 'text-blue-600' : 'text-slate-600'
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'fssc' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="w-7 h-7 bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </span>
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
                       <div className="leading-none">
-                        <span className="text-sm font-medium block">FS/SC 조회</span>
+                        <span className="text-sm font-semibold text-slate-700 block">FS/SC 조회</span>
                         <span className="text-[10px] text-slate-400 leading-tight">유류할증료/보안료</span>
                       </div>
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* 하단 요청 섹션 */}
+              <div className="mt-2 pt-3 border-t border-slate-100">
+                <div className="flex items-center justify-between px-4">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-700">Need more features?</p>
+                    <p className="text-xs text-slate-400 mt-0.5">Let us know what you need</p>
+                  </div>
+                  <button
+                    onClick={() => { setMobileMenuOpen(false); setIsFeedbackModalOpen(true); }}
+                    className="px-4 py-2 text-sm font-semibold text-slate-800 bg-white shadow-[0_1px_8px_-2px_rgba(0,0,0,0.1)] rounded-full hover:shadow-[0_2px_12px_-2px_rgba(0,0,0,0.15)] transition-all"
+                  >
+                    Request
+                  </button>
+                </div>
               </div>
             </nav>
           </div>
