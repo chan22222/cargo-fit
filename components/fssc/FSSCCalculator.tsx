@@ -20,9 +20,13 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
     setLocalRecords(initialRecords);
   }, [initialRecords]);
 
-  // 적용된 기준일 기준으로 유효한 레코드만 필터링
+  // 적용된 기준일 기준으로 유효한 레코드만 필터링 (min_charge, over_charge 둘 다 null인 경우 제외)
   const validRecords = useMemo(() => {
-    return localRecords.filter(r => r.start_date <= appliedDate && r.end_date >= appliedDate);
+    return localRecords.filter(r =>
+      r.start_date <= appliedDate &&
+      r.end_date >= appliedDate &&
+      (r.min_charge != null || r.over_charge != null)
+    );
   }, [localRecords, appliedDate]);
 
   // 조회 버튼 클릭 시 동기화 및 적용
