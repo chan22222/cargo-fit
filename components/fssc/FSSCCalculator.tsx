@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { FSSCRecord, AIRLINE_CODES } from '../../types/fssc';
 import { db } from '../../lib/supabase';
+import { getTodayString, getOffsetYearDateString } from '../../lib/date';
 
 interface FSSCCalculatorProps {
   records: FSSCRecord[];
@@ -10,8 +11,8 @@ interface FSSCCalculatorProps {
 const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords, onRefresh }) => {
   const [selectedCarriers, setSelectedCarriers] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
-  const [referenceDate, setReferenceDate] = useState(() => new Date().toISOString().split('T')[0]); // 날짜 선택용
-  const [appliedDate, setAppliedDate] = useState(() => new Date().toISOString().split('T')[0]); // 실제 필터링용
+  const [referenceDate, setReferenceDate] = useState(() => getTodayString()); // 날짜 선택용
+  const [appliedDate, setAppliedDate] = useState(() => getTodayString()); // 실제 필터링용
   const [isFetching, setIsFetching] = useState(false);
   const [localRecords, setLocalRecords] = useState<FSSCRecord[]>(initialRecords);
 
@@ -127,8 +128,8 @@ const FSSCCalculator: React.FC<FSSCCalculatorProps> = ({ records: initialRecords
               type="date"
               value={referenceDate}
               onChange={(e) => setReferenceDate(e.target.value)}
-              min={new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString().split('T')[0]}
-              max={new Date().toISOString().split('T')[0]}
+              min={getOffsetYearDateString(-1)}
+              max={getTodayString()}
               className="px-2 py-1 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>

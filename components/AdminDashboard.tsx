@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
 import { Feedback } from '../types/feedback';
 import { db } from '../lib/supabase';
+import { getTodayString } from '../lib/date';
 import TiptapEditor from './TiptapEditor';
 import FSSCAdmin from './fssc/FSSCAdmin';
 
@@ -24,7 +25,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [formData, setFormData] = useState<Partial<Insight>>({
     tag: 'Logistics',
     title: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayString(),
     imageUrl: '',
     content: '',
     author: '',
@@ -208,7 +209,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
       setFormData({
         tag: 'Logistics',
         title: '',
-        date: new Date().toISOString().split('T')[0],
+        date: getTodayString(),
         imageUrl: '',
         content: '',
         author: '',
@@ -680,7 +681,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                             setFormData({
                               tag: 'Logistics',
                               title: '',
-                              date: new Date().toISOString().split('T')[0],
+                              date: getTodayString(),
                               imageUrl: '',
                               content: '',
                               author: '',

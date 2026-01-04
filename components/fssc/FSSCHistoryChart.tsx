@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { FSSCRecord, CurrencyType, AIRLINE_CODES } from '../../types/fssc';
+import { getTodayString } from '../../lib/date';
 
 interface FSSCHistoryChartProps {
   records: FSSCRecord[];
@@ -21,7 +22,7 @@ const FSSCHistoryChart: React.FC<FSSCHistoryChartProps> = ({ records }) => {
 
   // localStorage에서 환율 가져오기
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayString();
     const cached = localStorage.getItem(`unipass_rates_${today}`);
     if (cached) {
       try {

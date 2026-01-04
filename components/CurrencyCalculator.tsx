@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { getTodayString, getLocalDateString } from '../lib/date';
 
 // Types
 interface ExchangeRate {
@@ -65,7 +66,7 @@ const CurrencyCalculator: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('unipass');
 
   // State
-  const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState<string>(getTodayString());
   const [currentRates, setCurrentRates] = useState<ExchangeRate | null>(null);
   const [allCurrencies, setAllCurrencies] = useState<CurrencyNames>({});
   const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(['USD', 'EUR', 'CHF']);
@@ -583,7 +584,7 @@ const CurrencyCalculator: React.FC = () => {
     const lastFriday = new Date(lastMonday);
     lastFriday.setDate(lastMonday.getDate() + 4);
 
-    const formatDate = (d: Date) => d.toISOString().split('T')[0];
+    const formatDate = (d: Date) => getLocalDateString(d);
 
     return {
       start: formatDate(lastMonday),

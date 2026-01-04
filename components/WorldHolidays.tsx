@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { getTodayString } from '../lib/date';
 
 interface Holiday {
   date: string; // YYYY-MM-DD
@@ -1186,7 +1187,7 @@ const WorldHolidays: React.FC = () => {
 
                 const holidays = getHolidaysForDate(day);
                 const dateStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const isToday = dateStr === new Date().toISOString().split('T')[0];
+                const isToday = dateStr === getTodayString();
                 const dayOfWeek = new Date(selectedYear, selectedMonth, day).getDay();
                 const hasHoliday = holidays.length > 0;
 

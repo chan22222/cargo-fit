@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Insight, InsightFormData } from '../types/insights';
+import { getTodayString } from '../lib/date';
 
 interface InsightsAdminProps {
   onClose: () => void;
@@ -12,7 +13,7 @@ const InsightsAdmin: React.FC<InsightsAdminProps> = ({ onClose }) => {
   const [formData, setFormData] = useState<InsightFormData>({
     tag: 'Logistics',
     title: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayString(),
     imageUrl: '',
     content: '',
     author: '',
@@ -91,7 +92,7 @@ const InsightsAdmin: React.FC<InsightsAdminProps> = ({ onClose }) => {
     setFormData({
       tag: 'Logistics',
       title: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayString(),
       imageUrl: '',
       content: '',
       author: '',

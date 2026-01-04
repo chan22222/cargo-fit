@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import { db } from '../../lib/supabase';
 import { FSSCRecord, FSSCFormData, FSSCType, CurrencyType, AIRLINE_CODES, CHARGE_CODES } from '../../types/fssc';
+import { getTodayString, getLocalDateString, getOffsetDateString } from '../../lib/date';
 
 interface FSSCAdminProps {
   embedded?: boolean;
@@ -18,7 +19,7 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
   const itemsPerPage = 100;
 
   // 동기화 관련
-  const [syncDate, setSyncDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [syncDate, setSyncDate] = useState(() => getTodayString());
   const [isSyncing, setIsSyncing] = useState(false);
 
   // 엑셀 업로드 관련
@@ -33,8 +34,8 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
     type: 'FS',
     carrier_code: '',
     carrier_name: '',
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    start_date: getTodayString(),
+    end_date: getOffsetDateString(30),
     currency: 'KRW',
     min_charge: null,
     over_charge: null,
@@ -101,15 +102,14 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
 
   // 만료된 데이터 감지 (기한 없음 제외)
   const expiredRecords = useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayString();
     return records.filter(r => !isNoExpiry(r.end_date) && r.end_date < today);
   }, [records]);
 
   // 곧 만료될 데이터 (7일 이내, 기한 없음 제외)
   const expiringRecords = useMemo(() => {
-    const today = new Date();
-    const weekLater = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-    const todayStr = today.toISOString().split('T')[0];
+    const todayStr = getTodayString();
+    const weekLater = getOffsetDateString(7);
     return records.filter(r => !isNoExpiry(r.end_date) && r.end_date >= todayStr && r.end_date <= weekLater);
   }, [records]);
 
@@ -173,11 +173,11 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
 
           // 날짜 파싱 (엑셀 시리얼 넘버 또는 문자열)
           const parseDate = (val: any): string => {
-            if (!val) return new Date().toISOString().split('T')[0];
+            if (!val) return getTodayString();
             if (typeof val === 'number') {
               // 엑셀 시리얼 넘버
               const date = new Date((val - 25569) * 86400 * 1000);
-              return date.toISOString().split('T')[0];
+              return getLocalDateString(date);
             }
             let str = String(val).trim();
             // 슬래시를 하이픈으로 변환
@@ -192,7 +192,7 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
               const validDay = parseInt(day) > 31 || parseInt(day) < 1 ? '01' : day;
               return `${year}-${validMonth}-${validDay}`;
             }
-            return new Date().toISOString().split('T')[0];
+            return getTodayString();
           };
 
           parsed.push({
@@ -260,8 +260,8 @@ const FSSCAdmin: React.FC<FSSCAdminProps> = ({ embedded = false }) => {
       type: 'FS',
       carrier_code: '',
       carrier_name: '',
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      start_date: getTodayString(),
+      end_date: getOffsetDateString(30),
       currency: 'KRW',
       min_charge: null,
       over_charge: null,

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Insight } from '../types/insights';
 import { FSSCRecord, AIRLINE_CODES } from '../types/fssc';
 import { db } from '../lib/supabase';
+import { getTodayString, getLocalDateString } from '../lib/date';
 import ContainerDemo from './ContainerDemo';
 import FeedbackModal from './FeedbackModal';
 import CoffeeDonationModal from './CoffeeDonationModal';
@@ -165,7 +166,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
   useEffect(() => {
     const loadFsscData = async () => {
       try {
-        const today = new Date().toISOString().split('T')[0];
+        const today = getTodayString();
         const { data, error } = await db.fssc.getFiltered({ date: today });
         if (!error && data) {
           setFsscRecords(data);
@@ -209,7 +210,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       for (let daysBack = 0; daysBack <= 7; daysBack++) {
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() - daysBack);
-        const dateStr = targetDate.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(targetDate);
 
         // Check cache first
         const cacheKey = `unipass_rates_${dateStr}`;
@@ -260,7 +261,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
 
       // Fallback to Hana Bank
       try {
-        const dateStr = today.toISOString().split('T')[0];
+        const dateStr = getLocalDateString(today);
         const dateStrCompact = dateStr.replace(/-/g, '');
 
         const hanaUrl = 'https://www.kebhana.com/cms/rate/wpfxd651_01i_01.do';
