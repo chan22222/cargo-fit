@@ -128,7 +128,19 @@ const App: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [mobileAccordion, setMobileAccordion] = useState<string | null>(null);
+
+  // ESC 키로 메가 메뉴 닫기
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && megaMenuOpen) {
+        setMegaMenuOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [megaMenuOpen]);
 
 
   // Container Simulator State
@@ -849,23 +861,23 @@ const App: React.FC = () => {
            {/* 시뮬레이터 Dropdown */}
            <div
              className="relative"
-             onMouseEnter={() => setOpenDropdown('simulator')}
-             onMouseLeave={() => setOpenDropdown(null)}
+             onMouseEnter={() => !megaMenuOpen && setOpenDropdown('simulator')}
+             onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => setOpenDropdown(openDropdown === 'simulator' ? null : 'simulator')}
+               onClick={() => { setMegaMenuOpen(!megaMenuOpen); setOpenDropdown(null); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'container' || activeTab === 'pallet' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
                <span className="relative">시뮬레이터</span>
-               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'simulator' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'simulator' || megaMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
                {(activeTab === 'container' || activeTab === 'pallet') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
              </button>
-             <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'simulator' ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+             <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'simulator' && !megaMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[180px] overflow-hidden">
                    <button
                      onClick={() => { setActiveTab('container'); navigate('/container'); setOpenDropdown(null); }}
@@ -895,23 +907,23 @@ const App: React.FC = () => {
            {/* 화물 추적 Dropdown */}
            <div
              className="relative"
-             onMouseEnter={() => setOpenDropdown('tracker')}
-             onMouseLeave={() => setOpenDropdown(null)}
+             onMouseEnter={() => !megaMenuOpen && setOpenDropdown('tracker')}
+             onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => setOpenDropdown(openDropdown === 'tracker' ? null : 'tracker')}
+               onClick={() => { setMegaMenuOpen(!megaMenuOpen); setOpenDropdown(null); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'tracker' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
                <span className="relative">화물 추적</span>
-               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'tracker' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'tracker' || megaMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
                {activeTab === 'tracker' && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
              </button>
-             <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'tracker' ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+             <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'tracker' && !megaMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[160px] overflow-hidden">
                    <button
                      onClick={() => { setActiveTab('tracker'); setTrackerCategory('container'); navigate('/tracker'); setOpenDropdown(null); }}
@@ -968,23 +980,23 @@ const App: React.FC = () => {
            {/* 계산기 Dropdown */}
            <div
              className="relative"
-             onMouseEnter={() => setOpenDropdown('calculator')}
-             onMouseLeave={() => setOpenDropdown(null)}
+             onMouseEnter={() => !megaMenuOpen && setOpenDropdown('calculator')}
+             onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => setOpenDropdown(openDropdown === 'calculator' ? null : 'calculator')}
+               onClick={() => { setMegaMenuOpen(!megaMenuOpen); setOpenDropdown(null); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'cbm' || activeTab === 'currency' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
                <span className="relative">계산기</span>
-               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'calculator' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'calculator' || megaMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
                {(activeTab === 'cbm' || activeTab === 'currency') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
              </button>
-             <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'calculator' ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+             <div className={`absolute top-full left-1/2 -translate-x-1/2 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'calculator' && !megaMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[180px] overflow-hidden">
                    <button
                      onClick={() => { setActiveTab('cbm'); navigate('/cbm'); setOpenDropdown(null); }}
@@ -1014,23 +1026,23 @@ const App: React.FC = () => {
            {/* 정보 Dropdown */}
            <div
              className="relative"
-             onMouseEnter={() => setOpenDropdown('info')}
-             onMouseLeave={() => setOpenDropdown(null)}
+             onMouseEnter={() => !megaMenuOpen && setOpenDropdown('info')}
+             onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
            >
              <button
-               onClick={() => setOpenDropdown(openDropdown === 'info' ? null : 'info')}
+               onClick={() => { setMegaMenuOpen(!megaMenuOpen); setOpenDropdown(null); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
                  activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
                <span className="relative">수/출입 정보</span>
-               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'info' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'info' || megaMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
                {(activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
              </button>
-             <div className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'info' ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+             <div className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'info' && !megaMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[180px] overflow-hidden">
                    <button
                      onClick={() => { setActiveTab('worldclock'); navigate('/worldclock'); setOpenDropdown(null); }}
@@ -1081,6 +1093,159 @@ const App: React.FC = () => {
                </div>
            </div>
         </nav>
+
+        {/* Mega Menu */}
+        {megaMenuOpen && (
+          <div className="hidden md:block absolute top-full left-0 right-0 bg-white border-b border-slate-200 shadow-xl z-50">
+            <div className="max-w-6xl mx-auto px-6 py-6">
+              <div className="grid grid-cols-4 gap-8">
+                {/* 시뮬레이터 */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">시뮬레이터</h3>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => { setActiveTab('container'); navigate('/container'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'container' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">3D 컨테이너</div>
+                      <div className="text-xs text-slate-400">적재 시뮬레이션</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('pallet'); navigate('/pallet'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'pallet' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">3D 팔레트</div>
+                      <div className="text-xs text-slate-400">팔레타이징 시뮬레이션</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 화물 추적 */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">화물 추적</h3>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => { setActiveTab('tracker'); setTrackerCategory('container'); navigate('/tracker'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'tracker' && trackerCategory === 'container' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">컨테이너</div>
+                      <div className="text-xs text-slate-400">해상 B/L 추적</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('tracker'); setTrackerCategory('air'); navigate('/tracker/air'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'tracker' && trackerCategory === 'air' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">항공 화물</div>
+                      <div className="text-xs text-slate-400">AWB 추적</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('tracker'); setTrackerCategory('courier'); navigate('/tracker/courier'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'tracker' && trackerCategory === 'courier' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">택배/특송</div>
+                      <div className="text-xs text-slate-400">국내외 택배</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('tracker'); setTrackerCategory('post'); navigate('/tracker/post'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'tracker' && trackerCategory === 'post' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">우편/EMS</div>
+                      <div className="text-xs text-slate-400">국제우편 추적</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('tracker'); setTrackerCategory('rail'); navigate('/tracker/rail'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'tracker' && trackerCategory === 'rail' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">철도</div>
+                      <div className="text-xs text-slate-400">철도화물 추적</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 계산기 */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">계산기</h3>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => { setActiveTab('cbm'); navigate('/cbm'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'cbm' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">CBM 계산기</div>
+                      <div className="text-xs text-slate-400">CBM, R/T, M/T 계산</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('currency'); navigate('/currency'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'currency' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">환율 계산기</div>
+                      <div className="text-xs text-slate-400">실시간 환율</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('fssc'); navigate('/fssc'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'fssc' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">항공 유류할증료</div>
+                      <div className="text-xs text-slate-400">FSC/SCC 조회</div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 수/출입 정보 */}
+                <div>
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">수/출입 정보</h3>
+                  <div className="space-y-1">
+                    <button
+                      onClick={() => { setActiveTab('worldclock'); navigate('/worldclock'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'worldclock' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">세계 시간</div>
+                      <div className="text-xs text-slate-400">주요 물류 거점 현지시간</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('holidays'); navigate('/holidays'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'holidays' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">세계 공휴일 달력</div>
+                      <div className="text-xs text-slate-400">전세계 국가별 휴일</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('incoterms'); navigate('/incoterms'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'incoterms' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">인코텀즈</div>
+                      <div className="text-xs text-slate-400">무역 거래조건</div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('regulations'); navigate('/regulations'); setMegaMenuOpen(false); }}
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all ${activeTab === 'regulations' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <div className="font-bold text-sm">수입 규제</div>
+                      <div className="text-xs text-slate-400">국가별 수입 규제</div>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* 닫기 버튼 */}
+              <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+                <button
+                  onClick={() => setMegaMenuOpen(false)}
+                  className="text-sm text-slate-400 hover:text-slate-600"
+                >
+                  닫기 (ESC)
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mega Menu Overlay */}
+        {megaMenuOpen && (
+          <div
+            className="hidden md:block fixed inset-0 bg-black/20 z-40"
+            onClick={() => setMegaMenuOpen(false)}
+          />
+        )}
 
         {/* Mobile Menu Button */}
         <button
