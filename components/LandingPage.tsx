@@ -63,9 +63,10 @@ interface LandingPageProps {
   onNavigateToRegulations?: () => void;
   onNavigateToTracker?: () => void;
   onNavigateToFssc?: () => void;
+  onNavigateToWorldClock?: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations, onNavigateToTracker, onNavigateToFssc }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, onNavigateToInsights, onNavigateToInsight, onNavigateToContainer, onNavigateToPallet, onNavigateToIncoterms, onNavigateToHolidays, onNavigateToCbm, onNavigateToCurrency, onNavigateToRegulations, onNavigateToTracker, onNavigateToFssc, onNavigateToWorldClock }) => {
   const [times, setTimes] = useState<Record<string, string>>({});
   const [insights, setInsights] = useState<Insight[]>([]);
   const [fsscRecords, setFsscRecords] = useState<FSSCRecord[]>([]);
@@ -531,7 +532,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                   </div>
                   <div className={`grid gap-4 ${selectedCurrencies.length <= 3 ? 'sm:grid-cols-3' : selectedCurrencies.length <= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
                      {selectedCurrencies.map((code) => (
-                        <div key={code} className="bg-slate-50 border border-slate-100 p-5 rounded-[20px] hover:bg-slate-100 hover:border-blue-200 transition-all group">
+                        <div
+                           key={code}
+                           className="bg-slate-50 border border-slate-100 p-5 rounded-[20px] hover:bg-slate-100 hover:border-blue-200 transition-all group cursor-pointer"
+                           onClick={onNavigateToCurrency}
+                        >
                            <div className="flex items-center gap-2 mb-2">
                               <span className="text-lg">{CURRENCY_SYMBOLS[code] || ''}</span>
                               <span className="text-[10px] text-slate-500 font-bold">{code} / KRW</span>
@@ -545,9 +550,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         </div>
                      ))}
                   </div>
-                  <div className="text-xs text-slate-400 mt-4 flex items-center gap-2">
-                     <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                     {rateSource ? `${rateSource} (${rateDate})` : '환율 정보 로딩 중...'}
+                  <div className="text-xs text-slate-400 mt-4 flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                        <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                        {rateSource ? `${rateSource} (${rateDate})` : '환율 정보 로딩 중...'}
+                     </div>
+                     <button
+                        onClick={onNavigateToCurrency}
+                        className="text-blue-600 hover:text-blue-700 font-bold"
+                     >
+                        더 많은 정보 보기 →
+                     </button>
                   </div>
                </div>
 
@@ -570,21 +583,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         const cityData = WORLD_CITIES[city];
                         const time = times[city] || '--:--';
                         return (
-                           <div key={city} className="flex flex-col items-center group">
-                              <div className="w-[70px] h-[70px] rounded-full border border-slate-200 flex items-center justify-center mb-2 bg-slate-50 relative group-hover:border-blue-300 transition-colors">
+                           <div
+                              key={city}
+                              className="flex flex-col items-center group cursor-pointer"
+                              onClick={onNavigateToWorldClock}
+                           >
+                              <div className="w-[70px] h-[70px] rounded-full border border-slate-200 flex items-center justify-center mb-2 bg-slate-50 relative group-hover:border-blue-300 group-hover:bg-blue-50 transition-colors">
                                  <div className="absolute inset-2 rounded-full border-t-2 border-blue-500 animate-[spin_4s_linear_infinite]"></div>
                                  <span className="text-xl">{cityData?.flag || '🌍'}</span>
                               </div>
-                              <div className="text-[9px] font-black text-slate-500 uppercase tracking-wider text-center leading-tight">{city}</div>
+                              <div className="text-[9px] font-black text-slate-500 uppercase tracking-wider text-center leading-tight group-hover:text-blue-600 transition-colors">{city}</div>
                               <div className="text-[10px] text-slate-400">{cityData?.country || ''}</div>
                               <div className="text-base font-black text-blue-600">{time}</div>
                            </div>
                         );
                      })}
                   </div>
-                  <div className="text-xs text-slate-400 mt-1 flex items-center gap-2">
-                     <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
-                     실시간 업데이트
+                  <div className="text-xs text-slate-400 mt-1 flex items-center justify-between">
+                     <div className="flex items-center gap-2">
+                        <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                        실시간 업데이트
+                     </div>
+                     <button
+                        onClick={onNavigateToWorldClock}
+                        className="text-blue-600 hover:text-blue-700 font-bold"
+                     >
+                        더 많은 정보 보기 →
+                     </button>
                   </div>
                </div>
             </div>

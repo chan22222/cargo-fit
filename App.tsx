@@ -24,6 +24,7 @@ import SelectionModal from './components/SelectionModal';
 import AdSense from './components/AdSense';
 import { Tracker } from './components/tracker';
 import FSSC from './components/fssc';
+import WorldClock from './components/WorldClock';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -31,7 +32,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
   const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
 
@@ -70,6 +71,8 @@ const App: React.FC = () => {
         setCurrentRoute('regulations');
       } else if (path === '/fssc') {
         setCurrentRoute('fssc');
+      } else if (path === '/worldclock') {
+        setCurrentRoute('worldclock');
       } else if (path.startsWith('/tracker')) {
         setCurrentRoute('tracker');
         setActiveTab('tracker');
@@ -121,7 +124,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc' | 'worldclock'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -1025,10 +1028,19 @@ const App: React.FC = () => {
                <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'info' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                </svg>
-               {(activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
+               {(activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
              </button>
              <div className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'info' ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
                <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[180px] overflow-hidden">
+                   <button
+                     onClick={() => { setActiveTab('worldclock'); navigate('/worldclock'); setOpenDropdown(null); }}
+                     className={`w-full px-5 py-2.5 text-center transition-all ${
+                       activeTab === 'worldclock' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                     }`}
+                   >
+                     <div className="text-sm font-bold">세계 시간</div>
+                     <div className="text-[10px] text-slate-400">주요 물류 거점 현지시간</div>
+                   </button>
                    <button
                      onClick={() => { setActiveTab('holidays'); navigate('/holidays'); setOpenDropdown(null); }}
                      className={`w-full px-5 py-2.5 text-center transition-all ${
@@ -1282,7 +1294,7 @@ const App: React.FC = () => {
                 <button
                   onClick={() => setMobileAccordion(mobileAccordion === 'info' ? null : 'info')}
                   className={`w-full text-left px-4 py-3 font-bold transition-all flex items-center justify-between ${
-                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   수/출입 정보
@@ -1292,6 +1304,19 @@ const App: React.FC = () => {
                 </button>
                 {mobileAccordion === 'info' && (
                   <div className="bg-slate-50 py-1">
+                    <button
+                      onClick={() => { setActiveTab('worldclock'); navigate('/worldclock'); setMobileMenuOpen(false); }}
+                      className={`w-full text-left px-6 py-2.5 text-sm font-medium transition-all flex items-center gap-3 ${
+                        activeTab === 'worldclock' ? 'text-blue-600' : 'text-slate-600'
+                      }`}
+                    >
+                      <span className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </span>
+                      세계 시간
+                    </button>
                     <button
                       onClick={() => { setActiveTab('incoterms'); navigate('/incoterms'); setMobileMenuOpen(false); }}
                       className={`w-full text-left px-6 py-2.5 text-sm font-medium transition-all flex items-center gap-3 ${
@@ -1369,6 +1394,7 @@ const App: React.FC = () => {
           onNavigateToRegulations={() => { setActiveTab('regulations'); navigate('/regulations'); }}
           onNavigateToTracker={() => { setActiveTab('tracker'); setTrackerCategory('container'); navigate('/tracker'); }}
           onNavigateToFssc={() => { setActiveTab('fssc'); navigate('/fssc'); }}
+          onNavigateToWorldClock={() => { setActiveTab('worldclock'); navigate('/worldclock'); }}
         />
       ) : activeTab === 'privacy' ? (
         <PrivacyPolicy />
@@ -1394,6 +1420,8 @@ const App: React.FC = () => {
         />
       ) : activeTab === 'fssc' ? (
         <FSSC onNavigateBack={() => { setActiveTab('home'); navigate('/'); }} />
+      ) : activeTab === 'worldclock' ? (
+        <WorldClock />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
