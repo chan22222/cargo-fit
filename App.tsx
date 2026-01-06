@@ -26,6 +26,7 @@ import { Tracker } from './components/tracker';
 import FSSC from './components/fssc';
 import WorldClock from './components/WorldClock';
 import FeedbackModal from './components/FeedbackModal';
+import NotFound from './components/NotFound';
 import { auth } from './lib/supabase';
 
 const App: React.FC = () => {
@@ -33,7 +34,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'notfound'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
   const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -93,9 +94,11 @@ const App: React.FC = () => {
         }
       } else if (path === '/admin') {
         setCurrentRoute('admin');
-      } else {
+      } else if (path === '/') {
         setCurrentRoute('home');
         setActiveTab('home');
+      } else {
+        setCurrentRoute('notfound');
       }
     };
 
@@ -808,6 +811,16 @@ const App: React.FC = () => {
         <SpeedInsights />
         <Analytics />
         <TermsOfService />
+      </>
+    );
+  }
+
+  if (currentRoute === 'notfound') {
+    return (
+      <>
+        <SpeedInsights />
+        <Analytics />
+        <NotFound onNavigateHome={() => navigate('/')} />
       </>
     );
   }
