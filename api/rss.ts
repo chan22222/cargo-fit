@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createClient } from '@supabase/supabase-js';
 
-const SITE_URL = 'https://www.shipdago.com';
+const SITE_URL = 'https://shipdago.com';
 const SITE_TITLE = 'SHIPDAGO 인사이트';
 const SITE_DESCRIPTION = '포워딩/무역 업계의 최신 트렌드와 인사이트';
 
