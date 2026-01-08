@@ -32,7 +32,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
 }) => {
   const [name, setName] = useState('New Item');
   const [dims, setDims] = useState<Dimensions>({ width: 1000, height: 1000, length: 1000 });
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState('1');
   const [weight, setWeight] = useState<string>('1');
   const [color, setColor] = useState(DEFAULT_CARGO_COLORS[0]);
   const [customPresets, setCustomPresets] = useState<{w: number, h: number, l: number, n: string}[]>([]);
@@ -42,7 +42,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
     onAddCargo({
       name,
       dimensions: dims,
-      quantity,
+      quantity: Math.min(100, Math.max(1, Number(quantity) || 1)),
       weight: weight ? Number(weight) : 0,
       color
     });
@@ -158,13 +158,19 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
              <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량</label>
-              <input 
-                type="number" 
-                value={quantity} 
-                onChange={e => setQuantity(Number(e.target.value))} 
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량 (최대 100)</label>
+              <input
+                type="number"
+                value={quantity}
+                onChange={e => setQuantity(e.target.value)}
+                onFocus={() => setQuantity('')}
+                onBlur={e => {
+                  const val = Number(e.target.value);
+                  if (!val || val < 1) setQuantity('1');
+                  else if (val > 100) setQuantity('100');
+                }}
                 className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                min="1" max="500"
+                min="1" max="100"
               />
             </div>
             <div className="space-y-1.5">

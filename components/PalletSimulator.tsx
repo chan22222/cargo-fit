@@ -38,7 +38,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   // 새 아이템 추가 폼
   const [newItemName, setNewItemName] = useState('박스');
   const [newItemDims, setNewItemDims] = useState<Dimensions>({ width: 300, height: 300, length: 400 });
-  const [newItemQuantity, setNewItemQuantity] = useState(1);
+  const [newItemQuantity, setNewItemQuantity] = useState('1');
 
   const svgRef = useRef<SVGSVGElement>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
@@ -258,8 +258,9 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   const addItem = () => {
     if (!newItemName) return;
 
+    const qty = Math.min(100, Math.max(1, Number(newItemQuantity) || 1));
     const newItems: PalletItem[] = [];
-    for (let i = 0; i < newItemQuantity; i++) {
+    for (let i = 0; i < qty; i++) {
       const currentItems = [...palletItems, ...newItems];
 
       // 회전을 고려한 최적 배치
@@ -973,13 +974,20 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량</label>
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량 (최대 100)</label>
                 <input
                   type="number"
                   value={newItemQuantity}
-                  onChange={(e) => setNewItemQuantity(Math.max(1, Number(e.target.value)))}
+                  onChange={(e) => setNewItemQuantity(e.target.value)}
+                  onFocus={() => setNewItemQuantity('')}
+                  onBlur={(e) => {
+                    const val = Number(e.target.value);
+                    if (!val || val < 1) setNewItemQuantity('1');
+                    else if (val > 100) setNewItemQuantity('100');
+                  }}
                   className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                   min="1"
+                  max="100"
                 />
               </div>
 
