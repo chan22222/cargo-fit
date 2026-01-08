@@ -379,90 +379,46 @@ const App: React.FC = () => {
       ? packedItems.filter(p => p.id !== newItem.id)
       : [...packedItems];
 
-    // 복합 화물인 경우 특별 처리
-    if (item.isCompound && item.items) {
-      // 복합 화물을 하나의 단위로 배치
-      for (let i = 0; i < item.quantity; i++) {
-        // 회전을 고려한 최적 배치
-        const orientations = getAllOrientations(item.dimensions);
-        let bestPosition = null;
-        let bestOrientation = item.dimensions;
-        let lowestY = Infinity;
+    // 화물 처리 (회전 고려한 최적 배치)
+    for (let i = 0; i < item.quantity; i++) {
+      const orientations = getAllOrientations(item.dimensions);
+      let bestPosition = null;
+      let bestOrientation = item.dimensions;
+      let lowestY = Infinity;
 
-        for (const orientation of orientations) {
-          const position = item.packingMode === 'inner-first'
-            ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
-            : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
+      for (const orientation of orientations) {
+        const position = item.packingMode === 'inner-first'
+          ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
+          : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
 
-          if (position) {
-            if (item.packingMode === 'inner-first') {
-              // 안쪽부터는 첫 번째 유효한 위치 선택
-              bestPosition = position;
-              bestOrientation = orientation;
-              break;
-            } else if (position.y < lowestY) {
-              // 바닥부터는 가장 낮은 위치 선택
-              lowestY = position.y;
-              bestPosition = position;
-              bestOrientation = orientation;
-            }
+        if (position) {
+          if (item.packingMode === 'inner-first') {
+            // 안쪽부터는 첫 번째 유효한 위치 선택
+            bestPosition = position;
+            bestOrientation = orientation;
+            break;
+          } else if (position.y < lowestY) {
+            // 바닥부터는 가장 낮은 위치 선택
+            lowestY = position.y;
+            bestPosition = position;
+            bestOrientation = orientation;
           }
-        }
-
-        if (bestPosition) {
-          const newInstance: PackedItem = {
-            ...item,
-            uniqueId: `${item.id}-${i}-${Date.now()}`,
-            dimensions: bestOrientation,
-            weight: item.weight,
-            position: bestPosition
-          };
-          currentPackedItems.push(newInstance);
         }
       }
-    } else {
-      // 일반 화물 처리 (회전 고려한 최적 배치)
-      for (let i = 0; i < item.quantity; i++) {
-        // 회전을 고려한 최적 배치
-        const orientations = getAllOrientations(item.dimensions);
-        let bestPosition = null;
-        let bestOrientation = item.dimensions;
-        let lowestY = Infinity;
 
-        for (const orientation of orientations) {
-          const position = item.packingMode === 'inner-first'
-            ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
-            : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
-
-          if (position) {
-            if (item.packingMode === 'inner-first') {
-              // 안쪽부터는 첫 번째 유효한 위치 선택
-              bestPosition = position;
-              bestOrientation = orientation;
-              break;
-            } else if (position.y < lowestY) {
-              // 바닥부터는 가장 낮은 위치 선택
-              lowestY = position.y;
-              bestPosition = position;
-              bestOrientation = orientation;
-            }
-          }
-        }
-
-        if (bestPosition) {
-          const newInstance: PackedItem = {
-            ...item,
-            uniqueId: `${item.id}-${i}-${Date.now()}`,
-            dimensions: bestOrientation,
-            weight: item.weight,
-            position: bestPosition
-          };
-          currentPackedItems.push(newInstance);
-        } else {
-          // 배치할 수 없으면 경고
-          alert(`${item.name} ${i + 1}/${item.quantity}개를 배치할 공간이 없습니다.`);
-          break;
-        }
+      if (bestPosition) {
+        const newInstance: PackedItem = {
+          ...item,
+          uniqueId: `${item.id}-${i}-${Date.now()}`,
+          dimensions: bestOrientation,
+          weight: item.weight,
+          position: bestPosition
+        };
+        currentPackedItems.push(newInstance);
+      } else {
+        // 배치할 수 없으면 경고
+        alert(`${item.name} ${i + 1}/${item.quantity}개를 배치할 공간이 없습니다.`);
+        break;
       }
     }
 
@@ -522,85 +478,44 @@ const App: React.FC = () => {
     const arrangedItems: PackedItem[] = [];
 
     for (const cargo of sortedCargo) {
-      if (cargo.isCompound && cargo.items) {
-        // 복합 화물 처리
-        for (let i = 0; i < cargo.quantity; i++) {
-          const orientations = getAllOrientations(cargo.dimensions);
-          let bestPosition = null;
-          let bestOrientation = cargo.dimensions;
-          let bestScore = Infinity;
+      for (let i = 0; i < cargo.quantity; i++) {
+        const orientations = getAllOrientations(cargo.dimensions);
+        let bestPosition = null;
+        let bestOrientation = cargo.dimensions;
+        let bestScore = Infinity;
 
-          for (const orientation of orientations) {
-            // 전역 packing mode에 따라 적절한 함수 사용
-            const position = globalPackingMode === 'inner-first'
-              ? findBestPositionInnerFirst(currentContainer, arrangedItems, orientation)
-              : findBestPositionBottomFirst(currentContainer, arrangedItems, orientation);
+        for (const orientation of orientations) {
+          // 전역 packing mode에 따라 적절한 함수 사용
+          const position = globalPackingMode === 'inner-first'
+            ? findBestPositionInnerFirst(currentContainer, arrangedItems, orientation)
+            : findBestPositionBottomFirst(currentContainer, arrangedItems, orientation);
 
-            if (position) {
-              // 점수: Y 위치가 낮을수록, 중심에 가까울수록 좋음
-              const score = position.y * 1000 +
-                           Math.abs(position.x + orientation.width/2 - currentContainer.width/2) +
-                           Math.abs(position.z + orientation.length/2 - currentContainer.length/2);
+          if (position) {
+            // inner-first일 때는 다른 점수 계산 사용
+            const score = globalPackingMode === 'inner-first'
+              ? (currentContainer.length - position.z - orientation.length) * 1000000 +
+                position.y * 1000 +
+                position.x
+              : position.y * 1000 +
+                Math.abs(position.x + orientation.width/2 - currentContainer.width/2) +
+                Math.abs(position.z + orientation.length/2 - currentContainer.length/2);
 
-              if (score < bestScore) {
-                bestScore = score;
-                bestPosition = position;
-                bestOrientation = orientation;
-              }
+            if (score < bestScore) {
+              bestScore = score;
+              bestPosition = position;
+              bestOrientation = orientation;
             }
-          }
-
-          if (bestPosition) {
-            arrangedItems.push({
-              ...cargo,
-              uniqueId: `${cargo.id}-${i}-${Date.now()}`,
-              dimensions: bestOrientation,
-              weight: cargo.weight,
-              position: bestPosition
-            });
           }
         }
-      } else {
-        // 일반 화물 처리
-        for (let i = 0; i < cargo.quantity; i++) {
-          const orientations = getAllOrientations(cargo.dimensions);
-          let bestPosition = null;
-          let bestOrientation = cargo.dimensions;
-          let bestScore = Infinity;
 
-          for (const orientation of orientations) {
-            // 전역 packing mode에 따라 적절한 함수 사용
-            const position = globalPackingMode === 'inner-first'
-              ? findBestPositionInnerFirst(currentContainer, arrangedItems, orientation)
-              : findBestPositionBottomFirst(currentContainer, arrangedItems, orientation);
-
-            if (position) {
-              // inner-first일 때는 다른 점수 계산 사용
-              const score = globalPackingMode === 'inner-first'
-                ? (currentContainer.length - position.z - orientation.length) * 1000000 +
-                  position.y * 1000 +
-                  position.x
-                : position.y * 1000 +
-                  Math.abs(position.x + orientation.width/2 - currentContainer.width/2) +
-                  Math.abs(position.z + orientation.length/2 - currentContainer.length/2);
-
-              if (score < bestScore) {
-                bestScore = score;
-                bestPosition = position;
-                bestOrientation = orientation;
-              }
-            }
-          }
-
-          if (bestPosition) {
-            arrangedItems.push({
-              ...cargo,
-              uniqueId: `${cargo.id}-${i}-${Date.now()}`,
-              dimensions: bestOrientation,
-              weight: cargo.weight,
-              position: bestPosition
-            });
-          }
+        if (bestPosition) {
+          arrangedItems.push({
+            ...cargo,
+            uniqueId: `${cargo.id}-${i}-${Date.now()}`,
+            dimensions: bestOrientation,
+            weight: cargo.weight,
+            position: bestPosition
+          });
         }
       }
     }

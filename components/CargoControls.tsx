@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { CargoItem, Dimensions } from '../types';
 import { DEFAULT_CARGO_COLORS } from '../constants';
-import PalletBuilder from './PalletBuilder';
 
 interface CargoControlsProps {
   onAddCargo: (cargo: Omit<CargoItem, 'id'> | CargoItem) => void;
@@ -37,14 +36,6 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
   const [weight, setWeight] = useState<string>('1');
   const [color, setColor] = useState(DEFAULT_CARGO_COLORS[0]);
   const [customPresets, setCustomPresets] = useState<{w: number, h: number, l: number, n: string}[]>([]);
-  const [showPalletBuilder, setShowPalletBuilder] = useState(false);
-  const [editingCargo, setEditingCargo] = useState<{
-    id: string;
-    name: string;
-    items: any[];
-    palletSize: Dimensions;
-    quantity: number;
-  } | undefined>(undefined);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -161,19 +152,6 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                     )}
                   </button>
                 ))}
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEditingCargo(undefined);
-                    setShowPalletBuilder(true);
-                  }}
-                  className="px-2.5 py-1 text-[9px] font-black bg-amber-50 border border-amber-200 text-amber-600 rounded-lg hover:bg-amber-100 transition-all flex items-center gap-1"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M11 17a1 1 0 001.447.894l4-2A1 1 0 0017 15V9.236a1 1 0 00-1.447-.894l-4 2a1 1 0 00-.553.894V17zM15.211 6.276a1 1 0 000-1.788l-4.764-2.382a1 1 0 00-.894 0L4.789 4.488a1 1 0 000 1.788l4.764 2.382a1 1 0 00.894 0l4.764-2.382zM4.447 8.342A1 1 0 003 9.236V15a1 1 0 00.553.894l4 2A1 1 0 009 17v-5.764a1 1 0 00-.553-.894l-4-2z" />
-                  </svg>
-                  + 팔레트 화물 적재
-                </button>
               </div>
             </div>
           </div>
@@ -291,9 +269,6 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center mb-0.5">
                       <div className="flex items-center gap-1.5 truncate flex-1">
-                        {item.isCompound && (
-                          <span className="px-1.5 py-0.5 text-[7px] bg-amber-100 text-amber-700 rounded font-black shrink-0">복합</span>
-                        )}
                         <p className={`font-black text-[11px] truncate ${selectedGroupId === item.id ? 'text-slate-900' : 'text-slate-700'}`}>
                           {item.name}
                         </p>
@@ -308,34 +283,12 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                       <span className="text-blue-600 font-black">{item.quantity}EA</span>
                       <span className="truncate opacity-60">
                         {item.dimensions.length}×{item.dimensions.width}×{item.dimensions.height}
-                        {item.isCompound && item.items && ` (${item.items.length}개 포함)`}
                       </span>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-1 pl-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    {item.isCompound && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setEditingCargo({
-                            id: item.id,
-                            name: item.name,
-                            items: item.items || [],
-                            palletSize: item.palletSize || { width: 1100, height: 150, length: 1100 },
-                            quantity: item.quantity
-                          });
-                          setShowPalletBuilder(true);
-                        }}
-                        className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
-                        title="수정"
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                        </svg>
-                      </button>
-                    )}
-                    {onRotateCargo && !item.isCompound && (
+                    {onRotateCargo && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onRotateCargo(item.id); }}
                         className="w-6 h-6 flex items-center justify-center text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-all"
@@ -393,47 +346,6 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
         </div>
       )}
 
-      {/* 3D 팔레트 빌더 */}
-      <PalletBuilder
-        isOpen={showPalletBuilder}
-        onClose={() => {
-          setShowPalletBuilder(false);
-          setEditingCargo(undefined);
-        }}
-        editingCargo={editingCargo}
-        onAddToList={(compoundCargo) => {
-          // 편집 모드인 경우 기존 항목 제거하고 새로 추가
-          if (editingCargo) {
-            onRemoveCargo(editingCargo.id);
-            // 편집 모드에서는 기존 ID를 유지
-            onAddCargo({
-              id: editingCargo.id, // 기존 ID 유지
-              name: compoundCargo.name,
-              dimensions: compoundCargo.dimensions,
-              quantity: compoundCargo.quantity,
-              weight: compoundCargo.weight,
-              color: '#8B4513',
-              isCompound: true,
-              items: compoundCargo.items,
-              palletSize: compoundCargo.palletSize
-            } as any); // 타입 캐스팅 (id 포함)
-          } else {
-            // 신규 추가인 경우
-            onAddCargo({
-              name: compoundCargo.name,
-              dimensions: compoundCargo.dimensions,
-              quantity: compoundCargo.quantity,
-              weight: compoundCargo.weight,
-              color: '#8B4513', // 복합 화물은 팔레트 색상 사용
-              isCompound: true,
-              items: compoundCargo.items,
-              palletSize: compoundCargo.palletSize
-            });
-          }
-          setShowPalletBuilder(false);
-          setEditingCargo(undefined);
-        }}
-      />
     </div>
   );
 };

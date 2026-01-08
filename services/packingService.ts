@@ -16,36 +16,22 @@ export const calculatePacking = (
   // Expand the cargo list into individual items
   const expandedList: { item: CargoItem; uniqueId: string }[] = [];
   cargoList.forEach(item => {
-    // 복합 화물은 그대로 유지 (구조 보존)
-    if (item.isCompound) {
-      for (let i = 0; i < item.quantity; i++) {
-        expandedList.push({ item, uniqueId: `${item.id}-${i}` });
-      }
-    } else {
-      for (let i = 0; i < item.quantity; i++) {
-        expandedList.push({ item, uniqueId: `${item.id}-${i}` });
-      }
+    for (let i = 0; i < item.quantity; i++) {
+      expandedList.push({ item, uniqueId: `${item.id}-${i}` });
     }
   });
 
-  // Sort logic: Pallets first (always at bottom), then Heavy items (Stability), then Largest Volume (Efficiency)
+  // Sort logic: Heavy items first (Stability), then Largest Volume (Efficiency)
   expandedList.sort((a, b) => {
-    const isPalletA = a.item.isCompound || a.item.name.includes('팔레트') || a.item.name.toLowerCase().includes('pallet');
-    const isPalletB = b.item.isCompound || b.item.name.includes('팔레트') || b.item.name.toLowerCase().includes('pallet');
-
-    // Primary sort: Pallets first (at the bottom)
-    if (isPalletA && !isPalletB) return -1;
-    if (!isPalletA && isPalletB) return 1;
-
     const weightA = a.item.weight || 0;
     const weightB = b.item.weight || 0;
 
-    // Secondary sort: Weight (Descending)
+    // Primary sort: Weight (Descending)
     if (weightB !== weightA) {
       return weightB - weightA;
     }
 
-    // Tertiary sort: Volume (Descending)
+    // Secondary sort: Volume (Descending)
     const volA = a.item.dimensions.width * a.item.dimensions.length * a.item.dimensions.height;
     const volB = b.item.dimensions.width * b.item.dimensions.length * b.item.dimensions.height;
     return volB - volA;
