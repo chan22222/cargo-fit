@@ -1168,13 +1168,14 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량 (최대 100)</label>
                   <input
                     type="number"
                     value={newItemQuantity}
-                    onChange={(e) => setNewItemQuantity(Math.max(1, Number(e.target.value)))}
+                    onChange={(e) => setNewItemQuantity(Math.min(100, Math.max(1, Number(e.target.value))))}
                     className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                     min="1"
+                    max="100"
                   />
                 </div>
 
@@ -1269,13 +1270,14 @@ const PalletBuilder: React.FC<PalletBuilderProps> = ({ isOpen, onClose, onAddToL
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">수량 (최대 100)</label>
                   <input
                     type="number"
                     value={quantity}
-                    onChange={(e) => setQuantity(Math.max(1, Number(e.target.value)))}
+                    onChange={(e) => setQuantity(Math.min(100, Math.max(1, Number(e.target.value))))}
                     className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
                     min="1"
+                    max="100"
                   />
                 </div>
               </div>
