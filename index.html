@@ -1,19 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="ko">
   <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-M22MZRLN');</script>
-    <!-- End Google Tag Manager -->
-
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://images.pexels.com">
-    <link rel="preconnect" href="https://pjrgfmqjfacvhumurlcw.supabase.co">
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="google-adsense-account" content="ca-pub-6070760100543970">
@@ -47,24 +34,42 @@
     <!-- RSS Feed -->
     <link rel="alternate" type="application/rss+xml" title="SHIPDAGO 인사이트" href="/rss">
 
-  <script type="importmap">
-{
-  "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "react-markdown": "https://esm.sh/react-markdown@^10.1.0"
-  }
-}
-</script>
-</head>
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://images.pexels.com">
+    <link rel="preconnect" href="https://pjrgfmqjfacvhumurlcw.supabase.co">
+
+    <!-- Critical CSS for initial loading (improves FCP) -->
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#0f172a}
+      #loading-skeleton{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(to bottom right,#f8fafc,#eff6ff)}
+      .loader{width:48px;height:48px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .loader-text{margin-top:16px;color:#64748b;font-size:14px;font-weight:500}
+      .loader-brand{font-size:24px;font-weight:900;color:#0f172a;margin-bottom:24px;letter-spacing:-0.02em}
+    </style>
+  </head>
   <body class="bg-white text-slate-900 font-sans antialiased overflow-x-hidden">
-    <!-- Google Tag Manager (noscript) -->
+    <!-- Loading skeleton (shows immediately, improves FCP) -->
+    <div id="loading-skeleton">
+      <div class="loader-brand">SHIPDAGO</div>
+      <div class="loader"></div>
+      <p class="loader-text">로딩 중...</p>
+    </div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+
+    <!-- Google Tag Manager (deferred for better FCP) -->
+    <script>
+      window.addEventListener('load', function() {
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','GTM-M22MZRLN');
+      });
+    </script>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M22MZRLN"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-    <!-- End Google Tag Manager (noscript) -->
-    <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>

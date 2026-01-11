@@ -3,6 +3,12 @@ import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import App from './App';
 
+// Hide loading skeleton when React is ready
+const loadingSkeleton = document.getElementById('loading-skeleton');
+if (loadingSkeleton) {
+  loadingSkeleton.style.display = 'none';
+}
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");
