@@ -206,26 +206,30 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     const fetchExchangeRates = async () => {
       const today = new Date();
 
-      // Try UNIPASS first (try today and previous days)
-      for (let daysBack = 0; daysBack <= 7; daysBack++) {
+      // Check unified cache first (valid for 6 hours)
+      const unifiedCacheKey = 'exchange_rates_cache';
+      const unifiedCache = localStorage.getItem(unifiedCacheKey);
+      if (unifiedCache) {
+        try {
+          const { rates, source, date, timestamp } = JSON.parse(unifiedCache);
+          const sixHours = 6 * 60 * 60 * 1000;
+          if (Date.now() - timestamp < sixHours && Object.keys(rates).length > 0) {
+            setExchangeRates(rates);
+            setRateSource(source);
+            setRateDate(date);
+            return;
+          }
+        } catch (e) {
+          localStorage.removeItem(unifiedCacheKey);
+        }
+      }
+
+      // Try UNIPASS (only try today and yesterday to reduce API calls)
+      for (let daysBack = 0; daysBack <= 1; daysBack++) {
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() - daysBack);
         const dateStr = getLocalDateString(targetDate);
 
-        // Check cache first
-        const cacheKey = `unipass_rates_${dateStr}`;
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-          const rates = JSON.parse(cached);
-          if (Object.keys(rates).length > 0) {
-            setExchangeRates(rates);
-            setRateSource('관세청 UNIPASS');
-            setRateDate(dateStr);
-            return;
-          }
-        }
-
-        // Fetch from UNIPASS
         try {
           const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
           const proxyUrl = `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`;
@@ -246,7 +250,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               });
 
               if (Object.keys(rates).length > 0) {
-                localStorage.setItem(cacheKey, JSON.stringify(rates));
+                // Save to unified cache
+                localStorage.setItem(unifiedCacheKey, JSON.stringify({
+                  rates,
+                  source: '관세청 UNIPASS',
+                  date: dateStr,
+                  timestamp: Date.now()
+                }));
                 setExchangeRates(rates);
                 setRateSource('관세청 UNIPASS');
                 setRateDate(dateStr);
@@ -278,34 +288,31 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           requestTarget: 'searchContentDiv'
         });
 
-        const proxyBases = [
-          'https://pr.refra2n-511.workers.dev/?url=',
-          'https://corsproxy.io/?url='
-        ];
+        // Only try workers proxy to reduce API calls
+        const proxyUrl = 'https://pr.refra2n-511.workers.dev/?url=' + encodeURIComponent(hanaUrl);
+        const response = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: hanaData.toString()
+        });
 
-        for (const proxyBase of proxyBases) {
-          try {
-            const proxyUrl = proxyBase + encodeURIComponent(hanaUrl);
-            const response = await fetch(proxyUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: hanaData.toString()
-            });
-
-            if (response.ok) {
-              const html = await response.text();
-              if (html.includes('<table')) {
-                const rates = parseHanaRates(html);
-                if (Object.keys(rates).length > 0) {
-                  setExchangeRates(rates);
-                  setRateSource('하나은행');
-                  setRateDate(dateStr);
-                  return;
-                }
-              }
+        if (response.ok) {
+          const html = await response.text();
+          if (html.includes('<table')) {
+            const rates = parseHanaRates(html);
+            if (Object.keys(rates).length > 0) {
+              // Save to unified cache
+              localStorage.setItem(unifiedCacheKey, JSON.stringify({
+                rates,
+                source: '하나은행',
+                date: dateStr,
+                timestamp: Date.now()
+              }));
+              setExchangeRates(rates);
+              setRateSource('하나은행');
+              setRateDate(dateStr);
+              return;
             }
-          } catch (e) {
-            continue;
           }
         }
       } catch (error) {
