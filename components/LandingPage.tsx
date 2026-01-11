@@ -231,19 +231,36 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         targetDate.setDate(today.getDate() - daysBack);
         const dateStr = getLocalDateString(targetDate);
 
-        try {
-          const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
-          const proxyUrl = `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`;
+        const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
+        const proxyUrls = [
+          `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`,
+          `https://corsproxy.io/?url=${encodeURIComponent(unipassUrl)}`,
+          `https://api.allorigins.win/get?url=${encodeURIComponent(unipassUrl)}`
+        ];
 
-          const response = await fetch(proxyUrl);
-          if (response.ok) {
-            const text = await response.text();
-            // Check if response is valid JSON (starts with { or [)
-            if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) {
-              continue; // Skip to next date if not JSON
+        for (const proxyUrl of proxyUrls) {
+          try {
+            const response = await fetch(proxyUrl);
+            if (!response.ok) continue;
+
+            let text = await response.text();
+
+            // allorigins.win returns wrapped response
+            if (proxyUrl.includes('allorigins.win')) {
+              try {
+                const json = JSON.parse(text);
+                text = json.contents;
+              } catch (e) {
+                continue;
+              }
             }
-            const jsonData = JSON.parse(text);
 
+            // Check if response is valid JSON
+            if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) {
+              continue;
+            }
+
+            const jsonData = JSON.parse(text);
             if (jsonData && jsonData.items && jsonData.items.length > 0) {
               const rates: { [key: string]: number } = {};
               jsonData.items.forEach((record: any) => {
@@ -255,7 +272,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               });
 
               if (Object.keys(rates).length > 0) {
-                // Save to unified cache
                 localStorage.setItem(unifiedCacheKey, JSON.stringify({
                   rates,
                   source: '관세청 UNIPASS',
@@ -268,9 +284,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                 return;
               }
             }
+          } catch (error) {
+            continue;
           }
-        } catch (error) {
-          console.log(`UNIPASS fetch failed for ${dateStr}:`, error);
         }
       }
 
