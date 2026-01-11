@@ -1,34 +1,46 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, Suspense, lazy } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
 import { ContainerType, CargoItem, PackedItem, ContainerSpec } from './types';
 import { CONTAINER_SPECS } from './constants';
 import { calculatePacking } from './services/packingService';
-import ContainerVisualizer from './components/ContainerVisualizer';
-import { CargoControls } from './components/CargoControls';
 import LandingPage from './components/LandingPage';
-import PalletSimulator from './components/PalletSimulator';
-import CurrencyCalculator from './components/CurrencyCalculator';
-import Incoterms from './components/Incoterms';
-import WorldHolidays from './components/WorldHolidays';
-import CbmCalculator from './components/CbmCalculator';
-import ImportRegulations from './components/ImportRegulations';
-import PrivacyPolicy from './components/PrivacyPolicy';
-import TermsOfService from './components/TermsOfService';
-import AdminDashboard from './components/AdminDashboard';
-import AdminLogin from './components/AdminLogin';
-import InsightDetail from './components/InsightDetail';
-import InsightsList from './components/InsightsList';
 import SelectionModal from './components/SelectionModal';
-import AdSense from './components/AdSense';
-import { Tracker } from './components/tracker';
-import FSSC from './components/fssc';
-import WorldClock from './components/WorldClock';
-import FeedbackModal from './components/FeedbackModal';
-import NotFound from './components/NotFound';
 import { auth } from './lib/supabase';
 import SEO, { schemas } from './components/SEO';
+
+// Lazy load components for code splitting
+const ContainerVisualizer = lazy(() => import('./components/ContainerVisualizer'));
+const CargoControls = lazy(() => import('./components/CargoControls').then(m => ({ default: m.CargoControls })));
+const PalletSimulator = lazy(() => import('./components/PalletSimulator'));
+const CurrencyCalculator = lazy(() => import('./components/CurrencyCalculator'));
+const Incoterms = lazy(() => import('./components/Incoterms'));
+const WorldHolidays = lazy(() => import('./components/WorldHolidays'));
+const CbmCalculator = lazy(() => import('./components/CbmCalculator'));
+const ImportRegulations = lazy(() => import('./components/ImportRegulations'));
+const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('./components/TermsOfService'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const AdminLogin = lazy(() => import('./components/AdminLogin'));
+const InsightDetail = lazy(() => import('./components/InsightDetail'));
+const InsightsList = lazy(() => import('./components/InsightsList'));
+const AdSense = lazy(() => import('./components/AdSense'));
+const Tracker = lazy(() => import('./components/tracker').then(m => ({ default: m.Tracker })));
+const FSSC = lazy(() => import('./components/fssc'));
+const WorldClock = lazy(() => import('./components/WorldClock'));
+const FeedbackModal = lazy(() => import('./components/FeedbackModal'));
+const NotFound = lazy(() => import('./components/NotFound'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="flex flex-col items-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <p className="mt-4 text-slate-600">로딩 중...</p>
+    </div>
+  </div>
+);
 
 const App: React.FC = () => {
   // Check if screen width is large enough
@@ -804,10 +816,12 @@ const App: React.FC = () => {
         />
         <SpeedInsights />
         <Analytics />
-        <InsightsList
-          onNavigateToInsight={handleNavigateToInsight}
-          onNavigateBack={handleNavigateBack}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <InsightsList
+            onNavigateToInsight={handleNavigateToInsight}
+            onNavigateBack={handleNavigateBack}
+          />
+        </Suspense>
       </>
     );
   }
@@ -817,11 +831,13 @@ const App: React.FC = () => {
       <>
         <SpeedInsights />
         <Analytics />
-        <InsightDetail
-          insightId={currentInsightId}
-          onNavigateBack={() => navigate('/insights')}
-          onNavigateToInsight={handleNavigateToInsight}
-        />
+        <Suspense fallback={<LoadingFallback />}>
+          <InsightDetail
+            insightId={currentInsightId}
+            onNavigateBack={() => navigate('/insights')}
+            onNavigateToInsight={handleNavigateToInsight}
+          />
+        </Suspense>
       </>
     );
   }
@@ -838,7 +854,9 @@ const App: React.FC = () => {
         />
         <SpeedInsights />
         <Analytics />
-        <PrivacyPolicy />
+        <Suspense fallback={<LoadingFallback />}>
+          <PrivacyPolicy />
+        </Suspense>
       </>
     );
   }
@@ -855,7 +873,9 @@ const App: React.FC = () => {
         />
         <SpeedInsights />
         <Analytics />
-        <TermsOfService />
+        <Suspense fallback={<LoadingFallback />}>
+          <TermsOfService />
+        </Suspense>
       </>
     );
   }
@@ -865,7 +885,9 @@ const App: React.FC = () => {
       <>
         <SpeedInsights />
         <Analytics />
-        <NotFound onNavigateHome={() => navigate('/')} />
+        <Suspense fallback={<LoadingFallback />}>
+          <NotFound onNavigateHome={() => navigate('/')} />
+        </Suspense>
       </>
     );
   }
@@ -1740,6 +1762,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Content Injection */}
+      <Suspense fallback={<LoadingFallback />}>
       {activeTab === 'home' ? (
         <LandingPage
           onStart={() => setShowSelectionModal(true)}
@@ -1964,6 +1987,7 @@ const App: React.FC = () => {
         </main>
         )
       )}
+      </Suspense>
       </div>
 
       {/* Selection Modal */}
