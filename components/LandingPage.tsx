@@ -293,31 +293,42 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           requestTarget: 'searchContentDiv'
         });
 
-        // Only try workers proxy to reduce API calls
-        const proxyUrl = 'https://pr.refra2n-511.workers.dev/?url=' + encodeURIComponent(hanaUrl);
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: hanaData.toString()
-        });
+        // Try workers proxy first, then corsproxy.io as fallback
+        const proxyBases = [
+          'https://pr.refra2n-511.workers.dev/?url=',
+          'https://corsproxy.io/?url='
+        ];
 
-        if (response.ok) {
-          const html = await response.text();
-          if (html.includes('<table')) {
-            const rates = parseHanaRates(html);
-            if (Object.keys(rates).length > 0) {
-              // Save to unified cache
-              localStorage.setItem(unifiedCacheKey, JSON.stringify({
-                rates,
-                source: '하나은행',
-                date: dateStr,
-                timestamp: Date.now()
-              }));
-              setExchangeRates(rates);
-              setRateSource('하나은행');
-              setRateDate(dateStr);
-              return;
+        for (const proxyBase of proxyBases) {
+          try {
+            const proxyUrl = proxyBase + encodeURIComponent(hanaUrl);
+            const response = await fetch(proxyUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: hanaData.toString()
+            });
+
+            if (response.ok) {
+              const html = await response.text();
+              if (html.includes('<table')) {
+                const rates = parseHanaRates(html);
+                if (Object.keys(rates).length > 0) {
+                  // Save to unified cache
+                  localStorage.setItem(unifiedCacheKey, JSON.stringify({
+                    rates,
+                    source: '하나은행',
+                    date: dateStr,
+                    timestamp: Date.now()
+                  }));
+                  setExchangeRates(rates);
+                  setRateSource('하나은행');
+                  setRateDate(dateStr);
+                  return;
+                }
+              }
             }
+          } catch (e) {
+            continue;
           }
         }
       } catch (error) {
