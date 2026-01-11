@@ -25,7 +25,6 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
 const AdminLogin = lazy(() => import('./components/AdminLogin'));
 const InsightDetail = lazy(() => import('./components/InsightDetail'));
 const InsightsList = lazy(() => import('./components/InsightsList'));
-const AdSense = lazy(() => import('./components/AdSense'));
 const Tracker = lazy(() => import('./components/tracker').then(m => ({ default: m.Tracker })));
 const FSSC = lazy(() => import('./components/fssc'));
 const WorldClock = lazy(() => import('./components/WorldClock'));
@@ -1869,17 +1868,8 @@ const App: React.FC = () => {
         ) : (
         <main className="flex-1 p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden bg-slate-50/50" style={{ height: 'calc(100vh - 80px)' }}>
 
-          {/* Main Visualizer Area with Left Ad Space */}
+          {/* Main Visualizer Area */}
           <div className="lg:col-span-3 flex h-full gap-4 min-w-0">
-              {/* Left Vertical Ad Space */}
-              <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm" style={{ height: 'calc(100vh - 135px)' }}>
-                <AdSense
-                  adSlot="1111111111"
-                  adFormat="vertical"
-                  style={{ width: '160px', height: '600px' }}
-                />
-              </div>
-
               {/* Main Content */}
               <div className="flex-1 flex flex-col gap-4 min-w-0" style={{ height: 'calc(100vh - 135px)' }}>
               <div className="flex justify-between items-end px-2 shrink-0">
@@ -1954,15 +1944,6 @@ const App: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Simulator Horizontal Ad Space */}
-                <div className="bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden" style={{ height: '80px' }}>
-                   <AdSense
-                     adSlot="2222222222"
-                     adFormat="horizontal"
-                     className="w-full"
-                     style={{ minHeight: '80px' }}
-                   />
-                </div>
               </div>
               </div>
           </div>
