@@ -21,6 +21,17 @@ const SelectionModal: React.FC<SelectionModalProps> = ({ isOpen, onClose, onSele
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSelect = () => {
@@ -31,11 +42,12 @@ const SelectionModal: React.FC<SelectionModalProps> = ({ isOpen, onClose, onSele
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="selection-modal-title">
       {/* Backdrop with animation */}
       <div
         className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-slate-900/70 to-blue-900/60 backdrop-blur-md animate-fade-in"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Modal with animation */}
@@ -44,13 +56,14 @@ const SelectionModal: React.FC<SelectionModalProps> = ({ isOpen, onClose, onSele
         <button
           onClick={onClose}
           className="absolute top-3 right-3 sm:top-6 sm:right-6 p-2 sm:p-2.5 bg-white hover:bg-gray-100 rounded-2xl transition-all duration-150 hover:scale-105 group z-10 shadow-md"
+          aria-label="닫기"
         >
           <X className="w-5 h-5 sm:w-5 sm:h-5 text-gray-600 group-hover:text-gray-800" />
         </button>
 
         {/* Header with gradient text */}
         <div className="text-center mb-8">
-          <h2 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent mb-3">
+          <h2 id="selection-modal-title" className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent mb-3">
             시뮬레이션 선택
           </h2>
           <p className="text-gray-500 text-sm sm:text-base">최적의 화물 적재 방식을 선택하세요</p>
