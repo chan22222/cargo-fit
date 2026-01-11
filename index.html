@@ -38,15 +38,25 @@
     <link rel="preconnect" href="https://images.pexels.com">
     <link rel="preconnect" href="https://pjrgfmqjfacvhumurlcw.supabase.co">
 
-    <!-- Critical CSS for initial loading (improves FCP) -->
+    <!-- Critical CSS for initial loading (improves FCP/LCP) -->
     <style>
       *{box-sizing:border-box;margin:0;padding:0}
       body{font-family:system-ui,-apple-system,sans-serif;background:#fff;color:#0f172a}
-      #loading-skeleton{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(to bottom right,#f8fafc,#eff6ff)}
+      #loading-skeleton{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(to bottom right,#f8fafc,#eff6ff)}
       .loader{width:48px;height:48px;border:3px solid #e2e8f0;border-top-color:#2563eb;border-radius:50%;animation:spin 1s linear infinite}
       @keyframes spin{to{transform:rotate(360deg)}}
       .loader-text{margin-top:16px;color:#64748b;font-size:14px;font-weight:500}
       .loader-brand{font-size:24px;font-weight:900;color:#0f172a;margin-bottom:24px;letter-spacing:-0.02em}
+      /* Hero section critical styles */
+      .bg-gradient-to-br{background:linear-gradient(to bottom right,var(--tw-gradient-stops))}
+      .from-slate-50{--tw-gradient-from:#f8fafc;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)}
+      .to-blue-50{--tw-gradient-to:#eff6ff}
+      .min-h-screen{min-height:100vh}
+      .text-4xl{font-size:2.25rem;line-height:2.5rem}
+      .font-black{font-weight:900}
+      .text-slate-900{color:#0f172a}
+      .text-slate-500{color:#64748b}
+      .text-blue-600{color:#2563eb}
     </style>
   </head>
   <body class="bg-white text-slate-900 font-sans antialiased overflow-x-hidden">
@@ -59,14 +69,19 @@
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 
-    <!-- Google Tag Manager (deferred for better FCP) -->
+    <!-- Google Tag Manager (delayed for better performance) -->
     <script>
-      window.addEventListener('load', function() {
+      function loadGTM(){
+        if(window.gtmLoaded)return;window.gtmLoaded=true;
         (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
         new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
         j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
         })(window,document,'script','dataLayer','GTM-M22MZRLN');
+      }
+      setTimeout(loadGTM,3000);
+      ['scroll','click','touchstart'].forEach(function(e){
+        window.addEventListener(e,loadGTM,{once:true,passive:true});
       });
     </script>
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M22MZRLN"

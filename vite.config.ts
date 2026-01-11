@@ -15,11 +15,12 @@ export default defineConfig(() => {
         }
       },
       build: {
-        // Improve chunking for better caching
+        // Improve chunking for better caching and reduced unused JS
         rollupOptions: {
           output: {
             manualChunks: {
               'vendor-react': ['react', 'react-dom'],
+              'vendor-supabase': ['@supabase/supabase-js'],
             }
           }
         },
@@ -27,6 +28,8 @@ export default defineConfig(() => {
         target: 'es2020',
         // Minify with esbuild for faster builds
         minify: 'esbuild',
+        // Enable CSS code splitting
+        cssCodeSplit: true,
       }
     };
 });
