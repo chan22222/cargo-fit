@@ -436,8 +436,19 @@ export const db = {
       return { data, error };
     },
 
-    // 환율 저장 (upsert)
-    save: async (rates: { source: string; currency: string; rate: number; date: string }[]) => {
+    // 특정 날짜 및 소스의 환율 가져오기 (CurrencyCalculator용)
+    getByDateAndSource: async (date: string, source: 'unipass' | 'hanabank') => {
+      const { data, error } = await supabase
+        .from('exchange_rates')
+        .select('*')
+        .eq('date', date)
+        .eq('source', source);
+
+      return { data, error };
+    },
+
+    // 환율 저장 (upsert) - currency_name 지원
+    save: async (rates: { source: string; currency: string; rate: number; date: string; currency_name?: string }[]) => {
       const { data, error } = await supabase
         .from('exchange_rates')
         .upsert(

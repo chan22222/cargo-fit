@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
   id SERIAL PRIMARY KEY,
   source VARCHAR(20) NOT NULL, -- 'unipass' or 'hanabank'
   currency VARCHAR(10) NOT NULL,
+  currency_name VARCHAR(100), -- e.g., '미국 달러', '유로'
   rate DECIMAL(20, 6),
   date DATE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -12,6 +13,7 @@ CREATE TABLE IF NOT EXISTS exchange_rates (
 -- Index for faster queries
 CREATE INDEX IF NOT EXISTS idx_exchange_rates_date ON exchange_rates(date DESC);
 CREATE INDEX IF NOT EXISTS idx_exchange_rates_source ON exchange_rates(source);
+CREATE INDEX IF NOT EXISTS idx_exchange_rates_source_date ON exchange_rates(source, date);
 
 -- Enable RLS
 ALTER TABLE exchange_rates ENABLE ROW LEVEL SECURITY;

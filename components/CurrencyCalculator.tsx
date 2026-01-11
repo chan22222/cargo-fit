@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getTodayString, getLocalDateString } from '../lib/date';
+import { db } from '../lib/supabase';
 
 // Types
 interface ExchangeRate {
@@ -336,7 +337,7 @@ const CurrencyCalculator: React.FC = () => {
   };
 
   // UNIPASS data processing
-  const processUnipassData = (jsonData: any, dateStr: string): boolean => {
+  const processUnipassData = (jsonData: any, dateStr: string, saveToSupabase: boolean = false): boolean => {
     const rates: ExchangeRate = {};
     const currencyNames: CurrencyNames = {};
 
@@ -357,6 +358,18 @@ const CurrencyCalculator: React.FC = () => {
       const key = `${UNIPASS_CACHE_PREFIX}${dateStr}`;
       localStorage.setItem(key, JSON.stringify(rates));
       localStorage.setItem(CURRENCY_NAMES_KEY, JSON.stringify(currencyNames));
+
+      // Save to Supabase for future requests
+      if (saveToSupabase) {
+        const ratesToSave = Object.entries(rates).map(([currency, rate]) => ({
+          source: 'unipass',
+          currency,
+          currency_name: currencyNames[currency],
+          rate,
+          date: dateStr
+        }));
+        db.exchangeRates.save(ratesToSave).catch(() => {});
+      }
 
       setAllCurrencies(currencyNames);
       setCurrentRates(rates);
@@ -460,7 +473,7 @@ const CurrencyCalculator: React.FC = () => {
   // Currencies with very low exchange rates that need 4 decimal places
   const LOW_RATE_CURRENCIES = ['IDR', 'VND', 'KHR', 'COP', 'UZS', 'LAK', 'MMK', 'MNT', 'KZT', 'HUF', 'CLP'];
 
-  const processHanaData = (mall1501Html: string, mall1502Html: string, dateStr: string): boolean => {
+  const processHanaData = (mall1501Html: string, mall1502Html: string, dateStr: string, saveToSupabase: boolean = false): boolean => {
     const sendingResult = extractRatesFromHtml(mall1501Html, 'rate');
     const usdResult = extractRatesFromHtml(mall1502Html, 'usd');
 
@@ -492,6 +505,18 @@ const CurrencyCalculator: React.FC = () => {
     const key = `${HANA_CACHE_PREFIX}${dateStr}`;
     localStorage.setItem(key, JSON.stringify(rates));
     localStorage.setItem(CURRENCY_NAMES_KEY, JSON.stringify(combinedCurrencyNames));
+
+    // Save to Supabase for future requests
+    if (saveToSupabase) {
+      const ratesToSave = Object.entries(rates).map(([currency, rate]) => ({
+        source: 'hanabank',
+        currency,
+        currency_name: combinedCurrencyNames[currency.replace('_usd', '')] || currency,
+        rate,
+        date: dateStr
+      }));
+      db.exchangeRates.save(ratesToSave).catch(() => {});
+    }
 
     setAllCurrencies(combinedCurrencyNames);
     setCurrentRates(rates);
@@ -526,12 +551,31 @@ const CurrencyCalculator: React.FC = () => {
   const fetchUnipassRates = async (dateStr: string) => {
     showStatus('loading', '환율 데이터를 불러오는 중...');
 
-    const pageIndex = 1;
-    const pageUnit = 100;
-    const weekFxrtTpcd = '2';
-    const timestamp = Date.now();
+    // 1. Try Supabase cache first
+    try {
+      const { data: cached } = await db.exchangeRates.getByDateAndSource(dateStr, 'unipass');
+      if (cached && cached.length > 0) {
+        const rates: ExchangeRate = {};
+        const currencyNames: CurrencyNames = {};
+        cached.forEach((r: any) => {
+          if (r.rate) {
+            rates[r.currency] = parseFloat(r.rate);
+            currencyNames[r.currency] = r.currency_name || r.currency;
+          }
+        });
+        if (Object.keys(rates).length > 0) {
+          setAllCurrencies(currencyNames);
+          setCurrentRates(rates);
+          showStatus('success', `캐시된 환율 데이터 (${Object.keys(rates).length}개 통화)`);
+          return;
+        }
+      }
+    } catch (e) {
+      // Continue to external API
+    }
 
-    const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=${pageIndex}&pageUnit=${pageUnit}&aplyDt=${dateStr}&weekFxrtTpcd=${weekFxrtTpcd}&undefined=${dateStr}&_=${timestamp}`;
+    // 2. Fetch from external API
+    const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
 
     const proxyUrls = [
       `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`,
@@ -557,7 +601,7 @@ const CurrencyCalculator: React.FC = () => {
 
         try {
           const jsonData = JSON.parse(text);
-          if (processUnipassData(jsonData, dateStr)) {
+          if (processUnipassData(jsonData, dateStr, true)) {
             return;
           }
         } catch (e) {
@@ -596,6 +640,30 @@ const CurrencyCalculator: React.FC = () => {
   const fetchHanaRates = async (dateStr: string) => {
     showStatus('loading', '하나은행에서 환율 데이터를 불러오는 중...');
 
+    // 1. Try Supabase cache first
+    try {
+      const { data: cached } = await db.exchangeRates.getByDateAndSource(dateStr, 'hanabank');
+      if (cached && cached.length > 0) {
+        const rates: ExchangeRate = {};
+        const currencyNames: CurrencyNames = {};
+        cached.forEach((r: any) => {
+          if (r.rate) {
+            rates[r.currency] = parseFloat(r.rate);
+            currencyNames[r.currency.replace('_usd', '')] = r.currency_name || r.currency;
+          }
+        });
+        if (Object.keys(rates).length > 0) {
+          setAllCurrencies(currencyNames);
+          setCurrentRates(rates);
+          showStatus('success', `캐시된 하나은행 환율 데이터`);
+          return;
+        }
+      }
+    } catch (e) {
+      // Continue to external API
+    }
+
+    // 2. Fetch from external API
     const dateStrCompact = dateStr.replace(/-/g, '');
     const weekDates = getLastWeekDates(dateStr);
     const startDateCompact = weekDates.start.replace(/-/g, '');
@@ -694,7 +762,7 @@ const CurrencyCalculator: React.FC = () => {
     }
 
     if (mall1501Html && mall1502Html) {
-      if (processHanaData(mall1501Html, mall1502Html, dateStr)) {
+      if (processHanaData(mall1501Html, mall1502Html, dateStr, true)) {
         return;
       }
     }
