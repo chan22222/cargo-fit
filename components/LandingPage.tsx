@@ -121,14 +121,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     }
   }, [isInsightModalOpen, selectedInsight]);
 
-  // Load insights from Supabase
+  // Load insights from Supabase (deferred for better LCP)
   useEffect(() => {
     const loadInsights = async () => {
       try {
         const { data, error } = await db.insights.getPublished();
         if (error) {
           console.error('Error loading insights:', error);
-          // Fallback to localStorage if Supabase fails
           const savedInsights = localStorage.getItem('insights');
           if (savedInsights) {
             const parsed = JSON.parse(savedInsights);
@@ -138,7 +137,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         }
 
         if (data) {
-          // Convert snake_case to camelCase
           const formattedInsights = data.map((item: any) => ({
             id: item.id,
             tag: item.tag,
@@ -153,7 +151,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         }
       } catch (error) {
         console.error('Error loading insights:', error);
-        // Fallback to localStorage
         const savedInsights = localStorage.getItem('insights');
         if (savedInsights) {
           const parsed = JSON.parse(savedInsights);
@@ -162,20 +159,21 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       }
     };
 
-    loadInsights();
+    // Defer API call to improve LCP
+    const timeoutId = setTimeout(loadInsights, 100);
 
-    // Listen for custom event when admin panel updates
     const handleInsightsUpdate = () => {
       loadInsights();
     };
     window.addEventListener('insightsUpdated', handleInsightsUpdate);
 
     return () => {
+      clearTimeout(timeoutId);
       window.removeEventListener('insightsUpdated', handleInsightsUpdate);
     };
   }, []);
 
-  // Load FSSC data
+  // Load FSSC data (deferred for better LCP)
   useEffect(() => {
     const loadFsscData = async () => {
       try {
@@ -188,7 +186,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         console.error('Error loading FSSC data:', error);
       }
     };
-    loadFsscData();
+    const timeoutId = setTimeout(loadFsscData, 150);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   useEffect(() => {
@@ -214,7 +213,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     return () => clearInterval(timer);
   }, [selectedCities]);
 
-  // Fetch exchange rates - Supabase only (for fast loading)
+  // Fetch exchange rates - Supabase only (deferred for better LCP)
   useEffect(() => {
     const fetchExchangeRates = async () => {
       try {
@@ -234,11 +233,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         // Supabase error
       }
 
-      // 캐시 없으면 빈 객체 유지 (UI에서 안내 메시지 표시)
       setExchangeRates({});
     };
 
-    fetchExchangeRates();
+    const timeoutId = setTimeout(fetchExchangeRates, 200);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Handle currency selection
