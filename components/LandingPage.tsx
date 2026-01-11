@@ -214,153 +214,124 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     return () => clearInterval(timer);
   }, [selectedCities]);
 
-  // Fetch exchange rates from UNIPASS first, fallback to Hana Bank
+  // Fetch exchange rates - Supabase first, then external APIs
   useEffect(() => {
     const fetchExchangeRates = async () => {
       const today = new Date();
+      const todayStr = getLocalDateString(today);
 
-      // Check unified cache first (valid for 6 hours)
-      const unifiedCacheKey = 'exchange_rates_cache';
-      const unifiedCache = localStorage.getItem(unifiedCacheKey);
-      if (unifiedCache) {
-        try {
-          const { rates, source, date, timestamp } = JSON.parse(unifiedCache);
-          const sixHours = 6 * 60 * 60 * 1000;
-          if (Date.now() - timestamp < sixHours && Object.keys(rates).length > 0) {
-            setExchangeRates(rates);
-            setRateSource(source);
-            setRateDate(date);
-            return;
+      // 1. Try Supabase cache first (fastest)
+      try {
+        const { data: cachedRates } = await db.exchangeRates.getLatest();
+        if (cachedRates && cachedRates.length > 0) {
+          // Check if cache is fresh (< 6 hours old)
+          const latestUpdate = new Date(cachedRates[0].updated_at);
+          const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+
+          if (latestUpdate > sixHoursAgo) {
+            const rates: { [key: string]: number } = {};
+            const latestDate = cachedRates[0].date;
+            let source = 'DB';
+
+            cachedRates.forEach((r: any) => {
+              if (r.date === latestDate && r.rate) {
+                rates[r.currency] = parseFloat(r.rate);
+                source = r.source === 'unipass' ? '관세청 UNIPASS' : '하나은행';
+              }
+            });
+
+            if (Object.keys(rates).length > 0) {
+              setExchangeRates(rates);
+              setRateSource(source);
+              setRateDate(latestDate);
+              return; // Use cached data, no external API calls needed
+            }
           }
-        } catch (e) {
-          localStorage.removeItem(unifiedCacheKey);
         }
+      } catch (e) {
+        // Supabase error, continue to external APIs
       }
 
-      // Try UNIPASS (only try today and yesterday to reduce API calls)
+      // 2. Fetch from external APIs and save to Supabase
+      // Try UNIPASS first
       for (let daysBack = 0; daysBack <= 1; daysBack++) {
         const targetDate = new Date(today);
         targetDate.setDate(today.getDate() - daysBack);
         const dateStr = getLocalDateString(targetDate);
 
-        const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
-        const proxyUrls = [
-          `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`,
-          `https://corsproxy.io/?url=${encodeURIComponent(unipassUrl)}`,
-          `https://api.allorigins.win/get?url=${encodeURIComponent(unipassUrl)}`
-        ];
+        try {
+          const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
+          const response = await fetch(`https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`);
 
-        for (const proxyUrl of proxyUrls) {
-          try {
-            const response = await fetch(proxyUrl);
-            if (!response.ok) continue;
+          if (response.ok) {
+            const text = await response.text();
+            if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
+              const jsonData = JSON.parse(text);
+              if (jsonData?.items?.length > 0) {
+                const rates: { [key: string]: number } = {};
+                const ratesToSave: { source: string; currency: string; rate: number; date: string }[] = [];
 
-            let text = await response.text();
+                jsonData.items.forEach((record: any) => {
+                  const currCode = record.currCd;
+                  const baseRate = parseFloat(record.weekFxrt);
+                  if (currCode && !isNaN(baseRate)) {
+                    rates[currCode] = baseRate;
+                    ratesToSave.push({ source: 'unipass', currency: currCode, rate: baseRate, date: dateStr });
+                  }
+                });
 
-            // allorigins.win returns wrapped response
-            if (proxyUrl.includes('allorigins.win')) {
-              try {
-                const json = JSON.parse(text);
-                text = json.contents;
-              } catch (e) {
-                continue;
-              }
-            }
-
-            // Check if response is valid JSON
-            if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) {
-              continue;
-            }
-
-            const jsonData = JSON.parse(text);
-            if (jsonData && jsonData.items && jsonData.items.length > 0) {
-              const rates: { [key: string]: number } = {};
-              jsonData.items.forEach((record: any) => {
-                const currCode = record.currCd;
-                const baseRate = parseFloat(record.weekFxrt);
-                if (currCode && !isNaN(baseRate)) {
-                  rates[currCode] = baseRate;
-                }
-              });
-
-              if (Object.keys(rates).length > 0) {
-                localStorage.setItem(unifiedCacheKey, JSON.stringify({
-                  rates,
-                  source: '관세청 UNIPASS',
-                  date: dateStr,
-                  timestamp: Date.now()
-                }));
-                setExchangeRates(rates);
-                setRateSource('관세청 UNIPASS');
-                setRateDate(dateStr);
-                return;
-              }
-            }
-          } catch (error) {
-            continue;
-          }
-        }
-      }
-
-      // Fallback to Hana Bank
-      try {
-        const dateStr = getLocalDateString(today);
-        const dateStrCompact = dateStr.replace(/-/g, '');
-
-        const hanaUrl = 'https://www.kebhana.com/cms/rate/wpfxd651_01i_01.do';
-        const hanaData = new URLSearchParams({
-          ajax: 'true',
-          curCd: '',
-          tmpInqStrDt: dateStr,
-          pbldDvCd: '1',
-          pbldSqn: '',
-          hid_key_data: '',
-          inqStrDt: dateStrCompact,
-          inqKindCd: '1',
-          hid_enc_data: '',
-          requestTarget: 'searchContentDiv'
-        });
-
-        // Try workers proxy first, then corsproxy.io as fallback
-        const proxyBases = [
-          'https://pr.refra2n-511.workers.dev/?url=',
-          'https://corsproxy.io/?url='
-        ];
-
-        for (const proxyBase of proxyBases) {
-          try {
-            const proxyUrl = proxyBase + encodeURIComponent(hanaUrl);
-            const response = await fetch(proxyUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: hanaData.toString()
-            });
-
-            if (response.ok) {
-              const html = await response.text();
-              if (html.includes('<table')) {
-                const rates = parseHanaRates(html);
                 if (Object.keys(rates).length > 0) {
-                  // Save to unified cache
-                  localStorage.setItem(unifiedCacheKey, JSON.stringify({
-                    rates,
-                    source: '하나은행',
-                    date: dateStr,
-                    timestamp: Date.now()
-                  }));
+                  // Save to Supabase for future requests
+                  db.exchangeRates.save(ratesToSave).catch(() => {});
                   setExchangeRates(rates);
-                  setRateSource('하나은행');
+                  setRateSource('관세청 UNIPASS');
                   setRateDate(dateStr);
                   return;
                 }
               }
             }
-          } catch (e) {
-            continue;
+          }
+        } catch (error) {
+          continue;
+        }
+      }
+
+      // 3. Fallback to Hana Bank
+      try {
+        const dateStr = getLocalDateString(today);
+        const dateStrCompact = dateStr.replace(/-/g, '');
+        const hanaUrl = 'https://www.kebhana.com/cms/rate/wpfxd651_01i_01.do';
+        const hanaData = new URLSearchParams({
+          ajax: 'true', curCd: '', tmpInqStrDt: dateStr, pbldDvCd: '1',
+          pbldSqn: '', hid_key_data: '', inqStrDt: dateStrCompact,
+          inqKindCd: '1', hid_enc_data: '', requestTarget: 'searchContentDiv'
+        });
+
+        const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(hanaUrl)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: hanaData.toString()
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+          if (html.includes('<table')) {
+            const rates = parseHanaRates(html);
+            if (Object.keys(rates).length > 0) {
+              // Save to Supabase
+              const ratesToSave = Object.entries(rates).map(([currency, rate]) => ({
+                source: 'hanabank', currency, rate, date: dateStr
+              }));
+              db.exchangeRates.save(ratesToSave).catch(() => {});
+              setExchangeRates(rates);
+              setRateSource('하나은행');
+              setRateDate(dateStr);
+              return;
+            }
           }
         }
       } catch (error) {
-        console.error('Hana Bank fetch failed:', error);
+        console.error('Exchange rate fetch failed:', error);
       }
     };
 
@@ -388,10 +359,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
             currCode = codeMatch[1];
           } else {
             for (const [keyword, code] of Object.entries(codeMapping)) {
-              if (currencyText.includes(keyword)) {
-                currCode = code;
-                break;
-              }
+              if (currencyText.includes(keyword)) { currCode = code; break; }
             }
           }
 
@@ -399,13 +367,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
             const cellIndex = cells.length >= 11 ? 5 : 3;
             const valueText = cells[cellIndex]?.textContent?.trim() || '';
             const value = parseFloat(valueText.replace(/,/g, ''));
-            if (!isNaN(value) && value > 0) {
-              rates[currCode] = value;
-            }
+            if (!isNaN(value) && value > 0) { rates[currCode] = value; }
           }
         }
       });
-
       return rates;
     };
 

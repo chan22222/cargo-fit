@@ -400,5 +400,67 @@ export const db = {
       });
       return { data, error };
     }
+  },
+
+  // 환율 캐시 관련 함수
+  exchangeRates: {
+    // 오늘 환율 가져오기
+    getToday: async (source?: string) => {
+      const today = new Date().toISOString().split('T')[0];
+      let query = supabase
+        .from('exchange_rates')
+        .select('*')
+        .eq('date', today);
+
+      if (source) {
+        query = query.eq('source', source);
+      }
+
+      const { data, error } = await query;
+      return { data, error };
+    },
+
+    // 최신 환율 가져오기 (오늘 또는 가장 최근)
+    getLatest: async (source?: string) => {
+      let query = supabase
+        .from('exchange_rates')
+        .select('*')
+        .order('date', { ascending: false })
+        .limit(50);
+
+      if (source) {
+        query = query.eq('source', source);
+      }
+
+      const { data, error } = await query;
+      return { data, error };
+    },
+
+    // 환율 저장 (upsert)
+    save: async (rates: { source: string; currency: string; rate: number; date: string }[]) => {
+      const { data, error } = await supabase
+        .from('exchange_rates')
+        .upsert(
+          rates.map(r => ({
+            ...r,
+            updated_at: new Date().toISOString()
+          })),
+          { onConflict: 'source,currency,date' }
+        )
+        .select();
+      return { data, error };
+    },
+
+    // 캐시 신선도 확인 (6시간 이내면 true)
+    isFresh: async () => {
+      const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('exchange_rates')
+        .select('updated_at')
+        .gte('updated_at', sixHoursAgo)
+        .limit(1);
+
+      return { isFresh: !error && data && data.length > 0, error };
+    }
   }
 };
