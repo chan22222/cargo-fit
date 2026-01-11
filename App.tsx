@@ -28,6 +28,7 @@ import WorldClock from './components/WorldClock';
 import FeedbackModal from './components/FeedbackModal';
 import NotFound from './components/NotFound';
 import { auth } from './lib/supabase';
+import SEO, { schemas } from './components/SEO';
 
 const App: React.FC = () => {
   // Check if screen width is large enough
@@ -637,6 +638,114 @@ const App: React.FC = () => {
     navigate('/');
   };
 
+  // SEO 설정 - 라우트별 메타 태그 및 JSON-LD
+  const BASE_URL = 'https://www.shipdago.com';
+  const getSEOConfig = () => {
+    const seoConfigs: Record<string, { title?: string; description: string; keywords: string; canonicalUrl: string; jsonLd: object[] }> = {
+      home: {
+        description: '물류의 디지털 전환, SHIPDAGO와 함께하세요. 컨테이너 3D 시뮬레이션, 환율 계산, 화물 추적 등 물류 실무 도구를 무료로 제공합니다.',
+        keywords: '쉽다고, SHIPDAGO, 십다고, 포워더, 포워딩, 무역, 수출입, 물류, 화물운송, 국제물류, 해상운송, 컨테이너 적재, 3D 시뮬레이터, 환율 계산기, CBM 계산기, 인코텀즈, 수입규제, 관세, HS코드',
+        canonicalUrl: BASE_URL,
+        jsonLd: [schemas.organization, schemas.website],
+      },
+      container: {
+        title: '3D 컨테이너 적재 시뮬레이터',
+        description: '무료 3D 컨테이너 적재 시뮬레이션으로 최적의 화물 배치를 계획하세요. 20ft, 40ft, 40ft HC 컨테이너 지원.',
+        keywords: '컨테이너 적재, 3D 시뮬레이터, 화물 배치, 20ft 컨테이너, 40ft 컨테이너, 적재 최적화',
+        canonicalUrl: `${BASE_URL}/container`,
+        jsonLd: [schemas.softwareApplication('3D 컨테이너 적재 시뮬레이터', '무료 3D 컨테이너 적재 시뮬레이션으로 최적의 화물 배치를 계획하세요.', `${BASE_URL}/container`)],
+      },
+      pallet: {
+        title: '팔레트 적재 시뮬레이터',
+        description: '팔레트 위에 박스를 효율적으로 적재하는 시뮬레이션. 다양한 팔레트 크기 지원.',
+        keywords: '팔레트 적재, 박스 적재, 팔레트 시뮬레이터, 적재 최적화',
+        canonicalUrl: `${BASE_URL}/pallet`,
+        jsonLd: [schemas.softwareApplication('팔레트 적재 시뮬레이터', '팔레트 위에 박스를 효율적으로 적재하는 시뮬레이션.', `${BASE_URL}/pallet`)],
+      },
+      currency: {
+        title: '실시간 환율 계산기',
+        description: '실시간 환율 정보로 빠르고 정확한 환율 계산. 주요 통화 지원, 무역 실무에 최적화.',
+        keywords: '환율 계산기, 실시간 환율, 달러 환율, 위안 환율, 엔화 환율, 유로 환율',
+        canonicalUrl: `${BASE_URL}/currency`,
+        jsonLd: [schemas.softwareApplication('실시간 환율 계산기', '실시간 환율 정보로 빠르고 정확한 환율 계산.', `${BASE_URL}/currency`)],
+      },
+      cbm: {
+        title: 'CBM 계산기',
+        description: '화물의 CBM(입방미터)을 쉽고 빠르게 계산. 해상 운송비 산정에 필수.',
+        keywords: 'CBM 계산기, 입방미터, 화물 부피, 해상 운송, 물류 계산',
+        canonicalUrl: `${BASE_URL}/cbm`,
+        jsonLd: [schemas.softwareApplication('CBM 계산기', '화물의 CBM(입방미터)을 쉽고 빠르게 계산.', `${BASE_URL}/cbm`)],
+      },
+      incoterms: {
+        title: '인코텀즈 2020 가이드',
+        description: 'Incoterms 2020 완벽 가이드. FOB, CIF, EXW 등 무역조건 비교 및 책임 범위 설명.',
+        keywords: '인코텀즈, Incoterms 2020, FOB, CIF, EXW, DDP, 무역조건',
+        canonicalUrl: `${BASE_URL}/incoterms`,
+        jsonLd: [schemas.softwareApplication('인코텀즈 2020 가이드', 'Incoterms 2020 무역조건 완벽 가이드.', `${BASE_URL}/incoterms`)],
+      },
+      holidays: {
+        title: '세계 공휴일 캘린더',
+        description: '전 세계 주요 국가의 공휴일 정보. 수출입 일정 계획에 필수.',
+        keywords: '세계 공휴일, 해외 공휴일, 국가별 휴일, 무역 캘린더',
+        canonicalUrl: `${BASE_URL}/holidays`,
+        jsonLd: [schemas.softwareApplication('세계 공휴일 캘린더', '전 세계 주요 국가의 공휴일 정보.', `${BASE_URL}/holidays`)],
+      },
+      regulations: {
+        title: '수입규제 조회',
+        description: '국가별 수입규제 정보 조회. 관세, 인증, 라벨링 요건 확인.',
+        keywords: '수입규제, 관세, 수입인증, 라벨링, 무역규제',
+        canonicalUrl: `${BASE_URL}/regulations`,
+        jsonLd: [schemas.softwareApplication('수입규제 조회', '국가별 수입규제 정보 조회.', `${BASE_URL}/regulations`)],
+      },
+      tracker: {
+        title: '화물 추적',
+        description: '컨테이너, 항공화물, 택배 등 다양한 화물 추적 서비스. 실시간 위치 확인.',
+        keywords: '화물 추적, 컨테이너 추적, 항공화물 추적, 택배 추적',
+        canonicalUrl: `${BASE_URL}/tracker`,
+        jsonLd: [schemas.softwareApplication('화물 추적', '컨테이너, 항공화물, 택배 등 실시간 화물 추적.', `${BASE_URL}/tracker`)],
+      },
+      fssc: {
+        title: 'FSSC 22000 가이드',
+        description: 'FSSC 22000 식품안전 인증 완벽 가이드. 인증 요건 및 절차 안내.',
+        keywords: 'FSSC 22000, 식품안전 인증, ISO 22000, 식품 수출',
+        canonicalUrl: `${BASE_URL}/fssc`,
+        jsonLd: [schemas.softwareApplication('FSSC 22000 가이드', 'FSSC 22000 식품안전 인증 완벽 가이드.', `${BASE_URL}/fssc`)],
+      },
+      worldclock: {
+        title: '세계 시간',
+        description: '전 세계 주요 도시의 현재 시간 확인. 무역 파트너와의 업무 시간 조율에 유용.',
+        keywords: '세계 시간, 도시별 시간, 시차, 타임존',
+        canonicalUrl: `${BASE_URL}/worldclock`,
+        jsonLd: [schemas.softwareApplication('세계 시간', '전 세계 주요 도시의 현재 시간 확인.', `${BASE_URL}/worldclock`)],
+      },
+      insights: {
+        title: '물류 인사이트',
+        description: '물류 트렌드, 규제 변화, 실무 팁 등 물류 전문 콘텐츠.',
+        keywords: '물류 인사이트, 물류 트렌드, 물류 뉴스, 포워딩 팁',
+        canonicalUrl: `${BASE_URL}/insights`,
+        jsonLd: [schemas.organization],
+      },
+      privacy: {
+        title: '개인정보처리방침',
+        description: 'SHIPDAGO 개인정보처리방침',
+        keywords: '개인정보처리방침, 프라이버시',
+        canonicalUrl: `${BASE_URL}/privacy`,
+        jsonLd: [],
+      },
+      terms: {
+        title: '이용약관',
+        description: 'SHIPDAGO 서비스 이용약관',
+        keywords: '이용약관, 서비스 약관',
+        canonicalUrl: `${BASE_URL}/terms`,
+        jsonLd: [],
+      },
+    };
+
+    return seoConfigs[currentRoute] || seoConfigs.home;
+  };
+
+  const seoConfig = getSEOConfig();
+
   // URL 라우트에 따라 activeTab 설정 - 모든 훅은 조건부 렌더링 전에 호출되어야 함
   React.useEffect(() => {
     if (currentRoute === 'container') {
@@ -686,6 +795,13 @@ const App: React.FC = () => {
   if (currentRoute === 'insights') {
     return (
       <>
+        <SEO
+          title={seoConfig.title}
+          description={seoConfig.description}
+          keywords={seoConfig.keywords}
+          canonicalUrl={seoConfig.canonicalUrl}
+          jsonLd={seoConfig.jsonLd}
+        />
         <SpeedInsights />
         <Analytics />
         <InsightsList
@@ -713,6 +829,13 @@ const App: React.FC = () => {
   if (currentRoute === 'privacy') {
     return (
       <>
+        <SEO
+          title={seoConfig.title}
+          description={seoConfig.description}
+          keywords={seoConfig.keywords}
+          canonicalUrl={seoConfig.canonicalUrl}
+          jsonLd={seoConfig.jsonLd}
+        />
         <SpeedInsights />
         <Analytics />
         <PrivacyPolicy />
@@ -723,6 +846,13 @@ const App: React.FC = () => {
   if (currentRoute === 'terms') {
     return (
       <>
+        <SEO
+          title={seoConfig.title}
+          description={seoConfig.description}
+          keywords={seoConfig.keywords}
+          canonicalUrl={seoConfig.canonicalUrl}
+          jsonLd={seoConfig.jsonLd}
+        />
         <SpeedInsights />
         <Analytics />
         <TermsOfService />
@@ -742,6 +872,13 @@ const App: React.FC = () => {
 
   return (
     <>
+      <SEO
+        title={seoConfig.title}
+        description={seoConfig.description}
+        keywords={seoConfig.keywords}
+        canonicalUrl={seoConfig.canonicalUrl}
+        jsonLd={seoConfig.jsonLd}
+      />
       <SpeedInsights />
       <Analytics />
       {/* Tailwind CDN safelist - 시뮬레이터에서 사용하는 클래스를 미리 로드 */}
