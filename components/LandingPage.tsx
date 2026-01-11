@@ -4,6 +4,7 @@ import { Insight } from '../types/insights';
 import { FSSCRecord, AIRLINE_CODES } from '../types/fssc';
 import { db } from '../lib/supabase';
 import { getTodayString, getLocalDateString } from '../lib/date';
+import { getThumbnailUrl, getFeaturedImageUrl } from '../lib/image';
 import ContainerDemo from './ContainerDemo';
 import FeedbackModal from './FeedbackModal';
 import CoffeeDonationModal from './CoffeeDonationModal';
@@ -925,9 +926,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                      >
                         <div className="aspect-[16/10] bg-slate-100 rounded-[24px] mb-6 overflow-hidden relative">
                            <img
-                              src={post.imageUrl}
+                              src={getThumbnailUrl(post.imageUrl)}
                               alt={post.title}
                               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90 group-hover:opacity-100"
+                              loading="lazy"
                               onError={(e) => {
                                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&q=80&w=400';
                               }}
@@ -1289,7 +1291,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               {selectedInsight.imageUrl && (
                 <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
                   <img
-                    src={selectedInsight.imageUrl}
+                    src={getFeaturedImageUrl(selectedInsight.imageUrl)}
                     alt={selectedInsight.title}
                     className="w-full h-full object-cover"
                   />
@@ -1434,9 +1436,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                           >
                             <div className="w-20 h-20 rounded-xl overflow-hidden bg-slate-100 shrink-0">
                               <img
-                                src={related.imageUrl}
+                                src={getThumbnailUrl(related.imageUrl)}
                                 alt={related.title}
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                loading="lazy"
                               />
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
