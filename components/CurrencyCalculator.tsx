@@ -534,6 +534,7 @@ const CurrencyCalculator: React.FC = () => {
     const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=${pageIndex}&pageUnit=${pageUnit}&aplyDt=${dateStr}&weekFxrtTpcd=${weekFxrtTpcd}&undefined=${dateStr}&_=${timestamp}`;
 
     const proxyUrls = [
+      `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`,
       `https://corsproxy.io/?url=${encodeURIComponent(unipassUrl)}`,
       `https://api.allorigins.win/get?url=${encodeURIComponent(unipassUrl)}`
     ];

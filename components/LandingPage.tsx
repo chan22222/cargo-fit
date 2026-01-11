@@ -228,7 +228,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         // Fetch from UNIPASS
         try {
           const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
-          const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(unipassUrl)}`;
+          const proxyUrl = `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`;
 
           const response = await fetch(proxyUrl);
           if (response.ok) {
