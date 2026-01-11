@@ -442,7 +442,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         onClick={onNavigateToCurrency}
                         className="text-blue-600 hover:text-blue-700 font-bold"
                      >
-                        {rateSource ? '더 많은 정보 보기 →' : '환율 계산기로 이동 →'}
+                        환율 계산기로 이동 →
                      </button>
                   </div>
                </div>
