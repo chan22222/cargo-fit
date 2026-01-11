@@ -263,8 +263,8 @@ const ContainerDemo: React.FC = () => {
 
             <div className="w-32 h-1.5 bg-slate-700 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-all duration-1000"
-                style={{ width: `${totalVolume.efficiency}%` }}
+                className="h-full w-full bg-gradient-to-r from-blue-500 to-cyan-400 transition-transform duration-1000 origin-left"
+                style={{ transform: `scaleX(${totalVolume.efficiency / 100})` }}
               />
             </div>
 
