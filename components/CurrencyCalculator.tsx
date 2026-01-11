@@ -12,10 +12,7 @@ interface CurrencyNames {
 }
 
 // Constants
-const UNIPASS_CACHE_PREFIX = 'unipass_rates_';
-const HANA_CACHE_PREFIX = 'exchangeRate_hana_';
 const SELECTED_CURRENCIES_KEY = 'selected_currencies';
-const CURRENCY_NAMES_KEY = 'currency_names';
 
 const CURRENCY_SYMBOLS: { [key: string]: string } = {
   'USD': '$', 'EUR': '€', 'CHF': 'Fr', 'KRW': '₩', 'JPY': '¥',
@@ -63,8 +60,11 @@ type ApiStatus = 'idle' | 'loading' | 'success' | 'error' | 'cached';
 type TabType = 'unipass' | 'hana';
 
 const CurrencyCalculator: React.FC = () => {
-  // Tab state
-  const [activeTab, setActiveTab] = useState<TabType>('unipass');
+  // Tab state - localStorage에서 초기값 읽기
+  const [activeTab, setActiveTab] = useState<TabType>(() => {
+    const saved = localStorage.getItem('currency_active_tab') as TabType;
+    return saved === 'hana' || saved === 'unipass' ? saved : 'unipass';
+  });
 
   // State
   const [date, setDate] = useState<string>(getTodayString());
@@ -78,8 +78,6 @@ const CurrencyCalculator: React.FC = () => {
   const [showResult, setShowResult] = useState<boolean>(false);
   const [showCurrencyModal, setShowCurrencyModal] = useState<boolean>(false);
   const [currencySearch, setCurrencySearch] = useState<string>('');
-  const [showSavedDates, setShowSavedDates] = useState<boolean>(false);
-  const [savedDates, setSavedDates] = useState<string[]>([]);
 
   // Calculator state
   const [showCalculator, setShowCalculator] = useState<boolean>(false);
@@ -101,9 +99,6 @@ const CurrencyCalculator: React.FC = () => {
   // Tooltip state for calculator shortcut
   const [showCalcTooltip, setShowCalcTooltip] = useState<boolean>(false);
 
-  // Get cache prefix based on active tab
-  const getCachePrefix = useCallback(() => activeTab === 'unipass' ? UNIPASS_CACHE_PREFIX : HANA_CACHE_PREFIX, [activeTab]);
-
   // Format number with commas
   const formatNumberWithCommas = (num: string): string => {
     if (!num || num === '0') return num;
@@ -123,16 +118,7 @@ const CurrencyCalculator: React.FC = () => {
     if (savedCurrencies) {
       setSelectedCurrencies(JSON.parse(savedCurrencies));
     }
-
-    const savedNames = localStorage.getItem(CURRENCY_NAMES_KEY);
-    if (savedNames) {
-      setAllCurrencies(JSON.parse(savedNames));
-    }
-
-    const savedTab = localStorage.getItem('currency_active_tab') as TabType;
-    if (savedTab) {
-      setActiveTab(savedTab);
-    }
+    // allCurrencies와 activeTab은 Supabase/useState에서 처리
   }, []);
 
   // Keyboard event for calculator toggle
@@ -274,26 +260,11 @@ const CurrencyCalculator: React.FC = () => {
     return () => document.removeEventListener('keydown', handleCalcKeyDown);
   }, [showCalculator, calcCurNum, calcFirstOperand, calcOperator]);
 
-  // Update saved dates list
-  const updateSavedDatesList = useCallback(() => {
-    const dates: string[] = [];
-    const prefix = getCachePrefix();
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(prefix)) {
-        dates.push(key.replace(prefix, ''));
-      }
-    }
-    dates.sort().reverse();
-    setSavedDates(dates);
-  }, [getCachePrefix]);
-
   // Fetch rates when date or tab changes
   useEffect(() => {
     if (date) {
       fetchRatesOnDateChange();
     }
-    updateSavedDatesList();
   }, [date, activeTab]);
 
   const showStatus = (type: ApiStatus, message: string) => {
@@ -355,27 +326,15 @@ const CurrencyCalculator: React.FC = () => {
     }
 
     if (Object.keys(rates).length > 0) {
-      const key = `${UNIPASS_CACHE_PREFIX}${dateStr}`;
-      localStorage.setItem(key, JSON.stringify(rates));
-      localStorage.setItem(CURRENCY_NAMES_KEY, JSON.stringify(currencyNames));
-
       // Save to Supabase for future requests
       if (saveToSupabase) {
-        const ratesToSave = Object.entries(rates).map(([currency, rate]) => ({
-          source: 'unipass',
-          currency,
-          currency_name: currencyNames[currency],
-          rate,
-          date: dateStr
-        }));
-        db.exchangeRates.save(ratesToSave).catch(() => {});
+        db.exchangeRates.save('unipass', dateStr, rates, currencyNames).catch(() => {});
       }
 
       setAllCurrencies(currencyNames);
       setCurrentRates(rates);
 
       showStatus('success', `환율 데이터를 불러왔습니다 (${Object.keys(rates).length}개 통화)`);
-      updateSavedDatesList();
 
       return true;
     }
@@ -477,6 +436,7 @@ const CurrencyCalculator: React.FC = () => {
     const sendingResult = extractRatesFromHtml(mall1501Html, 'rate');
     const usdResult = extractRatesFromHtml(mall1502Html, 'usd');
 
+    // 송금환율과 대미환산율 둘 다 필요
     if (!sendingResult.data.USD || !usdResult.data.USD) {
       return false;
     }
@@ -484,8 +444,8 @@ const CurrencyCalculator: React.FC = () => {
     const rates: ExchangeRate = {};
     const combinedCurrencyNames = { ...sendingResult.currencyNames, ...usdResult.currencyNames };
 
+    // 송금환율 추가
     for (const [code, rate] of Object.entries(sendingResult.data)) {
-      // Convert 100-unit currencies to 1-unit basis
       if (HANA_100_UNIT_CURRENCIES.includes(code)) {
         rates[code] = rate / 100;
       } else {
@@ -493,8 +453,8 @@ const CurrencyCalculator: React.FC = () => {
       }
     }
 
+    // 대미환산율 추가
     for (const [code, rate] of Object.entries(usdResult.data)) {
-      // Convert 100-unit currencies to 1-unit basis for USD rate as well
       if (HANA_100_UNIT_CURRENCIES.includes(code)) {
         rates[`${code}_usd`] = rate / 100;
       } else {
@@ -502,44 +462,21 @@ const CurrencyCalculator: React.FC = () => {
       }
     }
 
-    const key = `${HANA_CACHE_PREFIX}${dateStr}`;
-    localStorage.setItem(key, JSON.stringify(rates));
-    localStorage.setItem(CURRENCY_NAMES_KEY, JSON.stringify(combinedCurrencyNames));
-
     // Save to Supabase for future requests
     if (saveToSupabase) {
-      const ratesToSave = Object.entries(rates).map(([currency, rate]) => ({
-        source: 'hanabank',
-        currency,
-        currency_name: combinedCurrencyNames[currency.replace('_usd', '')] || currency,
-        rate,
-        date: dateStr
-      }));
-      db.exchangeRates.save(ratesToSave).catch(() => {});
+      db.exchangeRates.save('hanabank', dateStr, rates, combinedCurrencyNames).catch(() => {});
     }
 
     setAllCurrencies(combinedCurrencyNames);
     setCurrentRates(rates);
 
     showStatus('success', '하나은행 환율 데이터를 불러왔습니다');
-    updateSavedDatesList();
 
     return true;
   };
 
   const fetchRatesOnDateChange = async () => {
     if (!date) return;
-
-    const prefix = getCachePrefix();
-    const key = `${prefix}${date}`;
-    const cachedRates = localStorage.getItem(key);
-
-    if (cachedRates) {
-      const rates = JSON.parse(cachedRates);
-      setCurrentRates(rates);
-      showStatus('cached', `캐시에서 불러왔습니다 (${date})`);
-      return;
-    }
 
     if (activeTab === 'unipass') {
       await fetchUnipassRates(date);
@@ -554,21 +491,11 @@ const CurrencyCalculator: React.FC = () => {
     // 1. Try Supabase cache first
     try {
       const { data: cached } = await db.exchangeRates.getByDateAndSource(dateStr, 'unipass');
-      if (cached && cached.length > 0) {
-        const rates: ExchangeRate = {};
-        const currencyNames: CurrencyNames = {};
-        cached.forEach((r: any) => {
-          if (r.rate) {
-            rates[r.currency] = parseFloat(r.rate);
-            currencyNames[r.currency] = r.currency_name || r.currency;
-          }
-        });
-        if (Object.keys(rates).length > 0) {
-          setAllCurrencies(currencyNames);
-          setCurrentRates(rates);
-          showStatus('success', `캐시된 환율 데이터 (${Object.keys(rates).length}개 통화)`);
-          return;
-        }
+      if (cached && cached.rates && Object.keys(cached.rates).length > 0) {
+        setAllCurrencies(cached.currency_names || {});
+        setCurrentRates(cached.rates);
+        showStatus('success', `캐시된 환율 데이터 (${Object.keys(cached.rates).length}개 통화)`);
+        return;
       }
     } catch (e) {
       // Continue to external API
@@ -641,20 +568,30 @@ const CurrencyCalculator: React.FC = () => {
     showStatus('loading', '하나은행에서 환율 데이터를 불러오는 중...');
 
     // 1. Try Supabase cache first
+    let cachedRates: ExchangeRate | null = null;
+    let cachedCurrencyNames: CurrencyNames = {};
+    let needMall1501 = true;
+    let needMall1502 = true;
+
     try {
       const { data: cached } = await db.exchangeRates.getByDateAndSource(dateStr, 'hanabank');
-      if (cached && cached.length > 0) {
-        const rates: ExchangeRate = {};
-        const currencyNames: CurrencyNames = {};
-        cached.forEach((r: any) => {
-          if (r.rate) {
-            rates[r.currency] = parseFloat(r.rate);
-            currencyNames[r.currency.replace('_usd', '')] = r.currency_name || r.currency;
-          }
-        });
-        if (Object.keys(rates).length > 0) {
-          setAllCurrencies(currencyNames);
-          setCurrentRates(rates);
+      if (cached && cached.rates && Object.keys(cached.rates).length > 0) {
+        cachedRates = cached.rates;
+        cachedCurrencyNames = cached.currency_names || {};
+
+        // 송금환율 있는지 확인
+        if (cached.rates.USD) {
+          needMall1501 = false;
+        }
+        // 대미환산율 있는지 확인
+        if (cached.rates.USD_usd) {
+          needMall1502 = false;
+        }
+
+        // 둘 다 있으면 캐시 사용
+        if (!needMall1501 && !needMall1502) {
+          setAllCurrencies(cachedCurrencyNames);
+          setCurrentRates(cachedRates);
           showStatus('success', `캐시된 하나은행 환율 데이터`);
           return;
         }
@@ -704,70 +641,104 @@ const CurrencyCalculator: React.FC = () => {
     let mall1501Html = '';
     let mall1502Html = '';
 
-    // Try fetching via cors-anywhere style proxies that support POST
     const proxyBases = [
       'https://pr.refra2n-511.workers.dev/?url=',
       'https://corsproxy.io/?url=',
       'https://api.allorigins.win/raw?url='
     ];
 
-    // For Hana Bank, we need POST requests. Most CORS proxies don't support POST well.
-    // Try using a different approach - fetch via allorigins which does GET on the URL
-    // Since Hana uses POST, we'll construct the URL with query params as fallback
-
-    // Try mall1501
-    for (const proxyBase of proxyBases) {
-      try {
-        const proxyUrl = proxyBase + encodeURIComponent(mall1501Url);
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: mall1501Data.toString()
-        });
-
-        if (response.ok) {
-          mall1501Html = await response.text();
-          if (mall1501Html.includes('tbl_type1') || mall1501Html.includes('<table')) {
-            break;
+    // 송금환율 필요하면 호출
+    if (needMall1501) {
+      for (const proxyBase of proxyBases) {
+        try {
+          const proxyUrl = proxyBase + encodeURIComponent(mall1501Url);
+          const response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: mall1501Data.toString()
+          });
+          if (response.ok) {
+            mall1501Html = await response.text();
+            if (mall1501Html.includes('tbl_type1') || mall1501Html.includes('<table')) {
+              break;
+            }
           }
+        } catch (e) {
+          continue;
         }
-      } catch (e) {
-        continue;
       }
     }
 
-    // Try mall1502
-    for (const proxyBase of proxyBases) {
-      try {
-        const proxyUrl = proxyBase + encodeURIComponent(mall1502Url);
-        const response = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: mall1502Data.toString()
-        });
-
-        if (response.ok) {
-          mall1502Html = await response.text();
-          if (mall1502Html.includes('tbl_type1') || mall1502Html.includes('<table')) {
-            break;
+    // 대미환산율 필요하면 호출
+    if (needMall1502) {
+      for (const proxyBase of proxyBases) {
+        try {
+          const proxyUrl = proxyBase + encodeURIComponent(mall1502Url);
+          const response = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: mall1502Data.toString()
+          });
+          if (response.ok) {
+            mall1502Html = await response.text();
+            if (mall1502Html.includes('tbl_type1') || mall1502Html.includes('<table')) {
+              break;
+            }
           }
+        } catch (e) {
+          continue;
         }
-      } catch (e) {
-        continue;
       }
     }
 
-    if (mall1501Html && mall1502Html) {
-      if (processHanaData(mall1501Html, mall1502Html, dateStr, true)) {
-        return;
+    // 데이터 병합
+    const rates: ExchangeRate = cachedRates ? { ...cachedRates } : {};
+    let currencyNames: CurrencyNames = { ...cachedCurrencyNames };
+
+    // 새로 가져온 송금환율 처리
+    if (mall1501Html) {
+      const sendingResult = extractRatesFromHtml(mall1501Html, 'rate');
+      for (const [code, rate] of Object.entries(sendingResult.data)) {
+        if (HANA_100_UNIT_CURRENCIES.includes(code)) {
+          rates[code] = rate / 100;
+        } else {
+          rates[code] = rate;
+        }
       }
+      currencyNames = { ...currencyNames, ...sendingResult.currencyNames };
     }
 
-    showStatus('error', '하나은행 환율 데이터를 불러올 수 없습니다. (CORS 제한 또는 데이터 없음)');
+    // 새로 가져온 대미환산율 처리
+    if (mall1502Html) {
+      const usdResult = extractRatesFromHtml(mall1502Html, 'usd');
+      for (const [code, rate] of Object.entries(usdResult.data)) {
+        if (HANA_100_UNIT_CURRENCIES.includes(code)) {
+          rates[`${code}_usd`] = rate / 100;
+        } else {
+          rates[`${code}_usd`] = rate;
+        }
+      }
+      currencyNames = { ...currencyNames, ...usdResult.currencyNames };
+    }
+
+    // 최소한 송금환율(USD)이 있어야 함
+    if (!rates.USD) {
+      showStatus('error', '하나은행 환율 데이터를 불러올 수 없습니다. (CORS 제한 또는 데이터 없음)');
+      return;
+    }
+
+    // Supabase에 저장
+    db.exchangeRates.save('hanabank', dateStr, rates, currencyNames).catch(() => {});
+
+    setAllCurrencies(currencyNames);
+    setCurrentRates(rates);
+
+    // 대미환산율 없으면 경고 메시지
+    if (!rates.USD_usd) {
+      showStatus('success', '하나은행 송금환율 로드 (대미환산율 미포함)');
+    } else {
+      showStatus('success', '하나은행 환율 데이터를 불러왔습니다');
+    }
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -901,26 +872,19 @@ const CurrencyCalculator: React.FC = () => {
     localStorage.setItem(SELECTED_CURRENCIES_KEY, JSON.stringify(newSelected));
   };
 
-  const loadSavedDate = (dateStr: string) => {
-    setDate(dateStr);
-  };
-
-  const deleteSavedDate = (dateStr: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (confirm(`${dateStr} 환율 데이터를 삭제하시겠습니까?`)) {
-      localStorage.removeItem(`${getCachePrefix()}${dateStr}`);
-      updateSavedDatesList();
-    }
-  };
-
   const handleTabChange = (tab: TabType) => {
     // Ignore if same tab is clicked
     if (tab === activeTab) return;
 
-    setActiveTab(tab);
-    localStorage.setItem('currency_active_tab', tab);
+    // 먼저 로딩 상태로 변경하고 이전 데이터 초기화
+    setApiStatus('loading');
+    setStatusMessage('환율 데이터를 불러오는 중...');
     setCurrentRates(null);
     setShowResult(false);
+
+    // 탭 변경 (useEffect가 트리거됨)
+    setActiveTab(tab);
+    localStorage.setItem('currency_active_tab', tab);
   };
 
   // Calculator functions (matching original logic)
@@ -1291,41 +1255,6 @@ const CurrencyCalculator: React.FC = () => {
                 </div>
               )}
             </div>
-
-            {/* Saved Dates */}
-            {savedDates.length > 0 && (
-              <div className="px-4 pb-4 border-t border-slate-100 pt-3">
-                <button
-                  onClick={() => setShowSavedDates(!showSavedDates)}
-                  className="w-full py-2 text-slate-500 text-xs font-medium hover:text-slate-700 transition-colors flex items-center justify-center gap-1"
-                >
-                  <span>캐시된 데이터 ({savedDates.length})</span>
-                  <svg className={`w-3 h-3 transition-transform ${showSavedDates ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-
-                {showSavedDates && (
-                  <div className="mt-2 space-y-1 max-h-32 overflow-y-auto">
-                    {savedDates.map(dateStr => (
-                      <div
-                        key={dateStr}
-                        onClick={() => loadSavedDate(dateStr)}
-                        className="flex justify-between items-center py-2 px-3 bg-slate-50 rounded-lg cursor-pointer hover:bg-blue-50 transition-all text-xs group"
-                      >
-                        <span className="font-medium text-slate-600 group-hover:text-blue-600">{dateStr}</span>
-                        <button
-                          onClick={(e) => deleteSavedDate(dateStr, e)}
-                          className="opacity-0 group-hover:opacity-100 px-2 py-0.5 text-red-500 hover:text-red-600 transition-all text-[10px]"
-                        >
-                          삭제
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
         </div>
       </div>

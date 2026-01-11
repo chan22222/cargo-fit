@@ -442,24 +442,31 @@ export const db = {
         .from('exchange_rates')
         .select('*')
         .eq('date', date)
-        .eq('source', source);
+        .eq('source', source)
+        .maybeSingle();
 
       return { data, error };
     },
 
-    // 환율 저장 (upsert) - currency_name 지원
-    save: async (rates: { source: string; currency: string; rate: number; date: string; currency_name?: string }[]) => {
-      const { data, error } = await supabase
-        .from('exchange_rates')
-        .upsert(
-          rates.map(r => ({
-            ...r,
+    // 환율 저장 (JSON으로 묶어서 저장, 날짜+소스당 1개 행)
+    save: async (source: string, date: string, rates: Record<string, number>, currencyNames?: Record<string, string>) => {
+      try {
+        const { data, error } = await supabase
+          .from('exchange_rates')
+          .upsert({
+            source,
+            date,
+            rates,
+            currency_names: currencyNames || {},
             updated_at: new Date().toISOString()
-          })),
-          { onConflict: 'source,currency,date' }
-        )
-        .select();
-      return { data, error };
+          }, { onConflict: 'source,date' })
+          .select();
+
+        return { data, error };
+      } catch (e) {
+        // 에러 무시 - 캐싱 실패해도 기능에는 영향 없음
+        return { data: null, error: null };
+      }
     },
 
     // 캐시 신선도 확인 (6시간 이내면 true)

@@ -214,164 +214,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
     return () => clearInterval(timer);
   }, [selectedCities]);
 
-  // Fetch exchange rates - Supabase first, then external APIs
+  // Fetch exchange rates - Supabase only (for fast loading)
   useEffect(() => {
     const fetchExchangeRates = async () => {
-      const today = new Date();
-      const todayStr = getLocalDateString(today);
-
-      // 1. Try Supabase cache first (fastest)
       try {
         const { data: cachedRates } = await db.exchangeRates.getLatest();
-        if (cachedRates && cachedRates.length > 0) {
-          // Check if cache is fresh (< 6 hours old)
-          const latestUpdate = new Date(cachedRates[0].updated_at);
-          const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
+        if (cachedRates && cachedRates.length > 0 && cachedRates[0].rates) {
+          const cached = cachedRates[0];
+          const rates = cached.rates as { [key: string]: number };
 
-          if (latestUpdate > sixHoursAgo) {
-            const rates: { [key: string]: number } = {};
-            const latestDate = cachedRates[0].date;
-            let source = 'DB';
-
-            cachedRates.forEach((r: any) => {
-              if (r.date === latestDate && r.rate) {
-                rates[r.currency] = parseFloat(r.rate);
-                source = r.source === 'unipass' ? '관세청 UNIPASS' : '하나은행';
-              }
-            });
-
-            if (Object.keys(rates).length > 0) {
-              setExchangeRates(rates);
-              setRateSource(source);
-              setRateDate(latestDate);
-              return; // Use cached data, no external API calls needed
-            }
+          if (Object.keys(rates).length > 0) {
+            setExchangeRates(rates);
+            setRateSource(cached.source === 'unipass' ? '관세청 UNIPASS' : '하나은행');
+            setRateDate(cached.date);
+            return;
           }
         }
       } catch (e) {
-        // Supabase error, continue to external APIs
+        // Supabase error
       }
 
-      // 2. Fetch from external APIs and save to Supabase
-      // Try UNIPASS first
-      for (let daysBack = 0; daysBack <= 1; daysBack++) {
-        const targetDate = new Date(today);
-        targetDate.setDate(today.getDate() - daysBack);
-        const dateStr = getLocalDateString(targetDate);
-
-        try {
-          const unipassUrl = `https://unipass.customs.go.kr/csp/myc/bsopspptinfo/dclrSpptInfo/WeekFxrtQryCtr/retrieveWeekFxrt.do?pageIndex=1&pageUnit=100&aplyDt=${dateStr}&weekFxrtTpcd=2&_=${Date.now()}`;
-          const response = await fetch(`https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`);
-
-          if (response.ok) {
-            const text = await response.text();
-            if (text.trim().startsWith('{') || text.trim().startsWith('[')) {
-              const jsonData = JSON.parse(text);
-              if (jsonData?.items?.length > 0) {
-                const rates: { [key: string]: number } = {};
-                const ratesToSave: { source: string; currency: string; rate: number; date: string }[] = [];
-
-                jsonData.items.forEach((record: any) => {
-                  const currCode = record.currCd;
-                  const baseRate = parseFloat(record.weekFxrt);
-                  if (currCode && !isNaN(baseRate)) {
-                    rates[currCode] = baseRate;
-                    ratesToSave.push({ source: 'unipass', currency: currCode, rate: baseRate, date: dateStr });
-                  }
-                });
-
-                if (Object.keys(rates).length > 0) {
-                  // Save to Supabase for future requests
-                  db.exchangeRates.save(ratesToSave).catch(() => {});
-                  setExchangeRates(rates);
-                  setRateSource('관세청 UNIPASS');
-                  setRateDate(dateStr);
-                  return;
-                }
-              }
-            }
-          }
-        } catch (error) {
-          continue;
-        }
-      }
-
-      // 3. Fallback to Hana Bank
-      try {
-        const dateStr = getLocalDateString(today);
-        const dateStrCompact = dateStr.replace(/-/g, '');
-        const hanaUrl = 'https://www.kebhana.com/cms/rate/wpfxd651_01i_01.do';
-        const hanaData = new URLSearchParams({
-          ajax: 'true', curCd: '', tmpInqStrDt: dateStr, pbldDvCd: '1',
-          pbldSqn: '', hid_key_data: '', inqStrDt: dateStrCompact,
-          inqKindCd: '1', hid_enc_data: '', requestTarget: 'searchContentDiv'
-        });
-
-        const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(hanaUrl)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: hanaData.toString()
-        });
-
-        if (response.ok) {
-          const html = await response.text();
-          if (html.includes('<table')) {
-            const rates = parseHanaRates(html);
-            if (Object.keys(rates).length > 0) {
-              // Save to Supabase
-              const ratesToSave = Object.entries(rates).map(([currency, rate]) => ({
-                source: 'hanabank', currency, rate, date: dateStr
-              }));
-              db.exchangeRates.save(ratesToSave).catch(() => {});
-              setExchangeRates(rates);
-              setRateSource('하나은행');
-              setRateDate(dateStr);
-              return;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Exchange rate fetch failed:', error);
-      }
-    };
-
-    // Parse Hana Bank HTML to extract rates
-    const parseHanaRates = (html: string): { [key: string]: number } => {
-      const rates: { [key: string]: number } = {};
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const rows = doc.querySelectorAll('tbody tr');
-
-      const codeMapping: { [key: string]: string } = {
-        '미국': 'USD', '일본': 'JPY', '유로': 'EUR', '영국': 'GBP',
-        '스위스': 'CHF', '중국': 'CNY', '호주': 'AUD', '캐나다': 'CAD',
-        '홍콩': 'HKD', '싱가포르': 'SGD', '뉴질랜드': 'NZD', '태국': 'THB', '베트남': 'VND'
-      };
-
-      rows.forEach((row) => {
-        const cells = row.querySelectorAll('td');
-        if (cells.length >= 4) {
-          const currencyText = cells[0].textContent?.trim() || '';
-          let currCode = null;
-
-          const codeMatch = currencyText.match(/\(([A-Z]{3})\)/);
-          if (codeMatch) {
-            currCode = codeMatch[1];
-          } else {
-            for (const [keyword, code] of Object.entries(codeMapping)) {
-              if (currencyText.includes(keyword)) { currCode = code; break; }
-            }
-          }
-
-          if (currCode) {
-            const cellIndex = cells.length >= 11 ? 5 : 3;
-            const valueText = cells[cellIndex]?.textContent?.trim() || '';
-            const value = parseFloat(valueText.replace(/,/g, ''));
-            if (!isNaN(value) && value > 0) { rates[currCode] = value; }
-          }
-        }
-      });
-      return rates;
+      // 캐시 없으면 빈 객체 유지 (UI에서 안내 메시지 표시)
+      setExchangeRates({});
     };
 
     fetchExchangeRates();
@@ -571,14 +435,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                   </div>
                   <div className="text-xs text-slate-400 mt-4 flex items-center justify-between">
                      <div className="flex items-center gap-2">
-                        <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        {rateSource ? `${rateSource} (${rateDate})` : '환율 정보 로딩 중...'}
+                        <span className={`inline-block w-1.5 h-1.5 rounded-full ${rateSource ? 'bg-green-500' : 'bg-amber-500'}`}></span>
+                        {rateSource ? `${rateSource} (${rateDate})` : '환율 계산기에서 조회 후 자동 갱신됩니다'}
                      </div>
                      <button
                         onClick={onNavigateToCurrency}
                         className="text-blue-600 hover:text-blue-700 font-bold"
                      >
-                        더 많은 정보 보기 →
+                        {rateSource ? '더 많은 정보 보기 →' : '환율 계산기로 이동 →'}
                      </button>
                   </div>
                </div>
