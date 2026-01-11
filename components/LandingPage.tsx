@@ -1,13 +1,25 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { Insight } from '../types/insights';
 import { FSSCRecord, AIRLINE_CODES } from '../types/fssc';
 import { db } from '../lib/supabase';
 import { getTodayString, getLocalDateString } from '../lib/date';
 import { getThumbnailUrl, getFeaturedImageUrl } from '../lib/image';
-import ContainerDemo from './ContainerDemo';
 import FeedbackModal from './FeedbackModal';
 import CoffeeDonationModal from './CoffeeDonationModal';
+
+// Lazy load ContainerDemo for better LCP
+const ContainerDemo = lazy(() => import('./ContainerDemo'));
+
+// Placeholder for ContainerDemo while loading
+const ContainerDemoPlaceholder = () => (
+  <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center rounded-[32px]">
+    <div className="text-center">
+      <div className="w-16 h-16 mx-auto mb-4 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
+      <p className="text-white/60 text-sm font-medium">3D 시뮬레이터 로딩 중...</p>
+    </div>
+  </div>
+);
 
 // 통화 관련 상수
 const CURRENCY_SYMBOLS: { [key: string]: string } = {
@@ -508,7 +520,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           <div className="flex-1 relative w-full lg:w-auto">
              <div className="relative aspect-[4/5] sm:aspect-square max-w-[600px] mx-auto">
                 <div className="absolute inset-0 rounded-[32px] shadow-[0_64px_128px_-32px_rgba(37,99,235,0.4)] overflow-hidden">
-                   <ContainerDemo />
+                   <Suspense fallback={<ContainerDemoPlaceholder />}>
+                     <ContainerDemo />
+                   </Suspense>
                 </div>
              </div>
           </div>
