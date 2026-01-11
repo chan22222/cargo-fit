@@ -328,7 +328,7 @@ const CurrencyCalculator: React.FC = () => {
     if (Object.keys(rates).length > 0) {
       // Save to Supabase for future requests
       if (saveToSupabase) {
-        db.exchangeRates.save('unipass', dateStr, rates, currencyNames).catch(() => {});
+        db.exchangeRates.save('unipass', dateStr, rates, currencyNames);
       }
 
       setAllCurrencies(currencyNames);
@@ -728,7 +728,7 @@ const CurrencyCalculator: React.FC = () => {
     }
 
     // Supabase에 저장
-    db.exchangeRates.save('hanabank', dateStr, rates, currencyNames).catch(() => {});
+    db.exchangeRates.save('hanabank', dateStr, rates, currencyNames);
 
     setAllCurrencies(currencyNames);
     setCurrentRates(rates);

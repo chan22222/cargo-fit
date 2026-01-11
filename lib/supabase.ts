@@ -464,7 +464,6 @@ export const db = {
 
         return { data, error };
       } catch (e) {
-        // 에러 무시 - 캐싱 실패해도 기능에는 영향 없음
         return { data: null, error: null };
       }
     },

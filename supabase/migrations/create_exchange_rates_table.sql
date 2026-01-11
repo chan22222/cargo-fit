@@ -1,13 +1,14 @@
--- Exchange rates cache table
-CREATE TABLE IF NOT EXISTS exchange_rates (
+-- Exchange rates cache table (JSON format: one row per source+date)
+DROP TABLE IF EXISTS exchange_rates;
+
+CREATE TABLE exchange_rates (
   id SERIAL PRIMARY KEY,
   source VARCHAR(20) NOT NULL, -- 'unipass' or 'hanabank'
-  currency VARCHAR(10) NOT NULL,
-  currency_name VARCHAR(100), -- e.g., '미국 달러', '유로'
-  rate DECIMAL(20, 6),
   date DATE NOT NULL,
+  rates JSONB NOT NULL, -- { "USD": 1450.5, "EUR": 1580.2, ... }
+  currency_names JSONB, -- { "USD": "미국 달러", "EUR": "유로", ... }
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  UNIQUE(source, currency, date)
+  UNIQUE(source, date)
 );
 
 -- Index for faster queries
@@ -22,9 +23,10 @@ ALTER TABLE exchange_rates ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read access" ON exchange_rates
   FOR SELECT USING (true);
 
--- Allow public insert/update (for caching)
+-- Allow public insert (for caching)
 CREATE POLICY "Allow public insert" ON exchange_rates
   FOR INSERT WITH CHECK (true);
 
+-- Allow public update (for caching)
 CREATE POLICY "Allow public update" ON exchange_rates
   FOR UPDATE USING (true);
