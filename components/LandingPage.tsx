@@ -238,6 +238,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           const response = await fetch(proxyUrl);
           if (response.ok) {
             const text = await response.text();
+            // Check if response is valid JSON (starts with { or [)
+            if (!text.trim().startsWith('{') && !text.trim().startsWith('[')) {
+              continue; // Skip to next date if not JSON
+            }
             const jsonData = JSON.parse(text);
 
             if (jsonData && jsonData.items && jsonData.items.length > 0) {
