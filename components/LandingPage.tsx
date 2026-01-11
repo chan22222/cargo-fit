@@ -517,7 +517,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
 
       {/* How it Works Section */}
       <section id="how-it-works" className="pt-24 pb-32 px-10 bg-slate-900 text-white relative">
-         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/world-item.png')]"></div>
+         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_1px_1px,_white_1px,_transparent_0)] bg-[size:40px_40px]"></div>
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-20">
              <h2 className="text-sm font-black text-blue-500 uppercase tracking-[0.3em]">How it works</h2>
