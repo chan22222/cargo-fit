@@ -431,7 +431,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
 
 
   return (
-    <div className="flex-1 flex flex-col bg-white overflow-y-auto w-full relative">
+    <main className="flex-1 flex flex-col bg-white overflow-y-auto w-full relative">
       
       {/* Advertisement Banner - Looking for Advertisers */}
       <div
@@ -1146,6 +1146,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                       href="/admin"
                       className="opacity-0 hover:opacity-100 transition-opacity ml-3 text-slate-600"
                       title="Admin"
+                      aria-label="관리자 페이지"
                     >
                       ⚙
                     </a>
@@ -1506,7 +1507,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 
