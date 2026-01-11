@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
 import { db } from '../lib/supabase';
+import { getThumbnailUrl, getFeaturedImageUrl } from '../lib/image';
 
 interface InsightsListProps {
   onNavigateToInsight: (id: string) => void;
@@ -216,9 +217,10 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
                     <img
-                      src={filteredInsights[0].imageUrl}
+                      src={getFeaturedImageUrl(filteredInsights[0].imageUrl)}
                       alt={filteredInsights[0].title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      loading="eager"
                     />
                   </div>
                   <div className="p-8 md:p-12 flex flex-col justify-center">
@@ -266,9 +268,10 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
                   {/* Image */}
                   <div className="aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
                     <img
-                      src={insight.imageUrl}
+                      src={getThumbnailUrl(insight.imageUrl)}
                       alt={insight.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      loading="lazy"
                     />
                   </div>
 

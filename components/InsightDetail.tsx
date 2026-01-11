@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
 import { db } from '../lib/supabase';
+import { getFeaturedImageUrl, getThumbnailUrl } from '../lib/image';
 
 interface InsightDetailProps {
   insightId: string;
@@ -203,7 +204,7 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
           {insight.imageUrl && (
             <div className="relative aspect-[21/9] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
               <img
-                src={insight.imageUrl}
+                src={getFeaturedImageUrl(insight.imageUrl)}
                 alt={insight.title}
                 className="w-full h-full object-cover"
               />
@@ -379,9 +380,10 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
                 >
                   <div className="aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
                     <img
-                      src={related.imageUrl}
+                      src={getThumbnailUrl(related.imageUrl)}
                       alt={related.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                      loading="lazy"
                     />
                   </div>
                   <div className="p-6">
