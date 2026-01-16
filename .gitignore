@@ -31,4 +31,7 @@ dist-ssr
 .env.local
 .env.production
 .env.development
-supabase/functions/
+
+# Supabase CLI
+supabase.exe
+nul
