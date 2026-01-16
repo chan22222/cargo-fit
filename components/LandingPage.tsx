@@ -113,8 +113,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         const viewCountKey = `viewed_${selectedInsight.id}`;
         const alreadyViewed = sessionStorage.getItem(viewCountKey);
         if (!alreadyViewed) {
-          await db.insights.incrementViewCount(selectedInsight.id);
+          // 먼저 플래그 설정해서 race condition 방지
           sessionStorage.setItem(viewCountKey, 'true');
+          await db.insights.incrementViewCount(selectedInsight.id);
         }
       };
       incrementViewCount();
@@ -1296,7 +1297,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         </svg>
                       </button>
                       <button
-                        onClick={() => { navigator.clipboard.writeText(window.location.origin + '/insight/' + selectedInsight.id); alert('링크가 복사되었습니다!'); }}
+                        onClick={() => { if (navigator.clipboard) { navigator.clipboard.writeText(window.location.origin + '/insight/' + selectedInsight.id); } alert('링크가 복사되었습니다!'); }}
                         className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-600 hover:opacity-80 transition-opacity"
                         title="링크 복사"
                       >

@@ -95,7 +95,9 @@ const CoffeeDonationModal: React.FC<CoffeeDonationModalProps> = ({ isOpen, onClo
   const handleCoffeeDonation = () => {
     if (isHelping) return; // 중복 클릭 방지
 
-    navigator.clipboard.writeText(accountNumber);
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(accountNumber);
+    }
     setCopied(true);
     setIsHelping(true);
     setCoffeeCount(prev => prev + 1);
@@ -229,7 +231,9 @@ const CoffeeDonationModal: React.FC<CoffeeDonationModalProps> = ({ isOpen, onClo
               </div>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(accountNumber);
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(accountNumber);
+                  }
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}

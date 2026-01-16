@@ -44,8 +44,9 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
           const viewCountKey = `viewed_${insightId}`;
           const alreadyViewed = sessionStorage.getItem(viewCountKey);
           if (!alreadyViewed) {
-            await db.insights.incrementViewCount(insightId);
+            // 먼저 플래그 설정해서 race condition 방지
             sessionStorage.setItem(viewCountKey, 'true');
+            await db.insights.incrementViewCount(insightId);
           }
 
           // Load related insights
@@ -148,7 +149,9 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
         url = `mailto:?subject=${encodeURIComponent(shareTitle)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`;
         break;
       case 'copy':
-        navigator.clipboard.writeText(shareUrl);
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(shareUrl);
+        }
         alert('링크가 복사되었습니다!');
         return;
     }

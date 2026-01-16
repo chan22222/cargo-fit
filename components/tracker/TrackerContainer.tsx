@@ -831,8 +831,8 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
     const targetCarrier = carrier || detectedCarrier;
     if (!targetCarrier) return;
 
-    // 클립보드에 복사
-    if (blInput) {
+    // 클립보드에 복사 (clipboard API가 없는 환경 대응)
+    if (blInput && navigator.clipboard) {
       navigator.clipboard.writeText(blInput).catch(() => {});
     }
 
@@ -850,8 +850,8 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
 
   // 수동 선택으로 추적
   const handleManualTrack = (carrier: Carrier) => {
-    // 클립보드에 복사
-    if (blInput) {
+    // 클립보드에 복사 (clipboard API가 없는 환경 대응)
+    if (blInput && navigator.clipboard) {
       navigator.clipboard.writeText(blInput).catch(() => {});
     }
 
