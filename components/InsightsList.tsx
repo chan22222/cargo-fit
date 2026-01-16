@@ -100,19 +100,21 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
       <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <button
-              onClick={onNavigateBack}
+            <a
+              href="/"
+              onClick={(e) => { e.preventDefault(); onNavigateBack(); }}
               className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
               <span className="font-medium">홈으로</span>
-            </button>
+            </a>
 
             {/* Logo */}
-            <div
-              onClick={onNavigateBack}
+            <a
+              href="/"
+              onClick={(e) => { e.preventDefault(); onNavigateBack(); }}
               className="flex items-center gap-2 md:gap-4 cursor-pointer group"
             >
               <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center font-black text-white text-xl md:text-2xl shadow-md group-hover:shadow-lg transition-all duration-300">
@@ -127,7 +129,7 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
                   Container Loading Tool
                 </p>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </header>
@@ -210,9 +212,10 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
           <>
             {/* Featured Article */}
             {filteredInsights[0] && (
-              <div
-                className="mb-12 bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer group"
-                onClick={() => handleInsightClick(filteredInsights[0].id)}
+              <a
+                href={`/insight/${filteredInsights[0].id}`}
+                onClick={(e) => { e.preventDefault(); handleInsightClick(filteredInsights[0].id); }}
+                className="mb-12 bg-white rounded-3xl shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer group block"
               >
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
@@ -246,24 +249,25 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
                         {formatViewCount(filteredInsights[0].viewCount || 0)}
                       </span>
                     </div>
-                    <button className="mt-6 inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-4 transition-all">
+                    <span className="mt-6 inline-flex items-center gap-2 text-blue-600 font-bold hover:gap-4 transition-all">
                       자세히 보기
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
-                    </button>
+                    </span>
                   </div>
                 </div>
-              </div>
+              </a>
             )}
 
             {/* Article Grid */}
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {filteredInsights.slice(1).map(insight => (
-                <article
+                <a
                   key={insight.id}
-                  className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group"
-                  onClick={() => handleInsightClick(insight.id)}
+                  href={`/insight/${insight.id}`}
+                  onClick={(e) => { e.preventDefault(); handleInsightClick(insight.id); }}
+                  className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 cursor-pointer group block"
                 >
                   {/* Image */}
                   <div className="aspect-[16/10] bg-gradient-to-br from-slate-100 to-slate-200 overflow-hidden">
@@ -306,7 +310,7 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
                       </span>
                     </div>
                   </div>
-                </article>
+                </a>
               ))}
             </div>
           </>

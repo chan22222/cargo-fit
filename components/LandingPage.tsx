@@ -320,9 +320,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 md:gap-5 pt-2 md:pt-4">
-              <button
-                onClick={onStart}
-                className="group relative w-full sm:w-auto px-8 md:px-12 py-3 md:py-5 bg-blue-600 text-white font-black rounded-xl md:rounded-2xl transition-all shadow-xl md:shadow-2xl shadow-blue-500/30 md:shadow-blue-500/40 hover:scale-105 active:scale-95 overflow-hidden"
+              <a
+                href="/container"
+                onClick={(e) => { e.preventDefault(); onStart(); }}
+                className="group relative w-full sm:w-auto px-8 md:px-12 py-3 md:py-5 bg-blue-600 text-white font-black rounded-xl md:rounded-2xl transition-all shadow-xl md:shadow-2xl shadow-blue-500/30 md:shadow-blue-500/40 hover:scale-105 active:scale-95 overflow-hidden text-center"
               >
                 <div className="flex items-center justify-center gap-2 md:gap-3 relative z-10">
                   <span className="text-base md:text-lg">시뮬레이션 시작</span>
@@ -330,7 +331,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
                 </div>
-              </button>
+              </a>
 
               <button
                 onClick={() => {
@@ -414,10 +415,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                   </div>
                   <div className={`grid gap-4 ${selectedCurrencies.length <= 3 ? 'sm:grid-cols-3' : selectedCurrencies.length <= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
                      {selectedCurrencies.map((code) => (
-                        <div
+                        <a
                            key={code}
-                           className="bg-slate-50 border border-slate-100 p-5 rounded-[20px] hover:bg-slate-100 hover:border-blue-200 transition-all group cursor-pointer"
-                           onClick={onNavigateToCurrency}
+                           href="/currency"
+                           onClick={(e) => { e.preventDefault(); onNavigateToCurrency?.(); }}
+                           className="bg-slate-50 border border-slate-100 p-5 rounded-[20px] hover:bg-slate-100 hover:border-blue-200 transition-all group cursor-pointer block"
                         >
                            <div className="flex items-center gap-2 mb-2">
                               <span className="text-lg">{CURRENCY_SYMBOLS[code] || ''}</span>
@@ -429,7 +431,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                                  : '-'}
                            </div>
                            <div className="text-[9px] text-slate-400 mt-1">{CURRENCY_NAMES[code] || code}</div>
-                        </div>
+                        </a>
                      ))}
                   </div>
                   <div className="text-xs text-slate-400 mt-4 flex items-center justify-between">
@@ -437,12 +439,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         <span className={`inline-block w-1.5 h-1.5 rounded-full ${rateSource ? 'bg-green-500' : 'bg-amber-500'}`}></span>
                         {rateSource ? `${rateSource} (${rateDate})` : '환율 계산기에서 조회 후 자동 갱신됩니다'}
                      </div>
-                     <button
-                        onClick={onNavigateToCurrency}
+                     <a
+                        href="/currency"
+                        onClick={(e) => { e.preventDefault(); onNavigateToCurrency?.(); }}
                         className="text-blue-600 hover:text-blue-700 font-bold"
                      >
                         환율 계산기로 이동 →
-                     </button>
+                     </a>
                   </div>
                </div>
 
@@ -465,10 +468,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         const cityData = WORLD_CITIES[city];
                         const time = times[city] || '--:--';
                         return (
-                           <div
+                           <a
                               key={city}
+                              href="/worldclock"
+                              onClick={(e) => { e.preventDefault(); onNavigateToWorldClock?.(); }}
                               className="flex flex-col items-center group cursor-pointer"
-                              onClick={onNavigateToWorldClock}
                            >
                               <div className="w-[70px] h-[70px] rounded-full border border-slate-200 flex items-center justify-center mb-2 bg-slate-50 relative group-hover:border-blue-300 group-hover:bg-blue-50 transition-colors">
                                  <div className="absolute inset-2 rounded-full border-t-2 border-blue-500 animate-[spin_4s_linear_infinite]"></div>
@@ -477,7 +481,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                               <div className="text-[9px] font-black text-slate-500 uppercase tracking-wider text-center leading-tight group-hover:text-blue-600 transition-colors">{city}</div>
                               <div className="text-[10px] text-slate-400">{cityData?.country || ''}</div>
                               <div className="text-base font-black text-blue-600">{time}</div>
-                           </div>
+                           </a>
                         );
                      })}
                   </div>
@@ -486,12 +490,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         <span className="inline-block w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
                         실시간 업데이트
                      </div>
-                     <button
-                        onClick={onNavigateToWorldClock}
+                     <a
+                        href="/worldclock"
+                        onClick={(e) => { e.preventDefault(); onNavigateToWorldClock?.(); }}
                         className="text-blue-600 hover:text-blue-700 font-bold"
                      >
                         더 많은 정보 보기 →
-                     </button>
+                     </a>
                   </div>
                </div>
             </div>
@@ -507,12 +512,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                   <div className="space-y-2 text-center">
                      <div className="flex items-center justify-center gap-3">
                         <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Incoterms 2020</h2>
-                        <button
-                           onClick={onNavigateToIncoterms}
+                        <a
+                           href="/incoterms"
+                           onClick={(e) => { e.preventDefault(); onNavigateToIncoterms?.(); }}
                            className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
                         >
                            자세히 보기
-                        </button>
+                        </a>
                      </div>
                      <p className="text-4xl font-black tracking-tight text-slate-900">인코텀즈 가이드</p>
                   </div>
@@ -535,10 +541,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                         <>
                            <div className="space-y-2">
                               {displayTerms.map((term) => (
-                                 <div
+                                 <a
                                     key={term.code}
+                                    href="/incoterms"
+                                    onClick={(e) => { e.preventDefault(); onNavigateToIncoterms?.(); }}
                                     className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
-                                    onClick={onNavigateToIncoterms}
                                  >
                                     <div className="w-14 text-center">
                                        <div className="text-lg font-black text-blue-600 group-hover:text-blue-700">{term.code}</div>
@@ -547,7 +554,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                                        <div className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition-colors">{term.nameKr}</div>
                                        <div className="text-[11px] text-slate-600 truncate">{term.desc}</div>
                                     </div>
-                                 </div>
+                                 </a>
                               ))}
                            </div>
                            <button
@@ -570,12 +577,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                   <div className="space-y-2 text-center">
                      <div className="flex items-center justify-center gap-3">
                         <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">World Holidays</h2>
-                        <button
-                           onClick={onNavigateToHolidays}
+                        <a
+                           href="/holidays"
+                           onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }}
                            className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
                         >
                            자세히 보기
-                        </button>
+                        </a>
                      </div>
                      <p className="text-4xl font-black tracking-tight text-slate-900">세계 공휴일 달력</p>
                   </div>
@@ -614,10 +622,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                                  const dayOfWeek = WEEKDAYS[dateObj.getDay()];
                                  const isNextYear = parseInt(year) > today.getFullYear();
                                  return (
-                                    <div
+                                    <a
                                        key={idx}
+                                       href="/holidays"
+                                       onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }}
                                        className="flex items-center gap-4 bg-white border border-slate-200 p-4 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer group shadow-sm"
-                                       onClick={onNavigateToHolidays}
                                     >
                                        <span className="text-2xl">{h.flag}</span>
                                        <div className="flex-1 min-w-0">
@@ -631,7 +640,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                                           </div>
                                           <div className="text-[11px] text-slate-600">{dayOfWeek}요일</div>
                                        </div>
-                                    </div>
+                                    </a>
                                  );
                               })}
                            </div>
@@ -664,9 +673,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               <p className="text-4xl font-black text-slate-900 tracking-tight mt-2">항공 유류할증료</p>
             </div>
 
-            <div
-              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={onNavigateToFssc}
+            <a
+              href="/fssc"
+              onClick={(e) => { e.preventDefault(); onNavigateToFssc?.(); }}
+              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-shadow cursor-pointer block"
             >
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -724,7 +734,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-center">
                 <span className="text-sm text-blue-600 font-bold">전세계 데이터 보기 →</span>
               </div>
-            </div>
+            </a>
           </div>
         </section>
       )}
@@ -735,20 +745,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
           <div className="text-center mb-10">
             <div className="flex items-center justify-center gap-3">
               <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Import Regulations</h2>
-              <button
-                onClick={onNavigateToRegulations}
+              <a
+                href="/regulations"
+                onClick={(e) => { e.preventDefault(); onNavigateToRegulations?.(); }}
                 className="px-3 py-1 bg-blue-600 text-white text-[10px] font-bold rounded-full hover:bg-blue-700 transition-colors"
               >
                 자세히 보기
-              </button>
+              </a>
             </div>
             <p className="text-4xl font-black text-slate-900 tracking-tight mt-2">국가별 수입규제</p>
           </div>
 
-          <div
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 cursor-pointer"
-            onClick={onNavigateToRegulations}
-          >
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {[
               { country: '미국', flag: '🇺🇸', code: 'US', info: '한-미 FTA 적용' },
               { country: '중국', flag: '🇨🇳', code: 'CN', info: 'CCC 인증 필수' },
@@ -757,14 +765,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               { country: '베트남', flag: '🇻🇳', code: 'VN', info: '한-베 FTA 적용' },
               { country: '호주', flag: '🇦🇺', code: 'AU', info: '한-호 FTA 적용' },
             ].map((item) => (
-              <div
+              <a
+                href="/regulations"
+                onClick={(e) => { e.preventDefault(); onNavigateToRegulations?.(); }}
                 key={item.code}
                 className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-lg hover:border-blue-300 transition-all group text-center"
               >
                 <span className="text-4xl block mb-3">{item.flag}</span>
                 <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{item.country}</div>
                 <div className="text-xs text-slate-500 mt-1">{item.info}</div>
-              </div>
+              </a>
             ))}
           </div>
         </div>
@@ -778,24 +788,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                   <h2 className="text-blue-600 text-xs font-black uppercase tracking-[0.3em]">Insights</h2>
                   <p className="text-4xl font-black text-slate-900 tracking-tight">글로벌 물류 트렌드</p>
                </div>
-               <button
-                 onClick={onNavigateToInsights}
+               <a
+                 href="/insights"
+                 onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }}
                  className="text-xs font-black text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest border-b border-slate-200 pb-1"
                >
                  View All News
-               </button>
+               </a>
             </div>
 
             <div className="grid md:grid-cols-3 gap-10">
                {insights.length > 0 ? (
                   insights.slice(0, 3).map((post) => (
-                     <div
+                     <a
                        key={post.id}
-                       className="group cursor-pointer"
-                       onClick={() => {
+                       href={`/insight/${post.id}`}
+                       onClick={(e) => {
+                         e.preventDefault();
                          setSelectedInsight(post);
                          setIsInsightModalOpen(true);
                        }}
+                       className="group cursor-pointer block"
                      >
                         <div className="aspect-[16/10] bg-slate-100 rounded-[24px] mb-6 overflow-hidden relative">
                            <img
@@ -820,7 +833,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                               <p className="text-xs text-slate-500">by {post.author}</p>
                            )}
                         </div>
-                     </div>
+                     </a>
                   ))
                ) : (
                   <div className="col-span-3 text-center py-12">
@@ -862,12 +875,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tight">
                   물류의 디지털 전환,<br/>SHIPDAGO와 시작하세요.
                </h2>
-               <button
-                 onClick={onStart}
-                 className="px-6 sm:px-10 md:px-14 py-4 sm:py-5 md:py-6 bg-white text-slate-900 font-black rounded-2xl text-base sm:text-lg hover:scale-105 transition-all shadow-2xl"
+               <a
+                 href="/container"
+                 onClick={(e) => { e.preventDefault(); onStart(); }}
+                 className="inline-block px-6 sm:px-10 md:px-14 py-4 sm:py-5 md:py-6 bg-white text-slate-900 font-black rounded-2xl text-base sm:text-lg hover:scale-105 transition-all shadow-2xl"
                >
                  무료 시뮬레이션 시작
-               </button>
+               </a>
             </div>
          </div>
       </section>
@@ -909,35 +923,35 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
               {/* Quick Links - Expandable */}
               <div className="space-y-5 text-center md:text-left">
                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">Quick Links</h4>
-                 <div className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-xs mx-auto md:max-w-none md:mx-0">
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToTracker?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                 <nav className="grid grid-cols-2 gap-x-8 gap-y-3 max-w-xs mx-auto md:max-w-none md:mx-0">
+                    <a href="/tracker" onClick={(e) => { e.preventDefault(); onNavigateToTracker?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       화물 추적
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onStart(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/container" onClick={(e) => { e.preventDefault(); onStart(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       3D 시뮬레이터
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToCbm?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/cbm" onClick={(e) => { e.preventDefault(); onNavigateToCbm?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       CBM 계산기
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToCurrency?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/currency" onClick={(e) => { e.preventDefault(); onNavigateToCurrency?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       환율 계산기
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToIncoterms?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/incoterms" onClick={(e) => { e.preventDefault(); onNavigateToIncoterms?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       인코텀즈 가이드
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/holidays" onClick={(e) => { e.preventDefault(); onNavigateToHolidays?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       세계 공휴일
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToFssc?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/fssc" onClick={(e) => { e.preventDefault(); onNavigateToFssc?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       FSC/SCC 조회
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToRegulations?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/regulations" onClick={(e) => { e.preventDefault(); onNavigateToRegulations?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       수입규제 정보
-                    </button>
-                    <button onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
+                    </a>
+                    <a href="/insights" onClick={(e) => { e.preventDefault(); onNavigateToInsights?.(); }} className="text-sm text-slate-600 hover:text-blue-600 transition-colors text-left font-medium">
                       물류 인사이트
-                    </button>
-                 </div>
+                    </a>
+                 </nav>
               </div>
 
               {/* Contact Info */}
@@ -994,12 +1008,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                     </a>
                  </div>
                  <div className="flex gap-6 text-xs">
-                    <button onClick={onPrivacy} className="text-slate-500 hover:text-slate-700 transition-colors">
+                    <a href="/privacy" onClick={(e) => { e.preventDefault(); onPrivacy(); }} className="text-slate-500 hover:text-slate-700 transition-colors">
                       개인정보처리방침
-                    </button>
-                    <button onClick={onTerms} className="text-slate-500 hover:text-slate-700 transition-colors">
+                    </a>
+                    <a href="/terms" onClick={(e) => { e.preventDefault(); onTerms(); }} className="text-slate-500 hover:text-slate-700 transition-colors">
                       이용약관
-                    </button>
+                    </a>
                  </div>
               </div>
            </div>
