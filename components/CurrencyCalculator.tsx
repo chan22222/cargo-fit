@@ -59,7 +59,17 @@ const DETAILED_CURRENCY_NAMES: { [key: string]: string } = {
 type ApiStatus = 'idle' | 'loading' | 'success' | 'error' | 'cached';
 type TabType = 'unipass' | 'hana';
 
-const CurrencyCalculator: React.FC = () => {
+interface CurrencyCalculatorProps {
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+  bottomAdSlot?: React.ReactNode;
+}
+
+const CurrencyCalculator: React.FC<CurrencyCalculatorProps> = ({
+  leftSideAdSlot,
+  rightSideAdSlot,
+  bottomAdSlot,
+}) => {
   // Tab state - localStorage에서 초기값 읽기
   const [activeTab, setActiveTab] = useState<TabType>(() => {
     const saved = localStorage.getItem('currency_active_tab') as TabType;
@@ -1035,9 +1045,22 @@ const CurrencyCalculator: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <div className="max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           {/* Calculator Section */}
           <div className="space-y-6">
             {/* Input Card */}
@@ -1192,6 +1215,13 @@ const CurrencyCalculator: React.FC = () => {
                 </div>
               )}
             </div>
+
+            {/* Bottom Multiplex Ad - Below Info Message */}
+            {bottomAdSlot && (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mt-6">
+                {bottomAdSlot}
+              </div>
+            )}
           </div>
 
           {/* Rate Widget */}
@@ -1256,6 +1286,18 @@ const CurrencyCalculator: React.FC = () => {
               )}
             </div>
           </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
