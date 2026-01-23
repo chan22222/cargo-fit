@@ -7,10 +7,14 @@ import FSSCHistoryChart from './FSSCHistoryChart';
 
 interface FSSCProps {
   infeedAdSlot?: React.ReactNode;
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
 }
 
 const FSSC: React.FC<FSSCProps> = ({
   infeedAdSlot,
+  leftSideAdSlot,
+  rightSideAdSlot,
 }) => {
   const [records, setRecords] = useState<FSSCRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,9 +70,22 @@ const FSSC: React.FC<FSSCProps> = ({
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
-        {/* 에러 메시지 */}
-        {error && (
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* 에러 메시지 */}
+            {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
             <p className="text-red-600 text-sm">{error}</p>
           </div>
@@ -99,21 +116,32 @@ const FSSC: React.FC<FSSCProps> = ({
           </div>
         )}
 
-        {/* 안내 문구 */}
-        <div className="mt-6 p-4 bg-slate-100 rounded-xl border border-slate-200">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-slate-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-sm text-slate-600">
-              <p className="font-semibold mb-1">안내</p>
-              <ul className="list-disc list-inside space-y-0.5 text-slate-500 text-xs">
-                <li>FSC: Fuel Surcharge (유류할증료) - 유가 변동에 따른 추가 요금</li>
-                <li>SCC: Security Surcharge (보안료) - 항공 보안 관련 추가 요금</li>
-                <li>금액은 KRW 환산 기준이며, 실제 적용 금액은 항공사에 확인하시기 바랍니다.</li>
-              </ul>
+            {/* 안내 문구 */}
+            <div className="mt-6 p-4 bg-slate-100 rounded-xl border border-slate-200">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-slate-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-slate-600">
+                  <p className="font-semibold mb-1">안내</p>
+                  <ul className="list-disc list-inside space-y-0.5 text-slate-500 text-xs">
+                    <li>FSC: Fuel Surcharge (유류할증료) - 유가 변동에 따른 추가 요금</li>
+                    <li>SCC: Security Surcharge (보안료) - 항공 보안 관련 추가 요금</li>
+                    <li>금액은 KRW 환산 기준이며, 실제 적용 금액은 항공사에 확인하시기 바랍니다.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

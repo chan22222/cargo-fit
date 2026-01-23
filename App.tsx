@@ -1854,6 +1854,8 @@ const App: React.FC = () => {
       ) : activeTab === 'fssc' ? (
         <FSSC
           infeedAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
         />
       ) : activeTab === 'worldclock' ? (
         <WorldClock

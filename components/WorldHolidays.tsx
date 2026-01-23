@@ -1161,7 +1161,7 @@ const WorldHolidays: React.FC<WorldHolidaysProps> = ({
 
           {/* Main Content */}
           <div className="flex-1 min-w-0">
-            {/* Region Filter */}
+        {/* Region Filter */}
         <div className="mb-6 flex flex-wrap items-center gap-2">
           {REGIONS.map(region => {
             const regionCountries = COUNTRIES.filter(c => c.region === region.id);
@@ -1327,17 +1327,17 @@ const WorldHolidays: React.FC<WorldHolidaysProps> = ({
               </div>
             </div>
           </div>
-            </div>
-
-            {/* Right Side Rail Ad - Desktop Only */}
-            {rightSideAdSlot && (
-              <div className="hidden xl:block w-[160px] shrink-0">
-                <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                  {rightSideAdSlot}
-                </div>
-              </div>
-            )}
+        </div>
           </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
