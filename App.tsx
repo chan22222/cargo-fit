@@ -30,6 +30,7 @@ const FSSC = lazy(() => import('./components/fssc'));
 const WorldClock = lazy(() => import('./components/WorldClock'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal'));
 const NotFound = lazy(() => import('./components/NotFound'));
+const AdSense = lazy(() => import('./components/AdSense'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -1899,8 +1900,8 @@ const App: React.FC = () => {
           {/* Main Visualizer Area with Left Ad Space */}
           <div className="lg:col-span-3 flex h-full gap-4 min-w-0">
               {/* Left Vertical Ad Space */}
-              <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm" style={{ height: 'calc(100vh - 135px)' }}>
-                {/* Ad slot placeholder */}
+              <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 135px)' }}>
+                <AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />
               </div>
 
               {/* Main Content */}
@@ -1978,8 +1979,8 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Simulator Horizontal Ad Space */}
-                <div className="bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden" style={{ height: '80px' }}>
-                  {/* Ad slot placeholder */}
+                <div className="bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-sm overflow-hidden" style={{ height: '90px' }}>
+                  <AdSense adSlot="2289322536" adFormat="horizontal" style={{ width: '100%', height: '90px' }} />
                 </div>
               </div>
               </div>
