@@ -5,7 +5,13 @@ import FSSCCalculator from './FSSCCalculator';
 import FSSCCompareChart from './FSSCCompareChart';
 import FSSCHistoryChart from './FSSCHistoryChart';
 
-const FSSC: React.FC = () => {
+interface FSSCProps {
+  infeedAdSlot?: React.ReactNode;
+}
+
+const FSSC: React.FC<FSSCProps> = ({
+  infeedAdSlot,
+}) => {
   const [records, setRecords] = useState<FSSCRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +86,14 @@ const FSSC: React.FC = () => {
           /* 분석 도구 - 1열 레이아웃 */
           <div className="space-y-4">
             <FSSCCalculator records={records} onRefresh={refreshData} />
+
+            {/* Infeed Ad */}
+            {infeedAdSlot && (
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                {infeedAdSlot}
+              </div>
+            )}
+
             <FSSCCompareChart records={records} />
             <FSSCHistoryChart records={records} />
           </div>

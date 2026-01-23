@@ -1817,20 +1817,29 @@ const App: React.FC = () => {
         <CurrencyCalculator
           leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
-          bottomAdSlot={<AdSense adSlot="5462280780" adFormat="autorelaxed" />}
+          bottomAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
         />
       ) : activeTab === 'incoterms' ? (
-        <Incoterms />
+        <Incoterms
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+        />
       ) : activeTab === 'holidays' ? (
-        <WorldHolidays />
+        <WorldHolidays
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+        />
       ) : activeTab === 'cbm' ? (
         <CbmCalculator
           leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
-          bottomAdSlot={<AdSense adSlot="5462280780" adFormat="autorelaxed" />}
+          bottomAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
         />
       ) : activeTab === 'regulations' ? (
-        <ImportRegulations />
+        <ImportRegulations
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+        />
       ) : activeTab === 'tracker' ? (
         <Tracker
           category={trackerCategory}
@@ -1843,9 +1852,14 @@ const App: React.FC = () => {
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
         />
       ) : activeTab === 'fssc' ? (
-        <FSSC onNavigateBack={() => { setActiveTab('home'); navigate('/'); }} />
+        <FSSC
+          infeedAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
+        />
       ) : activeTab === 'worldclock' ? (
-        <WorldClock />
+        <WorldClock
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+        />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab

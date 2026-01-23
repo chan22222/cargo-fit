@@ -1,5 +1,10 @@
 import React, { useState, useMemo } from 'react';
 
+interface ImportRegulationsProps {
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+}
+
 interface RegulationInfo {
   country: string;
   code: string;
@@ -940,7 +945,10 @@ const regulationsData: RegulationInfo[] = [
   }
 ];
 
-const ImportRegulations: React.FC = () => {
+const ImportRegulations: React.FC<ImportRegulationsProps> = ({
+  leftSideAdSlot,
+  rightSideAdSlot,
+}) => {
   const [selectedCountry, setSelectedCountry] = useState<string>('US');
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSection, setActiveSection] = useState<'overview' | 'documents' | 'prohibited' | 'special' | 'duty'>('overview');
@@ -992,8 +1000,21 @@ const ImportRegulations: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           {/* Left: Country List */}
           <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 px-4 py-3 border-b border-slate-200">
@@ -1283,7 +1304,18 @@ const ImportRegulations: React.FC = () => {
                 </div>
               </div>
             </div>
+            </div>
           </div>
+          </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

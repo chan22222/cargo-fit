@@ -1,6 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getTodayString } from '../lib/date';
 
+interface WorldHolidaysProps {
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+}
+
 interface Holiday {
   date: string; // YYYY-MM-DD
   name: string; // 모국어
@@ -983,7 +988,10 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
 const STORAGE_KEY = 'shipdago_holidays_countries';
 
-const WorldHolidays: React.FC = () => {
+const WorldHolidays: React.FC<WorldHolidaysProps> = ({
+  leftSideAdSlot,
+  rightSideAdSlot,
+}) => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedCountries, setSelectedCountries] = useState<string[]>(() => {
@@ -1139,8 +1147,21 @@ const WorldHolidays: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
-        {/* Region Filter */}
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Region Filter */}
         <div className="mb-6 flex flex-wrap items-center gap-2">
           {REGIONS.map(region => {
             const regionCountries = COUNTRIES.filter(c => c.region === region.id);
@@ -1305,6 +1326,17 @@ const WorldHolidays: React.FC = () => {
                 })()}
               </div>
             </div>
+          </div>
+            </div>
+
+            {/* Right Side Rail Ad - Desktop Only */}
+            {rightSideAdSlot && (
+              <div className="hidden xl:block w-[160px] shrink-0">
+                <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                  {rightSideAdSlot}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

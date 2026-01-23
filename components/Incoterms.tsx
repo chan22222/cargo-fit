@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 
+interface IncotermsProps {
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+}
+
 interface IncoTerm {
   code: string;
   name: string;
@@ -297,7 +302,10 @@ const COST_ITEMS_MOBILE = [
   { key: 'importDuties', label: '관세', short: '관세' },
 ] as const;
 
-const Incoterms: React.FC = () => {
+const Incoterms: React.FC<IncotermsProps> = ({
+  leftSideAdSlot,
+  rightSideAdSlot,
+}) => {
   const [selectedTerm, setSelectedTerm] = useState<IncoTerm | null>(null);
   const [filter, setFilter] = useState<'all' | 'any' | 'sea'>('all');
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
@@ -417,8 +425,21 @@ const Incoterms: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
-        {/* Legend - 데스크톱만 */}
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Legend - 데스크톱만 */}
         <div className="hidden md:flex mb-4 flex-wrap items-center gap-4 text-xs">
           <div className="flex items-center gap-2">
             <span className="w-5 h-5 rounded flex items-center justify-center bg-emerald-500 text-white font-bold text-[11px]">S</span>
@@ -761,14 +782,25 @@ const Incoterms: React.FC = () => {
           </div>
         )}
 
-        {/* Info Section */}
-        <div className="mt-6 bg-slate-50 rounded-xl p-5">
-          <h3 className="text-sm font-bold text-slate-700 mb-2">인코텀즈(Incoterms)란?</h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            인코텀즈(Incoterms)는 국제상업회의소(ICC)가 제정한 국제무역거래조건의 해석에 관한 국제규칙입니다.
-            매도인과 매수인 간의 물품 인도, 위험 이전, 비용 분담에 관한 의무를 명확히 규정하여 국제거래에서 발생할 수 있는
-            오해와 분쟁을 예방합니다. 현재 사용되는 인코텀즈 2020은 2020년 1월 1일부터 시행되었습니다.
-          </p>
+            {/* Info Section */}
+            <div className="mt-6 bg-slate-50 rounded-xl p-5">
+              <h3 className="text-sm font-bold text-slate-700 mb-2">인코텀즈(Incoterms)란?</h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                인코텀즈(Incoterms)는 국제상업회의소(ICC)가 제정한 국제무역거래조건의 해석에 관한 국제규칙입니다.
+                매도인과 매수인 간의 물품 인도, 위험 이전, 비용 분담에 관한 의무를 명확히 규정하여 국제거래에서 발생할 수 있는
+                오해와 분쟁을 예방합니다. 현재 사용되는 인코텀즈 2020은 2020년 1월 1일부터 시행되었습니다.
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

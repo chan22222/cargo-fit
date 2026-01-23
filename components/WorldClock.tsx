@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
+interface WorldClockProps {
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+}
+
 interface CityInfo {
   city: string;
   country: string;
@@ -148,7 +153,10 @@ interface CountryGroup {
   primaryCity: CityInfo;
 }
 
-const WorldClock: React.FC = () => {
+const WorldClock: React.FC<WorldClockProps> = ({
+  leftSideAdSlot,
+  rightSideAdSlot,
+}) => {
   const [times, setTimes] = useState<Record<string, { time: string; date: string; hour: number }>>({});
   const [selectedRegion, setSelectedRegion] = useState<string>('전체');
   const [searchQuery, setSearchQuery] = useState('');
@@ -342,8 +350,21 @@ const WorldClock: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        {/* Filters */}
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           {/* Region Filter */}
           <div className="flex flex-wrap gap-2">
@@ -640,21 +661,32 @@ const WorldClock: React.FC = () => {
           </div>
         )}
 
-        {/* Info */}
-        <div className="mt-8 p-6 bg-slate-100 rounded-xl border border-slate-200">
-          <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-slate-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div className="text-sm text-slate-600">
-              <p className="font-semibold mb-1">시간대 참고사항</p>
-              <ul className="list-disc list-inside space-y-1 text-slate-500 text-xs">
-                <li>일광절약시간(DST) 적용 국가는 계절에 따라 시간이 1시간 변동될 수 있습니다.</li>
-                <li>업무시간 표시는 일반적인 기준이며, 국가/기업별로 다를 수 있습니다.</li>
-                <li>공휴일 및 특수 상황에 따라 실제 업무 가능 시간이 다를 수 있습니다.</li>
-              </ul>
+            {/* Info */}
+            <div className="mt-8 p-6 bg-slate-100 rounded-xl border border-slate-200">
+              <div className="flex items-start gap-3">
+                <svg className="w-5 h-5 text-slate-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-slate-600">
+                  <p className="font-semibold mb-1">시간대 참고사항</p>
+                  <ul className="list-disc list-inside space-y-1 text-slate-500 text-xs">
+                    <li>일광절약시간(DST) 적용 국가는 계절에 따라 시간이 1시간 변동될 수 있습니다.</li>
+                    <li>업무시간 표시는 일반적인 기준이며, 국가/기업별로 다를 수 있습니다.</li>
+                    <li>공휴일 및 특수 상황에 따라 실제 업무 가능 시간이 다를 수 있습니다.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
