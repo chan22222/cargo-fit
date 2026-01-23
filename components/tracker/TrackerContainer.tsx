@@ -1009,6 +1009,13 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
         </div>
       </div>
 
+      {/* Ad Slot - B/L 추적 섹션 바로 아래 */}
+      {adSlot && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {adSlot}
+        </div>
+      )}
+
       {/* 수동 선택 모달/섹션 */}
       {showManualSelect && (
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
@@ -1070,13 +1077,6 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
             </div>
           </div>
         </div>
-
-        {/* Ad Slot */}
-        {adSlot && (
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-            {adSlot}
-          </div>
-        )}
 
         <div className="p-4">
           {/* Results Count & Major Filter */}
