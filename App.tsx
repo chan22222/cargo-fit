@@ -1833,7 +1833,6 @@ const App: React.FC = () => {
           contentAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
           leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
-          bottomAdSlot={<AdSense adSlot="5462280780" adFormat="autorelaxed" />}
         />
       ) : activeTab === 'fssc' ? (
         <FSSC onNavigateBack={() => { setActiveTab('home'); navigate('/'); }} />

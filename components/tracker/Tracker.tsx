@@ -28,8 +28,6 @@ interface TrackerProps {
   // 사이드 레일 광고 (좌/우)
   leftSideAdSlot?: React.ReactNode;
   rightSideAdSlot?: React.ReactNode;
-  // 하단 멀티플렉스 광고
-  bottomAdSlot?: React.ReactNode;
 }
 
 const Tracker: React.FC<TrackerProps> = ({
@@ -38,7 +36,6 @@ const Tracker: React.FC<TrackerProps> = ({
   contentAdSlot,
   leftSideAdSlot,
   rightSideAdSlot,
-  bottomAdSlot,
 }) => {
   const handleCategoryChange = (newCategory: CategoryType) => {
     if (onNavigate) {
@@ -153,13 +150,6 @@ const Tracker: React.FC<TrackerProps> = ({
             <p className="text-[11px] text-slate-400 text-center mt-4">
               각 운송사의 공식 웹사이트로 연결됩니다
             </p>
-
-            {/* Bottom Multiplex Ad */}
-            {bottomAdSlot && (
-              <div className="mt-8 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-                {bottomAdSlot}
-              </div>
-            )}
           </div>
 
           {/* Right Side Rail Ad - Desktop Only */}
