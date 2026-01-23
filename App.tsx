@@ -1820,7 +1820,11 @@ const App: React.FC = () => {
       ) : activeTab === 'holidays' ? (
         <WorldHolidays />
       ) : activeTab === 'cbm' ? (
-        <CbmCalculator />
+        <CbmCalculator
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
+          bottomAdSlot={<AdSense adSlot="5462280780" adFormat="autorelaxed" />}
+        />
       ) : activeTab === 'regulations' ? (
         <ImportRegulations />
       ) : activeTab === 'tracker' ? (

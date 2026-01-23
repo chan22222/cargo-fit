@@ -10,7 +10,17 @@ interface CargoItem {
   quantity: number;
 }
 
-const CbmCalculator: React.FC = () => {
+interface CbmCalculatorProps {
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+  bottomAdSlot?: React.ReactNode;
+}
+
+const CbmCalculator: React.FC<CbmCalculatorProps> = ({
+  leftSideAdSlot,
+  rightSideAdSlot,
+  bottomAdSlot,
+}) => {
   const [items, setItems] = useState<CargoItem[]>([
     { id: '1', name: '박스 1', length: 0, width: 0, height: 0, weight: 0, quantity: 1 }
   ]);
@@ -155,10 +165,21 @@ const CbmCalculator: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-          {/* Left: Input Section */}
-          <div className="space-y-4">
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+
+          {/* Main Content */}
+          <div className="flex-1 min-w-0 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+            {/* Left: Input Section */}
+            <div className="space-y-4">
             {/* Items List */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
               <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
@@ -309,6 +330,13 @@ const CbmCalculator: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Bottom Multiplex Ad */}
+            {bottomAdSlot && (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                {bottomAdSlot}
+              </div>
+            )}
           </div>
 
           {/* Right: Results */}
@@ -405,6 +433,16 @@ const CbmCalculator: React.FC = () => {
               </ul>
             </div>
           </div>
+          </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
