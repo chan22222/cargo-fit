@@ -23,12 +23,8 @@ interface TrackerProps {
   category?: CategoryType;
   // 카테고리 변경 시 URL 업데이트 함수
   onNavigate?: (category: CategoryType) => void;
-  // 각 카테고리별 AdSense 광고 슬롯 props
-  containerAdSlot?: React.ReactNode;
-  airAdSlot?: React.ReactNode;
-  courierAdSlot?: React.ReactNode;
-  postAdSlot?: React.ReactNode;
-  railAdSlot?: React.ReactNode;
+  // 콘텐츠 상단 인피드 광고 (탭 전환해도 유지)
+  contentAdSlot?: React.ReactNode;
   // 사이드 레일 광고 (좌/우)
   leftSideAdSlot?: React.ReactNode;
   rightSideAdSlot?: React.ReactNode;
@@ -39,11 +35,7 @@ interface TrackerProps {
 const Tracker: React.FC<TrackerProps> = ({
   category = 'container',
   onNavigate,
-  containerAdSlot,
-  airAdSlot,
-  courierAdSlot,
-  postAdSlot,
-  railAdSlot,
+  contentAdSlot,
   leftSideAdSlot,
   rightSideAdSlot,
   bottomAdSlot,
@@ -57,17 +49,17 @@ const Tracker: React.FC<TrackerProps> = ({
   const renderContent = () => {
     switch (category) {
       case 'container':
-        return <TrackerContainer adSlot={containerAdSlot} />;
+        return <TrackerContainer />;
       case 'air':
-        return <TrackerAir adSlot={airAdSlot} />;
+        return <TrackerAir />;
       case 'courier':
-        return <TrackerCourier adSlot={courierAdSlot} />;
+        return <TrackerCourier />;
       case 'post':
-        return <TrackerPost adSlot={postAdSlot} />;
+        return <TrackerPost />;
       case 'rail':
-        return <TrackerRail adSlot={railAdSlot} />;
+        return <TrackerRail />;
       default:
-        return <TrackerContainer adSlot={containerAdSlot} />;
+        return <TrackerContainer />;
     }
   };
 
@@ -127,7 +119,14 @@ const Tracker: React.FC<TrackerProps> = ({
           )}
 
           {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* Infeed Ad - 탭 전환해도 유지됨 */}
+            {contentAdSlot && (
+              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                {contentAdSlot}
+              </div>
+            )}
+
             {renderContent()}
 
             {/* Info Cards - Compact */}

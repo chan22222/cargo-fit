@@ -141,11 +141,7 @@ const autoTrackingCodes = new Set([
   'HANDEX', 'HANIPS', 'CVSNET', 'GTX', 'KGLOGIS', 'OCS'
 ]);
 
-interface TrackerCourierProps {
-  adSlot?: React.ReactNode;
-}
-
-const TrackerCourier: React.FC<TrackerCourierProps> = ({ adSlot }) => {
+const TrackerCourier: React.FC = () => {
   const [trackingInput, setTrackingInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMajorOnly, setShowMajorOnly] = useState(false);
@@ -363,13 +359,6 @@ const TrackerCourier: React.FC<TrackerCourierProps> = ({ adSlot }) => {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Ad Slot - 추적 섹션 바로 아래 */}
-      {adSlot && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          {adSlot}
         </div>
       )}
 

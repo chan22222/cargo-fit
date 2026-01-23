@@ -410,11 +410,7 @@ const formatAwb = (value: string): string => {
   return `${cleaned.substring(0, 3)}-${cleaned.substring(3, 11)}`;
 };
 
-interface TrackerAirProps {
-  adSlot?: React.ReactNode;
-}
-
-const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
+const TrackerAir: React.FC = () => {
   const [awbInput, setAwbInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMajorOnly, setShowMajorOnly] = useState(false);
@@ -730,13 +726,6 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
               ))}
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Ad Slot - 추적 섹션 바로 아래 */}
-      {adSlot && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          {adSlot}
         </div>
       )}
 

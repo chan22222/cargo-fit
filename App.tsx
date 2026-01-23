@@ -1830,11 +1830,7 @@ const App: React.FC = () => {
             const path = cat === 'container' ? '/tracker' : `/tracker/${cat}`;
             navigate(path);
           }}
-          containerAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
-          airAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
-          courierAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
-          postAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
-          railAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
+          contentAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
           leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="vertical" style={{ width: '160px', height: '600px' }} />}
           bottomAdSlot={<AdSense adSlot="5462280780" adFormat="autorelaxed" />}

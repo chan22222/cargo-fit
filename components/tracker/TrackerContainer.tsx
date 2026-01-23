@@ -766,11 +766,7 @@ const autoBlCodes = new Set([
   'CMLA', 'EIMS', 'PNST', 'MELL', 'DHLG',
 ]);
 
-interface TrackerContainerProps {
-  adSlot?: React.ReactNode;
-}
-
-const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
+const TrackerContainer: React.FC = () => {
   const [blInput, setBlInput] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showMajorOnly, setShowMajorOnly] = useState(false);
@@ -1008,13 +1004,6 @@ const TrackerContainer: React.FC<TrackerContainerProps> = ({ adSlot }) => {
           </div>
         </div>
       </div>
-
-      {/* Ad Slot - B/L 추적 섹션 바로 아래 */}
-      {adSlot && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          {adSlot}
-        </div>
-      )}
 
       {/* 수동 선택 모달/섹션 */}
       {showManualSelect && (
