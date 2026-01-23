@@ -29,6 +29,11 @@ interface TrackerProps {
   courierAdSlot?: React.ReactNode;
   postAdSlot?: React.ReactNode;
   railAdSlot?: React.ReactNode;
+  // 사이드 레일 광고 (좌/우)
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
+  // 하단 멀티플렉스 광고
+  bottomAdSlot?: React.ReactNode;
 }
 
 const Tracker: React.FC<TrackerProps> = ({
@@ -39,6 +44,9 @@ const Tracker: React.FC<TrackerProps> = ({
   courierAdSlot,
   postAdSlot,
   railAdSlot,
+  leftSideAdSlot,
+  rightSideAdSlot,
+  bottomAdSlot,
 }) => {
   const handleCategoryChange = (newCategory: CategoryType) => {
     if (onNavigate) {
@@ -106,34 +114,64 @@ const Tracker: React.FC<TrackerProps> = ({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-6">
-        {renderContent()}
+      {/* Content with Side Rails */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+        <div className="flex gap-6">
+          {/* Left Side Rail Ad - Desktop Only */}
+          {leftSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
 
-        {/* Info Cards - Compact */}
-        <div className="mt-6 flex flex-wrap gap-3 text-xs text-slate-500">
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
-            <ShipIcon className="w-3 h-3 text-blue-500" />
-            <span><b>컨테이너:</b> MAEU1234567</span>
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {renderContent()}
+
+            {/* Info Cards - Compact */}
+            <div className="mt-6 flex flex-wrap gap-3 text-xs text-slate-500">
+              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+                <ShipIcon className="w-3 h-3 text-blue-500" />
+                <span><b>컨테이너:</b> MAEU1234567</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+                <ShipIcon className="w-3 h-3 text-emerald-500" />
+                <span><b>B/L:</b> 선사별 형식</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+                <PlaneIcon className="w-3 h-3 text-purple-500" />
+                <span><b>AWB:</b> 180-12345678</span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+                <TruckIcon className="w-3 h-3 text-orange-500" />
+                <span><b>운송장:</b> 10-20자리</span>
+              </div>
+            </div>
+
+            {/* Disclaimer */}
+            <p className="text-[11px] text-slate-400 text-center mt-4">
+              각 운송사의 공식 웹사이트로 연결됩니다
+            </p>
+
+            {/* Bottom Multiplex Ad */}
+            {bottomAdSlot && (
+              <div className="mt-8 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {bottomAdSlot}
+              </div>
+            )}
           </div>
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
-            <ShipIcon className="w-3 h-3 text-emerald-500" />
-            <span><b>B/L:</b> 선사별 형식</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
-            <PlaneIcon className="w-3 h-3 text-purple-500" />
-            <span><b>AWB:</b> 180-12345678</span>
-          </div>
-          <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
-            <TruckIcon className="w-3 h-3 text-orange-500" />
-            <span><b>운송장:</b> 10-20자리</span>
-          </div>
+
+          {/* Right Side Rail Ad - Desktop Only */}
+          {rightSideAdSlot && (
+            <div className="hidden xl:block w-[160px] shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Disclaimer */}
-        <p className="text-[11px] text-slate-400 text-center mt-4">
-          각 운송사의 공식 웹사이트로 연결됩니다
-        </p>
       </div>
     </div>
   );
