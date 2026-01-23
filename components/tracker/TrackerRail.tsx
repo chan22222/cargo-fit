@@ -66,14 +66,22 @@ interface TrackerRailProps {
 
 const TrackerRail: React.FC<TrackerRailProps> = ({ adSlot }) => {
   return (
-    <CarrierGrid
-      carriers={railCarriers}
-      title="철도화물"
-      subtitle={`전세계 ${railCarriers.length}개+ 철도운송사 추적`}
-      icon={<TrainIcon className="w-5 h-5 text-white" />}
-      iconBgClass="bg-gradient-to-br from-slate-500 to-slate-600"
-      adSlot={adSlot}
-    />
+    <div className="space-y-4">
+      {/* Ad Slot - 상단 */}
+      {adSlot && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {adSlot}
+        </div>
+      )}
+
+      <CarrierGrid
+        carriers={railCarriers}
+        title="철도화물"
+        subtitle={`전세계 ${railCarriers.length}개+ 철도운송사 추적`}
+        icon={<TrainIcon className="w-5 h-5 text-white" />}
+        iconBgClass="bg-gradient-to-br from-slate-500 to-slate-600"
+      />
+    </div>
   );
 };
 

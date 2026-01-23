@@ -194,14 +194,22 @@ interface TrackerPostProps {
 
 const TrackerPost: React.FC<TrackerPostProps> = ({ adSlot }) => {
   return (
-    <CarrierGrid
-      carriers={postCarriers}
-      title="우편/EMS"
-      subtitle={`전세계 ${postCarriers.length}개+ 우정사업본부 추적`}
-      icon={<MailIcon className="w-5 h-5 text-white" />}
-      iconBgClass="bg-gradient-to-br from-rose-500 to-rose-600"
-      adSlot={adSlot}
-    />
+    <div className="space-y-4">
+      {/* Ad Slot - 상단 */}
+      {adSlot && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {adSlot}
+        </div>
+      )}
+
+      <CarrierGrid
+        carriers={postCarriers}
+        title="우편/EMS"
+        subtitle={`전세계 ${postCarriers.length}개+ 우정사업본부 추적`}
+        icon={<MailIcon className="w-5 h-5 text-white" />}
+        iconBgClass="bg-gradient-to-br from-rose-500 to-rose-600"
+      />
+    </div>
   );
 };
 

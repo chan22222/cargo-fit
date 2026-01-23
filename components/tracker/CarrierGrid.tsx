@@ -76,13 +76,6 @@ const CarrierGrid: React.FC<CarrierGridProps> = ({
         </div>
       </div>
 
-      {/* Ad Slot */}
-      {adSlot && (
-        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-          {adSlot}
-        </div>
-      )}
-
       {/* Content */}
       <div className="p-4">
         {/* Results Count & Major Filter */}

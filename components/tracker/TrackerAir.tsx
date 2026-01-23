@@ -733,6 +733,13 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
         </div>
       )}
 
+      {/* Ad Slot - 추적 섹션 바로 아래 */}
+      {adSlot && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          {adSlot}
+        </div>
+      )}
+
       {/* 전체 항공사 목록 */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="bg-slate-50 border-b border-slate-200 px-4 py-4">
@@ -753,13 +760,6 @@ const TrackerAir: React.FC<TrackerAirProps> = ({ adSlot }) => {
             </div>
           </div>
         </div>
-
-        {/* Ad Slot */}
-        {adSlot && (
-          <div className="px-4 py-3 bg-slate-50 border-b border-slate-200">
-            {adSlot}
-          </div>
-        )}
 
         <div className="p-4">
           {/* Results Count & Major Filter */}
