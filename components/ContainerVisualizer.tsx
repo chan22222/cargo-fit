@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { ContainerSpec, PackedItem } from '../types';
 
 interface ContainerVisualizerProps {
@@ -31,7 +31,8 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   const lastMousePos = useRef({ x: 0, y: 0 });
-  
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Scaling: 1mm = 0.06px (approx)
   const PIXEL_SCALE = 0.06;
 
@@ -61,14 +62,26 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
 
   // -- Event Handlers --
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.stopPropagation();
-    const direction = -Math.sign(e.deltaY); 
-    const zoomFactor = 0.1; 
-    let newScale = scale + (direction * zoomFactor);
-    newScale = Math.max(0.2, Math.min(4.0, newScale));
-    setScale(newScale);
-  };
+  // Non-passive wheel event listener to prevent page scroll
+  useEffect(() => {
+    const handleWheelNative = (e: WheelEvent) => {
+      e.preventDefault();
+      const direction = -Math.sign(e.deltaY);
+      const zoomFactor = 0.1;
+      setScale(prev => {
+        let newScale = prev + (direction * zoomFactor);
+        return Math.max(0.2, Math.min(4.0, newScale));
+      });
+    };
+
+    const element = containerRef.current;
+    if (element) {
+      element.addEventListener('wheel', handleWheelNative, { passive: false });
+      return () => {
+        element.removeEventListener('wheel', handleWheelNative);
+      };
+    }
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -213,12 +226,12 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
 
   return (
     <div
+      ref={containerRef}
       className="w-full h-full bg-slate-900 overflow-hidden relative cursor-move select-none"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-      onWheel={handleWheel}
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* AI 계산 중 표시 */}
