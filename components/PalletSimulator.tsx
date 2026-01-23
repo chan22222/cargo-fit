@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, lazy, Suspense } from 'react';
 import { Dimensions } from '../types';
+
+const AdSense = lazy(() => import('./AdSense'));
 
 interface PalletItem {
   id: string;
@@ -537,8 +539,10 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       {/* Main Pallet Area with Left Ad Space */}
       <div className="lg:col-span-3 flex gap-4 min-w-0" style={{ height: 'calc(100vh - 135px)' }}>
         {/* Vertical Ad Space */}
-        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm" style={{ height: 'calc(100vh - 135px)' }}>
-          {/* Ad slot placeholder */}
+        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 135px)' }}>
+          <Suspense fallback={<div className="w-40 h-[600px]" />}>
+            <AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />
+          </Suspense>
         </div>
 
         {/* Pallet Builder Container */}
@@ -772,8 +776,10 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           </div>
 
           {/* Horizontal Ad Space */}
-          <div className="h-20 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
-            {/* Ad slot placeholder */}
+          <div className="h-[90px] bg-white border border-slate-200 rounded-2xl flex items-center justify-center shrink-0 shadow-sm overflow-hidden">
+            <Suspense fallback={<div className="w-full h-[90px]" />}>
+              <AdSense adSlot="2289322536" adFormat="horizontal" style={{ width: '100%', height: '90px' }} />
+            </Suspense>
           </div>
         </div>
       </div>
