@@ -29,24 +29,27 @@ const CargoBox: React.FC<{
   onDrag: (position: { x: number; y: number; z: number }) => void;
 }> = ({ item, container, isSelected, isHovered, isFaded, onSelect, onHover, onDrag }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const [isPointerDown, setIsPointerDown] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const { camera, raycaster, gl } = useThree();
+  const { raycaster, gl } = useThree();
   const planeRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
   const intersectPoint = useRef(new THREE.Vector3());
+  const startPoint = useRef(new THREE.Vector3());
+  const DRAG_THRESHOLD = 0.01; // 드래그 시작 임계값
 
-  // 박스 크기 및 위치 계산 (cm -> three.js units)
+  // 박스 크기 - 갭을 위해 살짝 줄임 (0.3cm)
+  const BOX_GAP = 0.3;
   const size = useMemo(() => [
-    item.dimensions.width * SCALE,
-    item.dimensions.height * SCALE,
-    item.dimensions.length * SCALE
+    (item.dimensions.width - BOX_GAP) * SCALE,
+    (item.dimensions.height - BOX_GAP) * SCALE,
+    (item.dimensions.length - BOX_GAP) * SCALE
   ] as [number, number, number], [item.dimensions]);
 
-  // Z-fighting 방지를 위해 살짝 안쪽으로 배치 (0.1cm = 0.001 units)
-  const GAP = 0.001;
+  // 위치 계산
   const position = useMemo(() => [
-    (item.position.x + item.dimensions.width / 2) * SCALE - (container.width * SCALE / 2) + GAP,
-    (item.position.y + item.dimensions.height / 2) * SCALE + GAP,
-    (item.position.z + item.dimensions.length / 2) * SCALE - (container.length * SCALE / 2) + GAP
+    (item.position.x + item.dimensions.width / 2) * SCALE - (container.width * SCALE / 2),
+    (item.position.y + item.dimensions.height / 2) * SCALE,
+    (item.position.z + item.dimensions.length / 2) * SCALE - (container.length * SCALE / 2)
   ] as [number, number, number], [item.position, item.dimensions, container]);
 
   // 색상 처리 - 비활성화 시에도 원래 색상 유지
@@ -63,23 +66,37 @@ const CargoBox: React.FC<{
   const handlePointerDown = useCallback((e: THREE.Event) => {
     e.stopPropagation();
     onSelect();
-    setIsDragging(true);
-    (gl.domElement as HTMLElement).style.cursor = 'grabbing';
+    setIsPointerDown(true);
 
     // 드래그 평면 설정 (현재 박스의 Y 위치)
     planeRef.current.set(new THREE.Vector3(0, 1, 0), -position[1]);
-  }, [onSelect, gl.domElement, position]);
+
+    // 시작점 저장
+    raycaster.ray.intersectPlane(planeRef.current, startPoint.current);
+  }, [onSelect, position, raycaster]);
 
   const handlePointerUp = useCallback(() => {
+    setIsPointerDown(false);
     setIsDragging(false);
     (gl.domElement as HTMLElement).style.cursor = 'auto';
   }, [gl.domElement]);
 
   useFrame(() => {
-    if (!isDragging) return;
+    if (!isPointerDown) return;
 
     // 마우스 위치에서 평면과의 교차점 계산
     raycaster.ray.intersectPlane(planeRef.current, intersectPoint.current);
+
+    // 드래그 시작 임계값 체크
+    if (!isDragging) {
+      const distance = intersectPoint.current.distanceTo(startPoint.current);
+      if (distance > DRAG_THRESHOLD) {
+        setIsDragging(true);
+        (gl.domElement as HTMLElement).style.cursor = 'grabbing';
+      } else {
+        return; // 아직 드래그 시작 안함
+      }
+    }
 
     // three.js 좌표를 cm 좌표로 변환
     let newX = (intersectPoint.current.x + container.width * SCALE / 2) / SCALE - item.dimensions.width / 2;
