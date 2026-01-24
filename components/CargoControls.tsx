@@ -82,7 +82,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
 
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H mm)</label>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H cm)</label>
               <button
                 type="button"
                 onClick={() => setDims({ width: dims.length, height: dims.height, length: dims.width })}

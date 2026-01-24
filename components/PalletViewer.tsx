@@ -268,7 +268,7 @@ const PalletViewer: React.FC<PalletViewerProps> = ({
         <div className="bg-white/90 backdrop-blur p-4 rounded-xl">
           <p className="text-xs font-bold text-slate-600 mb-1">적재 현황</p>
           <p className="text-sm font-black text-slate-900">아이템: {stats.itemCount}개</p>
-          <p className="text-sm font-black text-slate-900">최고 높이: {stats.maxHeight}mm</p>
+          <p className="text-sm font-black text-slate-900">최고 높이: {(stats.maxHeight / 10).toFixed(0)}cm</p>
           <p className="text-sm font-black text-slate-900">효율성: {stats.efficiency.toFixed(1)}%</p>
         </div>
 

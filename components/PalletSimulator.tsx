@@ -746,7 +746,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     )}
                   </p>
                   <p className="text-[10px] text-slate-500">
-                    <span className="font-black text-slate-700">최고높이:</span> {stats.maxHeight}mm
+                    <span className="font-black text-slate-700">최고높이:</span> {(stats.maxHeight / 10).toFixed(0)}cm
                   </p>
                 </div>
               </div>
@@ -807,7 +807,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H mm)</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H cm)</label>
                   <button
                     type="button"
                     onClick={() => setPalletSize({ width: palletSize.length, height: palletSize.height, length: palletSize.width })}
@@ -849,7 +849,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  최대 적재 높이: <span className="text-slate-700">{maxHeight}mm</span>
+                  최대 적재 높이: <span className="text-slate-700">{(maxHeight / 10).toFixed(0)}cm</span>
                 </label>
                 <input
                   type="range"
@@ -887,7 +887,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H mm)</label>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">규격 (L x W x H cm)</label>
                   <div className="flex items-center gap-1">
                     <button
                       type="button"

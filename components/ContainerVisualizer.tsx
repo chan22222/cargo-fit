@@ -274,7 +274,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
           <div className="bg-slate-800/80 backdrop-blur border border-slate-600 rounded p-2 text-xs mt-1 shadow-lg transition-all animate-fade-in-up">
              <p className="text-white font-bold mb-1">⚖️ Weight Stats</p>
              <p>Total: <span className="text-blue-400">{weightStats.totalWeight.toLocaleString()} kg</span></p>
-             <p>CoG Offset: <span className="text-slate-400">X:{(weightStats.cogX - container.width/2).toFixed(0)}mm / Z:{(weightStats.cogZ - container.length/2).toFixed(0)}mm</span></p>
+             <p>CoG Offset: <span className="text-slate-400">X:{((weightStats.cogX - container.width/2) / 10).toFixed(1)}cm / Z:{((weightStats.cogZ - container.length/2) / 10).toFixed(1)}cm</span></p>
           </div>
         )}
       </div>

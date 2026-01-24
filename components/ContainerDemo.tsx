@@ -19,7 +19,7 @@ const ContainerDemo: React.FC = () => {
   const [showCoG, setShowCoG] = useState(true);
   const [scale, setScale] = useState(1.2);
 
-  // Container dimensions (20ft container in mm)
+  // Container dimensions (20ft container in mm, displayed as cm)
   const container = {
     width: 2350,
     height: 2390,
@@ -277,7 +277,7 @@ const ContainerDemo: React.FC = () => {
               <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-700">
                 <span className="text-slate-300">무게중심</span>
                 <span className="text-red-400 text-[9px] font-bold">
-                  X:{weightStats.offsetX.toFixed(0)}mm Z:{weightStats.offsetZ.toFixed(0)}mm
+                  X:{(weightStats.offsetX / 10).toFixed(1)}cm Z:{(weightStats.offsetZ / 10).toFixed(1)}cm
                 </span>
               </div>
             )}
