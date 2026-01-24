@@ -114,6 +114,7 @@ const CargoBox: React.FC<{
     <mesh
       ref={meshRef}
       position={position}
+      frustumCulled={false}
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
       onPointerOver={(e) => { e.stopPropagation(); onHover(true); }}
