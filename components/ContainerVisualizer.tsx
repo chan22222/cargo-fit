@@ -65,6 +65,11 @@ const CargoBox: React.FC<{
 
   const handlePointerDown = useCallback((e: THREE.Event) => {
     e.stopPropagation();
+
+    // 좌클릭(button 0)만 드래그 허용
+    const nativeEvent = e.nativeEvent as PointerEvent;
+    if (nativeEvent.button !== 0) return;
+
     onSelect();
     setIsPointerDown(true);
 
@@ -145,27 +150,20 @@ const CargoBox: React.FC<{
         emissive={emissive}
         emissiveIntensity={isHovered || isDragging ? 0.3 : (isSelected ? 0.1 : 0)}
         transparent
-        opacity={isFaded ? 0.5 : 0.95}
+        opacity={isFaded ? 0.75 : 0.9}
         roughness={isFaded ? 0.9 : 0.5}
         metalness={isFaded ? 0 : 0.1}
       />
 
-      {/* 선택/호버 시 외곽선 - 살짝 크게 해서 Z-fighting 방지 */}
-      {(isSelected || isHovered) && (
-        <mesh
-          scale={[1.02, 1.02, 1.02]}
-          raycast={() => null}
-          frustumCulled={false}
-        >
-          <boxGeometry args={size} />
-          <meshBasicMaterial
-            color={isSelected ? '#ffffff' : '#aaaaaa'}
-            wireframe
-            transparent
-            opacity={isSelected ? 0.8 : 0.5}
-          />
-        </mesh>
-      )}
+      {/* 외곽선 - 항상 표시, 선택/호버 시 강조 */}
+      <lineSegments frustumCulled={false} raycast={() => null}>
+        <edgesGeometry args={[new THREE.BoxGeometry(...size)]} />
+        <lineBasicMaterial
+          color={isSelected ? '#ffffff' : (isHovered ? '#aaaaaa' : '#000000')}
+          transparent
+          opacity={isSelected ? 1 : (isHovered ? 0.8 : 0.4)}
+        />
+      </lineSegments>
 
       {/* 호버/선택 시 이름 표시 */}
       {(isHovered || isSelected) && (
@@ -227,42 +225,45 @@ const ContainerBox: React.FC<{ container: ContainerSpec }> = ({ container }) => 
   );
 };
 
-// CoG 마커
+// CoG 마커 - 텍스트 + 아이콘 스타일
 const CoGMarker: React.FC<{
   position: [number, number, number];
   containerHeight: number;
 }> = ({ position, containerHeight }) => {
-  const markerRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state) => {
-    if (markerRef.current) {
-      markerRef.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime * 3) * 0.1);
-    }
-  });
+  const h = containerHeight * SCALE;
 
   return (
     <group position={position}>
-      {/* 상단 마커 */}
-      <mesh ref={markerRef} position={[0, containerHeight * SCALE, 0]} frustumCulled={false}>
-        <sphereGeometry args={[0.05, 16, 16]} />
-        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
-      </mesh>
-
-      {/* 수직선 */}
+      {/* 수직 점선 */}
       <Line
-        points={[[0, 0, 0], [0, containerHeight * SCALE, 0]]}
+        points={[[0, 0.02, 0], [0, h + 0.1, 0]]}
         color="#ef4444"
         lineWidth={2}
         dashed
-        dashSize={0.05}
+        dashSize={0.03}
         gapSize={0.02}
       />
 
-      {/* 바닥 마커 */}
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false}>
-        <ringGeometry args={[0.03, 0.05, 32]} />
-        <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
-      </mesh>
+      {/* 상단 COG 라벨 */}
+      <Html position={[0, h + 0.15, 0]} center style={{ pointerEvents: 'none' }}>
+        <div className="flex flex-col items-center animate-pulse">
+          {/* 타겟 아이콘 SVG */}
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2" fill="none" />
+            <circle cx="12" cy="12" r="6" stroke="#ef4444" strokeWidth="2" fill="none" />
+            <circle cx="12" cy="12" r="2" fill="#ef4444" />
+            <line x1="12" y1="0" x2="12" y2="4" stroke="#ef4444" strokeWidth="2" />
+            <line x1="12" y1="20" x2="12" y2="24" stroke="#ef4444" strokeWidth="2" />
+            <line x1="0" y1="12" x2="4" y2="12" stroke="#ef4444" strokeWidth="2" />
+            <line x1="20" y1="12" x2="24" y2="12" stroke="#ef4444" strokeWidth="2" />
+          </svg>
+          {/* COG 텍스트 */}
+          <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded mt-1 shadow-lg">
+            COG
+          </div>
+        </div>
+      </Html>
+
     </group>
   );
 };
