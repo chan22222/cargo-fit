@@ -206,49 +206,60 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   const MIN_SUPPORT_RATIO = 1.0; // 최소 100% 지지 필요
 
-  // 최적 위치 찾기 함수 (ignoreHeightLimit: true면 높이 제한 무시)
+  // 최적 위치 찾기 함수 (경계 기반, ignoreHeightLimit: true면 높이 제한 무시)
   const findBestPosition = (existingItems: PalletItem[], dims: Dimensions, ignoreHeightLimit = false): { x: number; y: number; z: number } | null => {
-    // 팔레트 위에서 시작
-    let bestPosition: { x: number; y: number; z: number } | null = null;
-    let lowestY = Infinity;
-
     // 아이템이 없으면 팔레트 위 원점에 배치
     if (existingItems.length === 0) {
       return { x: 0, y: palletSize.height, z: 0 };
     }
 
-    // XZ 평면을 스캔하면서 최적 위치 찾기
-    for (let x = 0; x <= palletSize.width - dims.width; x += 5) {
-      for (let z = 0; z <= palletSize.length - dims.length; z += 5) {
-        let maxY = palletSize.height; // 이 위치에서의 바닥 높이
+    // 후보 위치 생성: 원점 + 기존 아이템들의 경계점
+    const candidatePoints: { x: number, z: number }[] = [{ x: 0, z: 0 }];
 
-        for (const item of existingItems) {
-          // XZ 평면에서 겹치는지 확인
-          if (x < item.position.x + item.dimensions.width &&
-              x + dims.width > item.position.x &&
-              z < item.position.z + item.dimensions.length &&
-              z + dims.length > item.position.z) {
-            // 겹친다면 그 아이템 위가 바닥이 됨
-            const itemTop = item.position.y + item.dimensions.height;
-            maxY = Math.max(maxY, itemTop);
-          }
+    for (const item of existingItems) {
+      // 아이템 오른쪽
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z });
+      // 아이템 앞쪽
+      candidatePoints.push({ x: item.position.x, z: item.position.z + item.dimensions.length });
+      // 아이템 오른쪽 앞 모서리
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z + item.dimensions.length });
+    }
+
+    let bestPosition: { x: number; y: number; z: number } | null = null;
+    let lowestY = Infinity;
+
+    for (const { x, z } of candidatePoints) {
+      // 팔레트 범위 체크
+      if (x < 0 || z < 0 || x + dims.width > palletSize.width || z + dims.length > palletSize.length) {
+        continue;
+      }
+
+      let maxY = palletSize.height; // 이 위치에서의 바닥 높이
+
+      for (const item of existingItems) {
+        // XZ 평면에서 겹치는지 확인
+        if (x < item.position.x + item.dimensions.width &&
+            x + dims.width > item.position.x &&
+            z < item.position.z + item.dimensions.length &&
+            z + dims.length > item.position.z) {
+          const itemTop = item.position.y + item.dimensions.height;
+          maxY = Math.max(maxY, itemTop);
         }
+      }
 
-        const pos = { x, y: maxY, z };
+      const pos = { x, y: maxY, z };
 
-        // 지지율 체크 (85% 이상 지지되어야 함)
-        const supportRatio = calculateSupportRatio(pos, dims, existingItems);
-        if (supportRatio < MIN_SUPPORT_RATIO) {
-          continue; // 지지율 부족하면 스킵
-        }
+      // 지지율 체크
+      const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+      if (supportRatio < MIN_SUPPORT_RATIO) {
+        continue;
+      }
 
-        // 높이 제한 무시 옵션이 있거나, 최대 높이를 초과하지 않는 경우
-        if (ignoreHeightLimit || maxY + dims.height <= maxHeight) {
-          // 가장 낮은 위치 선택
-          if (maxY < lowestY) {
-            lowestY = maxY;
-            bestPosition = pos;
-          }
+      // 높이 제한 체크
+      if (ignoreHeightLimit || maxY + dims.height <= maxHeight) {
+        if (maxY < lowestY) {
+          lowestY = maxY;
+          bestPosition = pos;
         }
       }
     }
@@ -395,34 +406,45 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     setIsArranging(false);
   };
 
-  // 최적 위치 찾기 (층별로 빈 공간 찾기)
+  // 최적 위치 찾기 (경계 기반)
   const findOptimalPosition = (existingItems: PalletItem[], dims: Dimensions) => {
+    // 후보 위치 생성
+    const candidatePoints: { x: number, y: number, z: number }[] = [
+      { x: 0, y: palletSize.height, z: 0 }
+    ];
+
+    for (const item of existingItems) {
+      const itemTop = item.position.y + item.dimensions.height;
+      // 아이템 오른쪽 (같은 높이)
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z });
+      // 아이템 앞쪽 (같은 높이)
+      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
+      // 아이템 위쪽
+      candidatePoints.push({ x: item.position.x, y: itemTop, z: item.position.z });
+    }
+
     let bestPosition = null;
     let lowestY = Infinity;
 
-    // 5cm 단위로 스캔
-    for (let y = palletSize.height; y <= maxHeight - dims.height; y += 5) {
-      for (let x = 0; x <= palletSize.width - dims.width; x += 5) {
-        for (let z = 0; z <= palletSize.length - dims.length; z += 5) {
-          const pos = { x, y, z };
-
-          if (canPlaceAt(pos, dims, existingItems)) {
-            // 지지율 체크 (85% 이상 지지되어야 함)
-            const supportRatio = calculateSupportRatio(pos, dims, existingItems);
-            if (supportRatio < MIN_SUPPORT_RATIO) {
-              continue;
-            }
-
-            if (y < lowestY) {
-              lowestY = y;
-              bestPosition = pos;
-            }
-          }
-        }
+    for (const pos of candidatePoints) {
+      // 팔레트 범위 체크
+      if (pos.x < 0 || pos.z < 0 || pos.y < palletSize.height ||
+          pos.x + dims.width > palletSize.width ||
+          pos.z + dims.length > palletSize.length ||
+          pos.y + dims.height > maxHeight) {
+        continue;
       }
-      // 이 높이에서 위치를 찾았으면 더 높은 곳은 보지 않음
-      if (bestPosition && bestPosition.y === y) {
-        break;
+
+      if (canPlaceAt(pos, dims, existingItems)) {
+        const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+        if (supportRatio < MIN_SUPPORT_RATIO) {
+          continue;
+        }
+
+        if (pos.y < lowestY) {
+          lowestY = pos.y;
+          bestPosition = pos;
+        }
       }
     }
 

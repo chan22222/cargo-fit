@@ -275,45 +275,56 @@ const App: React.FC = () => {
 
   const MIN_SUPPORT_RATIO = 1.0; // 최소 100% 지지 필요
 
-  // 최적 위치 찾기 - 바닥부터 채우기 방식
+  // 최적 위치 찾기 - 바닥부터 채우기 방식 (경계 기반)
   const findBestPositionBottomFirst = (
     container: ContainerSpec,
     existingItems: PackedItem[],
     dims: { width: number, height: number, length: number }
   ) => {
+    // 후보 위치 생성: 원점 + 기존 아이템들의 경계점
+    const candidatePoints: { x: number, z: number }[] = [{ x: 0, z: 0 }];
+
+    for (const item of existingItems) {
+      // 아이템 오른쪽
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z });
+      // 아이템 앞쪽
+      candidatePoints.push({ x: item.position.x, z: item.position.z + item.dimensions.length });
+      // 아이템 오른쪽 앞 모서리
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z + item.dimensions.length });
+    }
+
     let bestPosition = { x: 0, y: 0, z: 0 };
     let lowestY = Infinity;
     let found = false;
 
-    // 5cm 단위로 스캔
-    for (let x = 0; x <= container.width - dims.width; x += 5) {
-      for (let z = 0; z <= container.length - dims.length; z += 5) {
-        let maxY = 0; // 이 위치에서의 바닥 높이
+    for (const { x, z } of candidatePoints) {
+      // 컨테이너 범위 체크
+      if (x < 0 || z < 0 || x + dims.width > container.width || z + dims.length > container.length) {
+        continue;
+      }
 
-        // XZ 평면에서 겹치는 아이템들 찾기
-        for (const item of existingItems) {
-          if (x < item.position.x + item.dimensions.width &&
-              x + dims.width > item.position.x &&
-              z < item.position.z + item.dimensions.length &&
-              z + dims.length > item.position.z) {
-            // 겹친다면 그 아이템 위가 바닥이 됨
-            const itemTop = item.position.y + item.dimensions.height;
-            maxY = Math.max(maxY, itemTop);
-          }
+      let maxY = 0; // 이 위치에서의 바닥 높이
+
+      // XZ 평면에서 겹치는 아이템들 찾기
+      for (const item of existingItems) {
+        if (x < item.position.x + item.dimensions.width &&
+            x + dims.width > item.position.x &&
+            z < item.position.z + item.dimensions.length &&
+            z + dims.length > item.position.z) {
+          const itemTop = item.position.y + item.dimensions.height;
+          maxY = Math.max(maxY, itemTop);
         }
+      }
 
-        // 이 위치가 컨테이너 높이를 초과하지 않는지 확인
-        if (maxY + dims.height <= container.height) {
-          const pos = { x, y: maxY, z };
-          // 지지율 체크 (90% 이상 지지되어야 함)
-          const supportRatio = calculateSupportRatio(pos, dims, existingItems);
-          if (supportRatio >= MIN_SUPPORT_RATIO) {
-            // 가장 낮은 위치 선택
-            if (maxY < lowestY) {
-              lowestY = maxY;
-              bestPosition = pos;
-              found = true;
-            }
+      // 컨테이너 높이 초과 체크
+      if (maxY + dims.height <= container.height) {
+        const pos = { x, y: maxY, z };
+        const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+        if (supportRatio >= MIN_SUPPORT_RATIO) {
+          if (maxY < lowestY) {
+            lowestY = maxY;
+            bestPosition = pos;
+            found = true;
           }
         }
       }
@@ -322,45 +333,54 @@ const App: React.FC = () => {
     return found ? bestPosition : null;
   };
 
-  // 최적 위치 찾기 - 안쪽부터 채우기 방식 (모서리 우선)
+  // 최적 위치 찾기 - 안쪽부터 채우기 방식 (경계 기반)
   const findBestPositionInnerFirst = (
     container: ContainerSpec,
     existingItems: PackedItem[],
     dims: { width: number, height: number, length: number }
   ) => {
+    // 후보 위치 생성: 뒤쪽 모서리 + 기존 아이템들의 경계점
+    const candidatePoints: { x: number, y: number, z: number }[] = [
+      { x: 0, y: 0, z: container.length - dims.length }
+    ];
+
+    for (const item of existingItems) {
+      const itemTop = item.position.y + item.dimensions.height;
+      // 아이템 오른쪽 (같은 높이)
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z });
+      // 아이템 앞쪽 (같은 높이)
+      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z - dims.length });
+      // 아이템 위쪽
+      candidatePoints.push({ x: item.position.x, y: itemTop, z: item.position.z });
+    }
+
     let bestPosition = null;
     let bestScore = Infinity;
 
-    // 안쪽부터, 아래부터, 왼쪽부터 채우기 (5cm 단위)
-    for (let z = container.length - dims.length; z >= 0; z -= 5) {
-      for (let y = 0; y <= container.height - dims.height; y += 5) {
-        for (let x = 0; x <= container.width - dims.width; x += 5) {
-          const pos = { x, y, z };
-
-          if (canPlaceAt(pos, dims, existingItems)) {
-            // 지지율 체크 (90% 이상 지지되어야 함)
-            const supportRatio = calculateSupportRatio(pos, dims, existingItems);
-            if (supportRatio >= MIN_SUPPORT_RATIO) {
-              // 점수 계산: 안쪽 모서리부터 채우기
-              // 1. z축 (뒤쪽 우선) - 가장 중요
-              // 2. y축 (아래쪽 우선) - 두 번째 중요
-              // 3. x축 (왼쪽 우선) - 세 번째 중요
-              const score = (container.length - z - dims.length) * 1000000 + // 뒤쪽 벽에 가까울수록 우선
-                           y * 1000 + // 바닥에 가까울수록 우선
-                           x; // 왼쪽 벽에 가까울수록 우선
-
-              if (score < bestScore) {
-                bestScore = score;
-                bestPosition = pos;
-              }
-            }
-          }
-        }
+    for (const { x, y, z } of candidatePoints) {
+      // 컨테이너 범위 체크
+      if (x < 0 || y < 0 || z < 0 ||
+          x + dims.width > container.width ||
+          y + dims.height > container.height ||
+          z + dims.length > container.length) {
+        continue;
       }
 
-      // 이미 위치를 찾았으면 더 이상 앞쪽을 검색하지 않음 (안쪽 우선)
-      if (bestPosition && bestPosition.z === z) {
-        break;
+      const pos = { x, y, z };
+
+      if (canPlaceAt(pos, dims, existingItems)) {
+        const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+        if (supportRatio >= MIN_SUPPORT_RATIO) {
+          // 점수: 뒤쪽 벽 → 바닥 → 왼쪽 벽 우선
+          const score = (container.length - z - dims.length) * 1000000 +
+                       y * 1000 +
+                       x;
+
+          if (score < bestScore) {
+            bestScore = score;
+            bestPosition = pos;
+          }
+        }
       }
     }
 
