@@ -298,15 +298,15 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
         className="perspective-container w-full h-full flex items-center justify-center"
         style={{ perspective: '2000px' }}
       >
-        <div 
-          className="preserve-3d transition-transform duration-75 ease-linear"
+        <div
+          className={`preserve-3d ${isRotateDragging || isPanDragging || draggedItemId ? '' : 'transition-transform duration-75 ease-linear'}`}
           style={{
             transform: `
               translateX(${pan.x}px) translateY(${pan.y}px)
-              scale(${scale}) 
+              scale(${scale})
               rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)
             `,
-            width: 0, height: 0, 
+            width: 0, height: 0,
             position: 'relative',
           }}
         >

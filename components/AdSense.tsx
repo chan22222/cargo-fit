@@ -21,28 +21,46 @@ const AdSense: React.FC<AdSenseProps> = ({
   const isAdLoaded = useRef(false);
 
   useEffect(() => {
-    // 광고가 이미 로드되었거나 AdSense가 없으면 skip
+    // 광고가 이미 로드되었으면 skip
     if (isAdLoaded.current) return;
 
-    try {
-      // @ts-ignore
-      if (window.adsbygoogle && adRef.current) {
-        // 이 요소에 이미 광고가 있는지 확인
-        const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
-
-        if (!hasAd) {
-          // @ts-ignore
-          window.adsbygoogle.push({});
-          isAdLoaded.current = true;
+    const loadAd = () => {
+      try {
+        // @ts-ignore
+        if (window.adsbygoogle && adRef.current) {
+          const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
+          if (!hasAd) {
+            // @ts-ignore
+            window.adsbygoogle.push({});
+            isAdLoaded.current = true;
+          }
+        }
+      } catch (err: unknown) {
+        const error = err as Error;
+        if (error.message && !error.message.includes('adsbygoogle')) {
+          console.error('AdSense error:', err);
         }
       }
-    } catch (err: unknown) {
-      // 광고 차단기나 중복 광고 오류는 무시
-      const error = err as Error;
-      if (error.message && !error.message.includes('adsbygoogle')) {
-        console.error('AdSense error:', err);
-      }
+    };
+
+    // IntersectionObserver로 요소가 보일 때 광고 로드
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !isAdLoaded.current) {
+            loadAd();
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (adRef.current) {
+      observer.observe(adRef.current);
     }
+
+    return () => observer.disconnect();
   }, []);
 
   // 인피드 광고 (fluid + layoutKey)

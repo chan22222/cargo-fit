@@ -108,8 +108,8 @@ const Tracker: React.FC<TrackerProps> = ({
         <div className="flex gap-6">
           {/* Left Side Rail Ad - Desktop Only */}
           {leftSideAdSlot && (
-            <div className="hidden lg:block w-[160px] shrink-0">
-              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '600px' }}>
                 {leftSideAdSlot}
               </div>
             </div>
@@ -154,8 +154,8 @@ const Tracker: React.FC<TrackerProps> = ({
 
           {/* Right Side Rail Ad - Desktop Only */}
           {rightSideAdSlot && (
-            <div className="hidden lg:block w-[160px] shrink-0">
-              <div className="sticky top-6 bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '600px' }}>
                 {rightSideAdSlot}
               </div>
             </div>

@@ -14,7 +14,7 @@ const SelectionModal: React.FC<SelectionModalProps> = ({ isOpen, onClose, onSele
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024);
+      setIsMobile(window.innerWidth < 1000);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -81,7 +81,7 @@ const SelectionModal: React.FC<SelectionModalProps> = ({ isOpen, onClose, onSele
               <div className="flex-1">
                 <p className="text-sm font-semibold text-amber-800 mb-1">PC 환경 권장</p>
                 <p className="text-xs text-amber-700 leading-relaxed">
-                  시뮬레이션은 <span className="font-semibold">1024px 이상의 PC 환경</span>에서 최적화되어 있습니다.
+                  시뮬레이션은 <span className="font-semibold">1000px 이상의 PC 환경</span>에서 최적화되어 있습니다.
                   모바일에서는 일부 기능이 제한될 수 있습니다.
                 </p>
               </div>

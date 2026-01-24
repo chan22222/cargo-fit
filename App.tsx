@@ -44,7 +44,7 @@ const LoadingFallback = () => (
 
 const App: React.FC = () => {
   // Check if screen width is large enough
-  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1024);
+  const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1000);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'notfound'>('home');
@@ -134,7 +134,7 @@ const App: React.FC = () => {
   // Listen for window resize
   React.useEffect(() => {
     const handleResize = () => {
-      setIsLargeScreen(window.innerWidth >= 1024);
+      setIsLargeScreen(window.innerWidth >= 1000);
     };
 
     window.addEventListener('resize', handleResize);
@@ -1872,7 +1872,7 @@ const App: React.FC = () => {
               </svg>
               <h1 className="text-2xl font-bold text-slate-800 mb-3">PC 버전 전용</h1>
               <p className="text-base text-slate-600 mb-6">
-                팔레트 시뮬레이터는 1024px 이상의 화면에서만 이용 가능합니다.
+                팔레트 시뮬레이터는 1000px 이상의 화면에서만 이용 가능합니다.
               </p>
               <p className="text-sm text-slate-500">
                 더 큰 화면의 기기에서 접속해 주세요.
@@ -1906,7 +1906,7 @@ const App: React.FC = () => {
               </svg>
               <h1 className="text-2xl font-bold text-slate-800 mb-3">PC 버전 전용</h1>
               <p className="text-base text-slate-600 mb-6">
-                컨테이너 시뮬레이터는 1024px 이상의 화면에서만 이용 가능합니다.
+                컨테이너 시뮬레이터는 1000px 이상의 화면에서만 이용 가능합니다.
               </p>
               <p className="text-sm text-slate-500">
                 더 큰 화면의 기기에서 접속해 주세요.
