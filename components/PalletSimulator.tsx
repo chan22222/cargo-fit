@@ -541,7 +541,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         {/* Vertical Ad Space */}
         <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 135px)' }}>
           <Suspense fallback={<div className="w-40 h-[600px]" />}>
-            <AdSense adSlot="6357216596" adFormat="vertical" style={{ width: '160px', height: '600px' }} />
+            <AdSense adSlot="6357216596" adFormat="auto" />
           </Suspense>
         </div>
 

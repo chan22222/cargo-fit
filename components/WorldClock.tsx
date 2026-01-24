@@ -356,7 +356,7 @@ const WorldClock: React.FC<WorldClockProps> = ({
           {/* Left Side Rail Ad - Desktop Only */}
           {leftSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
-              <div className="sticky top-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '600px' }}>
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '80vh', maxHeight: '800px' }}>
                 {leftSideAdSlot}
               </div>
             </div>
@@ -682,7 +682,7 @@ const WorldClock: React.FC<WorldClockProps> = ({
           {/* Right Side Rail Ad - Desktop Only */}
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
-              <div className="sticky top-6 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '600px' }}>
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '80vh', maxHeight: '800px' }}>
                 {rightSideAdSlot}
               </div>
             </div>
