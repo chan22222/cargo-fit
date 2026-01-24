@@ -1104,7 +1104,7 @@ const WorldHolidays: React.FC<WorldHolidaysProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-gradient-to-b from-slate-50 to-white">
+    <div className="flex-1 overflow-visible bg-gradient-to-b from-slate-50 to-white">
       {/* Header */}
       <div className="bg-slate-50 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 lg:px-8 py-5">
@@ -1153,7 +1153,7 @@ const WorldHolidays: React.FC<WorldHolidaysProps> = ({
           {/* Left Side Rail Ad - Desktop Only */}
           {leftSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
-              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '80vh', maxHeight: '800px' }}>
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
                 {leftSideAdSlot}
               </div>
             </div>
@@ -1333,7 +1333,7 @@ const WorldHolidays: React.FC<WorldHolidaysProps> = ({
           {/* Right Side Rail Ad - Desktop Only */}
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
-              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ height: '80vh', maxHeight: '800px' }}>
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
                 {rightSideAdSlot}
               </div>
             </div>

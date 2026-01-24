@@ -1815,30 +1815,30 @@ const App: React.FC = () => {
         <TermsOfService />
       ) : activeTab === 'currency' ? (
         <CurrencyCalculator
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           bottomAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
         />
       ) : activeTab === 'incoterms' ? (
         <Incoterms
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
       ) : activeTab === 'holidays' ? (
         <WorldHolidays
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
       ) : activeTab === 'cbm' ? (
         <CbmCalculator
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           bottomAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
         />
       ) : activeTab === 'regulations' ? (
         <ImportRegulations
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
       ) : activeTab === 'tracker' ? (
         <Tracker
@@ -1848,19 +1848,19 @@ const App: React.FC = () => {
             navigate(path);
           }}
           contentAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
       ) : activeTab === 'fssc' ? (
         <FSSC
           infeedAdSlot={<AdSense adSlot="8088444124" adLayoutKey="-gw-3+1f-3d+2z" />}
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
       ) : activeTab === 'worldclock' ? (
         <WorldClock
-          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" />}
-          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" />}
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
