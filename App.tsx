@@ -560,7 +560,7 @@ const App: React.FC = () => {
     setIsArranging(false);
   };
 
-  const handleSelectGroup = (id: string) => {
+  const handleSelectGroup = (id: string | null) => {
     setSelectedGroupId(id);
   };
 

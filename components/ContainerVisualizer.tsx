@@ -9,7 +9,7 @@ interface ContainerVisualizerProps {
   packedItems: PackedItem[];
   onItemMove?: (uniqueId: string, newPos: { x: number; y: number; z: number }) => void;
   selectedGroupId?: string | null;
-  onSelectGroup?: (id: string) => void;
+  onSelectGroup?: (id: string | null) => void;
   onRemoveCargo?: (id: string) => void;
   isArranging?: boolean;
 }
@@ -81,6 +81,25 @@ const CargoBox: React.FC<{
     (gl.domElement as HTMLElement).style.cursor = 'auto';
   }, [gl.domElement]);
 
+  // 화면 밖으로 마우스가 나갔을 때도 드래그 해제
+  useEffect(() => {
+    const handleGlobalPointerUp = () => {
+      if (isPointerDown) {
+        setIsPointerDown(false);
+        setIsDragging(false);
+        (gl.domElement as HTMLElement).style.cursor = 'auto';
+      }
+    };
+
+    window.addEventListener('pointerup', handleGlobalPointerUp);
+    window.addEventListener('pointerleave', handleGlobalPointerUp);
+
+    return () => {
+      window.removeEventListener('pointerup', handleGlobalPointerUp);
+      window.removeEventListener('pointerleave', handleGlobalPointerUp);
+    };
+  }, [isPointerDown, gl.domElement]);
+
   useFrame(() => {
     if (!isPointerDown) return;
 
@@ -125,8 +144,8 @@ const CargoBox: React.FC<{
         color={color}
         emissive={emissive}
         emissiveIntensity={isHovered || isDragging ? 0.3 : (isSelected ? 0.1 : 0)}
-        transparent={isFaded}
-        opacity={isFaded ? 0.5 : 1}
+        transparent
+        opacity={isFaded ? 0.5 : 0.95}
         roughness={isFaded ? 0.9 : 0.5}
         metalness={isFaded ? 0 : 0.1}
       />
@@ -136,6 +155,7 @@ const CargoBox: React.FC<{
         <mesh
           scale={[1.02, 1.02, 1.02]}
           raycast={() => null}
+          frustumCulled={false}
         >
           <boxGeometry args={size} />
           <meshBasicMaterial
@@ -169,9 +189,9 @@ const ContainerBox: React.FC<{ container: ContainerSpec }> = ({ container }) => 
   ] as [number, number, number], [container]);
 
   return (
-    <group position={[0, size[1] / 2, 0]}>
+    <group position={[0, size[1] / 2, 0]} frustumCulled={false}>
       {/* 바닥 */}
-      <mesh position={[0, -size[1] / 2 + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, -size[1] / 2 + 0.001, 0]} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false}>
         <planeGeometry args={[size[0], size[2]]} />
         <meshStandardMaterial color="#1e293b" side={THREE.DoubleSide} />
       </mesh>
@@ -179,27 +199,27 @@ const ContainerBox: React.FC<{ container: ContainerSpec }> = ({ container }) => 
       {/* 그리드 */}
       <gridHelper args={[Math.max(size[0], size[2]), 20, '#334155', '#334155']} position={[0, -size[1] / 2 + 0.002, 0]} />
 
-      {/* 투명 벽면들 */}
+      {/* 투명 벽면들 - depthWrite={false}로 뒤의 화물이 보이도록 */}
       {/* 뒷벽 */}
-      <mesh position={[0, 0, -size[2] / 2]}>
+      <mesh position={[0, 0, -size[2] / 2]} frustumCulled={false} renderOrder={-1}>
         <planeGeometry args={[size[0], size[1]]} />
-        <meshStandardMaterial color="#334155" transparent opacity={0.3} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#334155" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
 
       {/* 왼쪽 벽 */}
-      <mesh position={[-size[0] / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
+      <mesh position={[-size[0] / 2, 0, 0]} rotation={[0, Math.PI / 2, 0]} frustumCulled={false} renderOrder={-1}>
         <planeGeometry args={[size[2], size[1]]} />
-        <meshStandardMaterial color="#334155" transparent opacity={0.3} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#334155" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
 
       {/* 오른쪽 벽 */}
-      <mesh position={[size[0] / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
+      <mesh position={[size[0] / 2, 0, 0]} rotation={[0, -Math.PI / 2, 0]} frustumCulled={false} renderOrder={-1}>
         <planeGeometry args={[size[2], size[1]]} />
-        <meshStandardMaterial color="#334155" transparent opacity={0.3} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#334155" transparent opacity={0.3} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
 
       {/* 컨테이너 외곽선 */}
-      <lineSegments>
+      <lineSegments frustumCulled={false}>
         <edgesGeometry args={[new THREE.BoxGeometry(...size)]} />
         <lineBasicMaterial color="#475569" />
       </lineSegments>
@@ -223,7 +243,7 @@ const CoGMarker: React.FC<{
   return (
     <group position={position}>
       {/* 상단 마커 */}
-      <mesh ref={markerRef} position={[0, containerHeight * SCALE, 0]}>
+      <mesh ref={markerRef} position={[0, containerHeight * SCALE, 0]} frustumCulled={false}>
         <sphereGeometry args={[0.05, 16, 16]} />
         <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
       </mesh>
@@ -239,7 +259,7 @@ const CoGMarker: React.FC<{
       />
 
       {/* 바닥 마커 */}
-      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={[0, 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]} frustumCulled={false}>
         <ringGeometry args={[0.03, 0.05, 32]} />
         <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={0.5} />
       </mesh>
@@ -397,7 +417,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
     }
   }, [onItemMove, packedItems, container.height]);
 
-  const handleSelectGroup = useCallback((id: string) => {
+  const handleSelectGroup = useCallback((id: string | null) => {
     if (onSelectGroup) onSelectGroup(id);
   }, [onSelectGroup]);
 
@@ -405,9 +425,13 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
     <div className="w-full h-full bg-slate-900 relative">
       {/* Three.js Canvas */}
       <Canvas
-        camera={{ position: [5, 4, 5], fov: 50 }}
+        camera={{ position: [5, 4, 5], fov: 50, near: 0.01, far: 100 }}
         onCreated={({ gl }) => {
           gl.setClearColor('#0f172a');
+        }}
+        onPointerMissed={() => {
+          // 빈 공간 클릭 시 선택 해제
+          if (onSelectGroup) onSelectGroup(null);
         }}
       >
         <Scene
