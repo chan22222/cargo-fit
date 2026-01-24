@@ -31,6 +31,7 @@ const WorldClock = lazy(() => import('./components/WorldClock'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const AdSense = lazy(() => import('./components/AdSense'));
+const OptimizationModal = lazy(() => import('./components/OptimizationModal'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -169,6 +170,7 @@ const App: React.FC = () => {
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [isArranging, setIsArranging] = useState<boolean>(false);
   const [globalPackingMode, setGlobalPackingMode] = useState<'bottom-first' | 'inner-first'>('bottom-first');
+  const [showOptimizationModal, setShowOptimizationModal] = useState(false);
 
   // Pallet Simulator State
   const [palletItems, setPalletItems] = useState<any[]>([]);
@@ -492,72 +494,14 @@ const App: React.FC = () => {
   }, []);
 
   const handleAutoArrange = async () => {
-    const currentContainer = CONTAINER_SPECS[containerType];
     if (cargoList.length === 0) return;
+    // 최적화 모달 열기
+    setShowOptimizationModal(true);
+  };
 
-    // 로딩 시작
-    setIsArranging(true);
-
-    // 0.5초 동안 처리 중 표시
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    // 부피가 큰 것부터 정렬
-    const sortedCargo = [...cargoList].sort((a, b) => {
-      const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
-      const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
-      return volB - volA;
-    });
-
-    const arrangedItems: PackedItem[] = [];
-
-    for (const cargo of sortedCargo) {
-      for (let i = 0; i < cargo.quantity; i++) {
-        const orientations = getAllOrientations(cargo.dimensions);
-        let bestPosition = null;
-        let bestOrientation = cargo.dimensions;
-        let bestScore = Infinity;
-
-        for (const orientation of orientations) {
-          // 전역 packing mode에 따라 적절한 함수 사용
-          const position = globalPackingMode === 'inner-first'
-            ? findBestPositionInnerFirst(currentContainer, arrangedItems, orientation)
-            : findBestPositionBottomFirst(currentContainer, arrangedItems, orientation);
-
-          if (position) {
-            // inner-first일 때는 다른 점수 계산 사용
-            const score = globalPackingMode === 'inner-first'
-              ? (currentContainer.length - position.z - orientation.length) * 1000000 +
-                position.y * 1000 +
-                position.x
-              : position.y * 1000 +
-                Math.abs(position.x + orientation.width/2 - currentContainer.width/2) +
-                Math.abs(position.z + orientation.length/2 - currentContainer.length/2);
-
-            if (score < bestScore) {
-              bestScore = score;
-              bestPosition = position;
-              bestOrientation = orientation;
-            }
-          }
-        }
-
-        if (bestPosition) {
-          arrangedItems.push({
-            ...cargo,
-            uniqueId: `${cargo.id}-${i}-${Date.now()}`,
-            dimensions: bestOrientation,
-            weight: cargo.weight,
-            position: bestPosition
-          });
-        }
-      }
-    }
-
-    setPackedItems(arrangedItems);
-
-    // 선택 해제 및 로딩 종료
+  const handleOptimizationSelect = (items: PackedItem[]) => {
+    setPackedItems(items);
     setSelectedGroupId(null);
-    setIsArranging(false);
   };
 
   const handleSelectGroup = (id: string | null) => {
@@ -2073,6 +2017,17 @@ const App: React.FC = () => {
           setShowSelectionModal(false);
         }}
       />
+
+      {/* Optimization Modal */}
+      <OptimizationModal
+        isOpen={showOptimizationModal}
+        onClose={() => setShowOptimizationModal(false)}
+        onSelect={handleOptimizationSelect}
+        container={CONTAINER_SPECS[containerType]}
+        cargoList={cargoList}
+        packingMode={globalPackingMode}
+      />
+
       <FeedbackModal
         isOpen={isFeedbackModalOpen}
         onClose={() => setIsFeedbackModalOpen(false)}
