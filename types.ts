@@ -10,9 +10,9 @@ export enum ContainerType {
 }
 
 export interface Dimensions {
-  width: number;  // x axis (mm)
-  height: number; // y axis (mm)
-  length: number; // z axis (mm)
+  width: number;  // x axis (cm)
+  height: number; // y axis (cm)
+  length: number; // z axis (cm)
 }
 
 export interface ContainerSpec extends Dimensions {
@@ -32,7 +32,7 @@ export interface CargoItem {
 }
 
 export interface PackedItem extends CargoItem {
-  position: { x: number; y: number; z: number }; // mm relative to container origin
+  position: { x: number; y: number; z: number }; // cm relative to container origin
   uniqueId: string; // Individual instance ID
 }
 
@@ -40,5 +40,5 @@ export interface PackingResult {
   packedItems: PackedItem[];
   volumeEfficiency: number; // Percentage
   totalItems: number;
-  remainingSpace: number; // Approximate cubic mm
+  remainingSpace: number; // Approximate cubic cm
 }

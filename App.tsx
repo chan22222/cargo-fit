@@ -172,7 +172,7 @@ const App: React.FC = () => {
 
   // Pallet Simulator State
   const [palletItems, setPalletItems] = useState<any[]>([]);
-  const [palletSize, setPalletSize] = useState({ width: 1100, height: 150, length: 1100 });
+  const [palletSize, setPalletSize] = useState({ width: 110, height: 15, length: 110 });
 
   // Stats calculation
   const stats = useMemo(() => {
@@ -285,9 +285,9 @@ const App: React.FC = () => {
     let lowestY = Infinity;
     let found = false;
 
-    // 25mm 단위로 더 정밀하게 스캔
-    for (let x = 0; x <= container.width - dims.width; x += 25) {
-      for (let z = 0; z <= container.length - dims.length; z += 25) {
+    // 5cm 단위로 스캔
+    for (let x = 0; x <= container.width - dims.width; x += 5) {
+      for (let z = 0; z <= container.length - dims.length; z += 5) {
         let maxY = 0; // 이 위치에서의 바닥 높이
 
         // XZ 평면에서 겹치는 아이템들 찾기
@@ -331,10 +331,10 @@ const App: React.FC = () => {
     let bestPosition = null;
     let bestScore = Infinity;
 
-    // 안쪽부터, 아래부터, 왼쪽부터 채우기
-    for (let z = container.length - dims.length; z >= 0; z -= 25) {
-      for (let y = 0; y <= container.height - dims.height; y += 25) {
-        for (let x = 0; x <= container.width - dims.width; x += 25) {
+    // 안쪽부터, 아래부터, 왼쪽부터 채우기 (5cm 단위)
+    for (let z = container.length - dims.length; z >= 0; z -= 5) {
+      for (let y = 0; y <= container.height - dims.height; y += 5) {
+        for (let x = 0; x <= container.width - dims.width; x += 5) {
           const pos = { x, y, z };
 
           if (canPlaceAt(pos, dims, existingItems)) {

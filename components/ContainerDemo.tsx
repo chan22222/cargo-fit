@@ -19,15 +19,15 @@ const ContainerDemo: React.FC = () => {
   const [showCoG, setShowCoG] = useState(true);
   const [scale, setScale] = useState(1.2);
 
-  // Container dimensions (20ft container in mm, displayed as cm)
+  // Container dimensions (20ft container in cm)
   const container = {
-    width: 2350,
-    height: 2390,
-    length: 5900
+    width: 235,
+    height: 239,
+    length: 590
   };
 
-  // Scaling: 1mm = 0.06px (same as original)
-  const PIXEL_SCALE = 0.06;
+  // Scaling: 1cm = 0.6px
+  const PIXEL_SCALE = 0.6;
 
   const cVisualWidth = container.length * PIXEL_SCALE;
   const cVisualHeight = container.height * PIXEL_SCALE;
@@ -43,29 +43,29 @@ const ContainerDemo: React.FC = () => {
   };
 
   const demoItems: DemoItem[] = [
-    // Bottom Layer - Base foundation
-    { id: '1', name: 'Heavy Machine', color: colors.blue, position: { x: 0, y: 0, z: 0 }, dimensions: { width: 1500, height: 1200, length: 2000 }, delay: 500, weight: 3500 },
-    { id: '2', name: 'Electronics', color: colors.cyan, position: { x: 1500, y: 0, z: 0 }, dimensions: { width: 800, height: 900, length: 1200 }, delay: 650, weight: 850 },
-    { id: '3', name: 'Furniture Set', color: colors.slate, position: { x: 1500, y: 0, z: 1200 }, dimensions: { width: 800, height: 900, length: 800 }, delay: 800, weight: 720 },
-    { id: '4', name: 'Steel Coils', color: colors.orange, position: { x: 0, y: 0, z: 2000 }, dimensions: { width: 1150, height: 1100, length: 1200 }, delay: 950, weight: 4800 },
-    { id: '5', name: 'Textiles', color: colors.blue, position: { x: 1150, y: 0, z: 2000 }, dimensions: { width: 1150, height: 700, length: 1200 }, delay: 1100, weight: 650 },
-    { id: '6', name: 'Machinery', color: colors.cyan, position: { x: 0, y: 0, z: 3200 }, dimensions: { width: 2300, height: 800, length: 2700 }, delay: 1250, weight: 3200 },
+    // Bottom Layer - Base foundation (cm 단위)
+    { id: '1', name: 'Heavy Machine', color: colors.blue, position: { x: 0, y: 0, z: 0 }, dimensions: { width: 150, height: 120, length: 200 }, delay: 500, weight: 3500 },
+    { id: '2', name: 'Electronics', color: colors.cyan, position: { x: 150, y: 0, z: 0 }, dimensions: { width: 80, height: 90, length: 120 }, delay: 650, weight: 850 },
+    { id: '3', name: 'Furniture Set', color: colors.slate, position: { x: 150, y: 0, z: 120 }, dimensions: { width: 80, height: 90, length: 80 }, delay: 800, weight: 720 },
+    { id: '4', name: 'Steel Coils', color: colors.orange, position: { x: 0, y: 0, z: 200 }, dimensions: { width: 115, height: 110, length: 120 }, delay: 950, weight: 4800 },
+    { id: '5', name: 'Textiles', color: colors.blue, position: { x: 115, y: 0, z: 200 }, dimensions: { width: 115, height: 70, length: 120 }, delay: 1100, weight: 650 },
+    { id: '6', name: 'Machinery', color: colors.cyan, position: { x: 0, y: 0, z: 320 }, dimensions: { width: 230, height: 80, length: 270 }, delay: 1250, weight: 3200 },
 
     // Second Layer - Fill tightly
-    { id: '7', name: 'Toys', color: colors.slate, position: { x: 1500, y: 900, z: 0 }, dimensions: { width: 800, height: 600, length: 2000 }, delay: 1400, weight: 320 },
-    { id: '8', name: 'Books', color: colors.blue, position: { x: 0, y: 1200, z: 0 }, dimensions: { width: 1500, height: 700, length: 2000 }, delay: 1550, weight: 1600 },
-    { id: '9', name: 'Glass Items', color: colors.cyan, position: { x: 1150, y: 700, z: 2000 }, dimensions: { width: 1150, height: 1000, length: 1200 }, delay: 1700, weight: 450 },
-    { id: '10', name: 'Plastics', color: colors.blue, position: { x: 0, y: 1100, z: 2000 }, dimensions: { width: 1150, height: 600, length: 1200 }, delay: 1850, weight: 280 },
-    { id: '11', name: 'Metal Parts', color: colors.slate, position: { x: 0, y: 800, z: 3200 }, dimensions: { width: 1150, height: 900, length: 2700 }, delay: 2000, weight: 2100 },
-    { id: '12', name: 'Chemicals', color: colors.orange, position: { x: 1150, y: 800, z: 3200 }, dimensions: { width: 1150, height: 900, length: 2700 }, delay: 2150, weight: 890 },
+    { id: '7', name: 'Toys', color: colors.slate, position: { x: 150, y: 90, z: 0 }, dimensions: { width: 80, height: 60, length: 200 }, delay: 1400, weight: 320 },
+    { id: '8', name: 'Books', color: colors.blue, position: { x: 0, y: 120, z: 0 }, dimensions: { width: 150, height: 70, length: 200 }, delay: 1550, weight: 1600 },
+    { id: '9', name: 'Glass Items', color: colors.cyan, position: { x: 115, y: 70, z: 200 }, dimensions: { width: 115, height: 100, length: 120 }, delay: 1700, weight: 450 },
+    { id: '10', name: 'Plastics', color: colors.blue, position: { x: 0, y: 110, z: 200 }, dimensions: { width: 115, height: 60, length: 120 }, delay: 1850, weight: 280 },
+    { id: '11', name: 'Metal Parts', color: colors.slate, position: { x: 0, y: 80, z: 320 }, dimensions: { width: 115, height: 90, length: 270 }, delay: 2000, weight: 2100 },
+    { id: '12', name: 'Chemicals', color: colors.orange, position: { x: 115, y: 80, z: 320 }, dimensions: { width: 115, height: 90, length: 270 }, delay: 2150, weight: 890 },
 
     // Upper Layer - Smaller items filling remaining space
-    { id: '13', name: 'Tools', color: colors.cyan, position: { x: 1500, y: 1500, z: 0 }, dimensions: { width: 800, height: 600, length: 1200 }, delay: 2300, weight: 680 },
-    { id: '14', name: 'Samples', color: colors.blue, position: { x: 1500, y: 1500, z: 1200 }, dimensions: { width: 800, height: 600, length: 800 }, delay: 2450, weight: 150 },
-    { id: '15', name: 'Documents', color: colors.slate, position: { x: 0, y: 1700, z: 2000 }, dimensions: { width: 2300, height: 500, length: 1200 }, delay: 2600, weight: 45 },
-    { id: '16', name: 'Spare Parts', color: colors.blue, position: { x: 0, y: 1700, z: 3200 }, dimensions: { width: 1150, height: 500, length: 2700 }, delay: 2750, weight: 520 },
-    { id: '17', name: 'Express', color: colors.cyan, position: { x: 1150, y: 1700, z: 3200 }, dimensions: { width: 1150, height: 500, length: 2700 }, delay: 2900, weight: 95 },
-    { id: '18', name: 'Priority', color: colors.slate, position: { x: 0, y: 1900, z: 0 }, dimensions: { width: 1500, height: 400, length: 2000 }, delay: 3050, weight: 210 },
+    { id: '13', name: 'Tools', color: colors.cyan, position: { x: 150, y: 150, z: 0 }, dimensions: { width: 80, height: 60, length: 120 }, delay: 2300, weight: 680 },
+    { id: '14', name: 'Samples', color: colors.blue, position: { x: 150, y: 150, z: 120 }, dimensions: { width: 80, height: 60, length: 80 }, delay: 2450, weight: 150 },
+    { id: '15', name: 'Documents', color: colors.slate, position: { x: 0, y: 170, z: 200 }, dimensions: { width: 230, height: 50, length: 120 }, delay: 2600, weight: 45 },
+    { id: '16', name: 'Spare Parts', color: colors.blue, position: { x: 0, y: 170, z: 320 }, dimensions: { width: 115, height: 50, length: 270 }, delay: 2750, weight: 520 },
+    { id: '17', name: 'Express', color: colors.cyan, position: { x: 115, y: 170, z: 320 }, dimensions: { width: 115, height: 50, length: 270 }, delay: 2900, weight: 95 },
+    { id: '18', name: 'Priority', color: colors.slate, position: { x: 0, y: 190, z: 0 }, dimensions: { width: 150, height: 40, length: 200 }, delay: 3050, weight: 210 },
   ];
 
   // Calculate efficiency based on loaded items
@@ -277,7 +277,7 @@ const ContainerDemo: React.FC = () => {
               <div className="flex items-center justify-between text-[10px] pt-1 border-t border-slate-700">
                 <span className="text-slate-300">무게중심</span>
                 <span className="text-red-400 text-[9px] font-bold">
-                  X:{(weightStats.offsetX / 10).toFixed(1)}cm Z:{(weightStats.offsetZ / 10).toFixed(1)}cm
+                  X:{weightStats.offsetX.toFixed(1)}cm Z:{weightStats.offsetZ.toFixed(1)}cm
                 </span>
               </div>
             )}

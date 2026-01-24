@@ -31,7 +31,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
   onPackingModeChange
 }) => {
   const [name, setName] = useState('New Item');
-  const [dims, setDims] = useState<Dimensions>({ width: 1000, height: 1000, length: 1000 });
+  const [dims, setDims] = useState<Dimensions>({ width: 100, height: 100, length: 100 });
   const [quantity, setQuantity] = useState('1');
   const [weight, setWeight] = useState<string>('1');
   const [color, setColor] = useState(DEFAULT_CARGO_COLORS[0]);
@@ -101,32 +101,32 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 value={dims.length}
                 onChange={e => setDims({...dims, length: Number(e.target.value)})}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                min="100" max="12000"
+                min="10" max="1200"
               />
               <input
                 type="number"
                 value={dims.width}
                 onChange={e => setDims({...dims, width: Number(e.target.value)})}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                min="100" max="2500"
+                min="10" max="250"
               />
               <input
                 type="number"
                 value={dims.height}
                 onChange={e => setDims({...dims, height: Number(e.target.value)})}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                min="100" max="3000"
+                min="10" max="300"
               />
             </div>
             <div className="space-y-2">
               <div className="flex gap-2 flex-wrap">
                 {[
-                  {w: 200, h: 200, l: 300, n: 'XS박스'},
-                  {w: 300, h: 300, l: 400, n: 'S박스'},
-                  {w: 400, h: 400, l: 500, n: 'M박스'},
-                  {w: 500, h: 500, l: 600, n: 'L박스'},
-                  {w: 600, h: 600, l: 700, n: 'XL박스'},
-                  {w: 1200, h: 1000, l: 800, n: 'IBC탱크'},
+                  {w: 20, h: 20, l: 30, n: 'XS박스'},
+                  {w: 30, h: 30, l: 40, n: 'S박스'},
+                  {w: 40, h: 40, l: 50, n: 'M박스'},
+                  {w: 50, h: 50, l: 60, n: 'L박스'},
+                  {w: 60, h: 60, l: 70, n: 'XL박스'},
+                  {w: 120, h: 100, l: 80, n: 'IBC탱크'},
                   ...customPresets
                 ].map((preset, idx) => (
                   <button

@@ -33,8 +33,8 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
   const lastMousePos = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scaling: 1mm = 0.06px (approx)
-  const PIXEL_SCALE = 0.06;
+  // Scaling: 1cm = 0.6px
+  const PIXEL_SCALE = 0.6;
 
   // -- Weight & CoG Calculation --
   const weightStats = useMemo(() => {
@@ -274,7 +274,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
           <div className="bg-slate-800/80 backdrop-blur border border-slate-600 rounded p-2 text-xs mt-1 shadow-lg transition-all animate-fade-in-up">
              <p className="text-white font-bold mb-1">⚖️ Weight Stats</p>
              <p>Total: <span className="text-blue-400">{weightStats.totalWeight.toLocaleString()} kg</span></p>
-             <p>CoG Offset: <span className="text-slate-400">X:{((weightStats.cogX - container.width/2) / 10).toFixed(1)}cm / Z:{((weightStats.cogZ - container.length/2) / 10).toFixed(1)}cm</span></p>
+             <p>CoG Offset: <span className="text-slate-400">X:{(weightStats.cogX - container.width/2).toFixed(1)}cm / Z:{(weightStats.cogZ - container.length/2).toFixed(1)}cm</span></p>
           </div>
         )}
       </div>

@@ -25,7 +25,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   palletSize,
   setPalletSize
 }) => {
-  const [maxHeight, setMaxHeight] = useState(2000);
+  const [maxHeight, setMaxHeight] = useState(200);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [rotation, setRotation] = useState({ x: 35, y: 45 });
   const [pan, setPan] = useState({ x: 0, y: 100 });
@@ -38,12 +38,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   // 새 아이템 추가 폼
   const [newItemName, setNewItemName] = useState('박스');
-  const [newItemDims, setNewItemDims] = useState<Dimensions>({ width: 300, height: 300, length: 400 });
+  const [newItemDims, setNewItemDims] = useState<Dimensions>({ width: 30, height: 30, length: 40 });
   const [newItemQuantity, setNewItemQuantity] = useState('1');
 
   const svgRef = useRef<SVGSVGElement>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
-  const PIXEL_SCALE = 0.08;
+  const PIXEL_SCALE = 0.8;
 
   // DEL 키로 선택된 아이템 제거
   useEffect(() => {
@@ -218,8 +218,8 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     // XZ 평면을 스캔하면서 최적 위치 찾기
-    for (let x = 0; x <= palletSize.width - dims.width; x += 50) {
-      for (let z = 0; z <= palletSize.length - dims.length; z += 50) {
+    for (let x = 0; x <= palletSize.width - dims.width; x += 5) {
+      for (let z = 0; z <= palletSize.length - dims.length; z += 5) {
         let maxY = palletSize.height; // 이 위치에서의 바닥 높이
 
         for (const item of existingItems) {
@@ -400,10 +400,10 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     let bestPosition = null;
     let lowestY = Infinity;
 
-    // 25mm 단위로 스캔
-    for (let y = palletSize.height; y <= maxHeight - dims.height; y += 25) {
-      for (let x = 0; x <= palletSize.width - dims.width; x += 25) {
-        for (let z = 0; z <= palletSize.length - dims.length; z += 25) {
+    // 5cm 단위로 스캔
+    for (let y = palletSize.height; y <= maxHeight - dims.height; y += 5) {
+      for (let x = 0; x <= palletSize.width - dims.width; x += 5) {
+        for (let z = 0; z <= palletSize.length - dims.length; z += 5) {
           const pos = { x, y, z };
 
           if (canPlaceAt(pos, dims, existingItems)) {
@@ -565,29 +565,29 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
             </div>
             <div className="flex gap-1 bg-white p-1 rounded-xl border border-slate-200/60 shadow-sm overflow-x-auto scrollbar-hide max-w-[60%]">
               <button
-                onClick={() => setPalletSize({ width: 1200, height: 150, length: 1000 })}
+                onClick={() => setPalletSize({ width: 120, height: 15, length: 100 })}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                  palletSize.width === 1200 && palletSize.length === 1000
+                  palletSize.width === 120 && palletSize.length === 100
                     ? 'bg-amber-600 text-white shadow-lg'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                EUR (1200×1000)
+                EUR (120×100)
               </button>
               <button
-                onClick={() => setPalletSize({ width: 1100, height: 150, length: 1100 })}
+                onClick={() => setPalletSize({ width: 110, height: 15, length: 110 })}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                  palletSize.width === 1100 && palletSize.length === 1100
+                  palletSize.width === 110 && palletSize.length === 110
                     ? 'bg-amber-600 text-white shadow-lg'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                KR (1100×1100)
+                KR (110×110)
               </button>
               <button
-                onClick={() => setPalletSize({ width: 1219, height: 150, length: 1016 })}
+                onClick={() => setPalletSize({ width: 122, height: 15, length: 102 })}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                  palletSize.width === 1219 && palletSize.length === 1016
+                  palletSize.width === 122 && palletSize.length === 102
                     ? 'bg-amber-600 text-white shadow-lg'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                 }`}
@@ -595,24 +595,24 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                 US (48"×40")
               </button>
               <button
-                onClick={() => setPalletSize({ width: 1200, height: 150, length: 800 })}
+                onClick={() => setPalletSize({ width: 120, height: 15, length: 80 })}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                  palletSize.width === 1200 && palletSize.length === 800
+                  palletSize.width === 120 && palletSize.length === 80
                     ? 'bg-amber-600 text-white shadow-lg'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                HALF (1200×800)
+                HALF (120×80)
               </button>
               <button
-                onClick={() => setPalletSize({ width: 1140, height: 150, length: 1140 })}
+                onClick={() => setPalletSize({ width: 114, height: 15, length: 114 })}
                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all whitespace-nowrap ${
-                  palletSize.width === 1140 && palletSize.length === 1140
+                  palletSize.width === 114 && palletSize.length === 114
                     ? 'bg-amber-600 text-white shadow-lg'
                     : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                AU (1140×1140)
+                AU (114×114)
               </button>
             </div>
           </div>
@@ -746,7 +746,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     )}
                   </p>
                   <p className="text-[10px] text-slate-500">
-                    <span className="font-black text-slate-700">최고높이:</span> {(stats.maxHeight / 10).toFixed(0)}cm
+                    <span className="font-black text-slate-700">최고높이:</span> {stats.maxHeight.toFixed(0)}cm
                   </p>
                 </div>
               </div>
@@ -825,7 +825,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     value={palletSize.length}
                     onChange={(e) => setPalletSize({...palletSize, length: Number(e.target.value)})}
                     className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    min="100"
+                    min="10"
                     placeholder="길이"
                   />
                   <input
@@ -833,7 +833,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     value={palletSize.width}
                     onChange={(e) => setPalletSize({...palletSize, width: Number(e.target.value)})}
                     className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    min="100"
+                    min="10"
                     placeholder="너비"
                   />
                   <input
@@ -841,7 +841,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     value={palletSize.height}
                     onChange={(e) => setPalletSize({...palletSize, height: Number(e.target.value)})}
                     className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    min="50"
+                    min="5"
                     placeholder="높이"
                   />
                 </div>
@@ -849,14 +849,14 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                  최대 적재 높이: <span className="text-slate-700">{(maxHeight / 10).toFixed(0)}cm</span>
+                  최대 적재 높이: <span className="text-slate-700">{maxHeight}cm</span>
                 </label>
                 <input
                   type="range"
                   value={maxHeight}
                   onChange={(e) => setMaxHeight(Number(e.target.value))}
-                  min="500"
-                  max="3000"
+                  min="50"
+                  max="300"
                   className="w-full"
                 />
               </div>
@@ -914,7 +914,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     value={newItemDims.length}
                     onChange={(e) => setNewItemDims({...newItemDims, length: Number(e.target.value)})}
                     className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    min="10"
+                    min="1"
                     placeholder="길이"
                   />
                   <input
@@ -922,7 +922,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     value={newItemDims.width}
                     onChange={(e) => setNewItemDims({...newItemDims, width: Number(e.target.value)})}
                     className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    min="10"
+                    min="1"
                     placeholder="너비"
                   />
                   <input
@@ -930,7 +930,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                     value={newItemDims.height}
                     onChange={(e) => setNewItemDims({...newItemDims, height: Number(e.target.value)})}
                     className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
-                    min="10"
+                    min="1"
                     placeholder="높이"
                   />
                 </div>
@@ -939,28 +939,28 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                 <div className="flex gap-2 flex-wrap">
                   <button
                     type="button"
-                    onClick={() => { setNewItemDims({ width: 200, height: 200, length: 300 }); setNewItemName('XS박스'); }}
+                    onClick={() => { setNewItemDims({ width: 20, height: 20, length: 30 }); setNewItemName('XS박스'); }}
                     className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
                   >
                     XS박스
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setNewItemDims({ width: 300, height: 300, length: 400 }); setNewItemName('S박스'); }}
+                    onClick={() => { setNewItemDims({ width: 30, height: 30, length: 40 }); setNewItemName('S박스'); }}
                     className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
                   >
                     S박스
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setNewItemDims({ width: 400, height: 400, length: 500 }); setNewItemName('M박스'); }}
+                    onClick={() => { setNewItemDims({ width: 40, height: 40, length: 50 }); setNewItemName('M박스'); }}
                     className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
                   >
                     M박스
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setNewItemDims({ width: 500, height: 500, length: 600 }); setNewItemName('L박스'); }}
+                    onClick={() => { setNewItemDims({ width: 50, height: 50, length: 60 }); setNewItemName('L박스'); }}
                     className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all"
                   >
                     L박스

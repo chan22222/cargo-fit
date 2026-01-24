@@ -33,7 +33,7 @@ const PalletViewer: React.FC<PalletViewerProps> = ({
 
   const svgRef = useRef<SVGSVGElement>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
-  const PIXEL_SCALE = 0.08;
+  const PIXEL_SCALE = 0.8;
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -268,7 +268,7 @@ const PalletViewer: React.FC<PalletViewerProps> = ({
         <div className="bg-white/90 backdrop-blur p-4 rounded-xl">
           <p className="text-xs font-bold text-slate-600 mb-1">적재 현황</p>
           <p className="text-sm font-black text-slate-900">아이템: {stats.itemCount}개</p>
-          <p className="text-sm font-black text-slate-900">최고 높이: {(stats.maxHeight / 10).toFixed(0)}cm</p>
+          <p className="text-sm font-black text-slate-900">최고 높이: {stats.maxHeight.toFixed(0)}cm</p>
           <p className="text-sm font-black text-slate-900">효율성: {stats.efficiency.toFixed(1)}%</p>
         </div>
 
