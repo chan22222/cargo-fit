@@ -400,20 +400,20 @@ const ContainerDemo: React.FC = () => {
                   transformStyle: 'preserve-3d',
                 }}
               >
-                {/* Box Faces - normal 3D box */}
-                <div className="absolute border border-black/20 w-full h-full"
+                {/* Box Faces - border 제거로 틈 방지 */}
+                <div className="absolute w-full h-full"
                      style={{ background: item.color, transform: `translateZ(${iVisualDepth / 2}px)` }} />
-                <div className="absolute border border-black/20 w-full h-full"
+                <div className="absolute w-full h-full"
                      style={{ background: item.color, transform: `rotateY(180deg) translateZ(${iVisualDepth / 2}px)` }} />
-                <div className="absolute border border-black/20 h-full"
+                <div className="absolute h-full"
                      style={{ width: iVisualDepth, background: item.color, transform: `rotateY(90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2 }} />
-                <div className="absolute border border-black/20 h-full"
+                <div className="absolute h-full"
                      style={{ width: iVisualDepth, background: item.color, transform: `rotateY(-90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2 }} />
-                <div className="absolute border border-black/20 w-full flex items-center justify-center"
+                <div className="absolute w-full flex items-center justify-center"
                      style={{ height: iVisualDepth, background: item.color, transform: `rotateX(90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: 'brightness(1.1)' }}>
                   <span className="text-[10px] text-black font-bold px-1 bg-white/30 rounded">{item.name}</span>
                 </div>
-                <div className="absolute border border-black/20 w-full"
+                <div className="absolute w-full"
                      style={{ height: iVisualDepth, background: item.color, transform: `rotateX(-90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: 'brightness(0.8)' }} />
               </div>
             );
