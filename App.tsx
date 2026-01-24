@@ -555,7 +555,8 @@ const App: React.FC = () => {
 
     setPackedItems(arrangedItems);
 
-    // 로딩 종료
+    // 선택 해제 및 로딩 종료
+    setSelectedGroupId(null);
     setIsArranging(false);
   };
 
