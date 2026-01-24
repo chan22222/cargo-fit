@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
-import { OrbitControls, Html, Line, Edges } from '@react-three/drei';
+import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { ContainerSpec, PackedItem } from '../types';
 
@@ -112,7 +112,19 @@ const CargoBox: React.FC<{
         roughness={isFaded ? 0.9 : 0.5}
         metalness={isFaded ? 0 : 0.1}
       />
-      <Edges color={isSelected ? '#ffffff' : '#000000'} lineWidth={isSelected ? 2 : 1} />
+
+      {/* 선택/호버 시 외곽선 - 살짝 크게 해서 Z-fighting 방지 */}
+      {(isSelected || isHovered) && (
+        <mesh scale={[1.02, 1.02, 1.02]}>
+          <boxGeometry args={size} />
+          <meshBasicMaterial
+            color={isSelected ? '#ffffff' : '#aaaaaa'}
+            wireframe
+            transparent
+            opacity={isSelected ? 0.8 : 0.5}
+          />
+        </mesh>
+      )}
 
       {/* 호버/선택 시 이름 표시 */}
       {(isHovered || isSelected) && (
