@@ -400,21 +400,21 @@ const ContainerDemo: React.FC = () => {
                   transformStyle: 'preserve-3d',
                 }}
               >
-                {/* Box Faces - border 제거로 틈 방지 */}
+                {/* Box Faces - inset shadow로 외곽선 표시 (틈 방지) */}
                 <div className="absolute w-full h-full"
-                     style={{ background: item.color, transform: `translateZ(${iVisualDepth / 2}px)` }} />
+                     style={{ background: item.color, transform: `translateZ(${iVisualDepth / 2}px)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className="absolute w-full h-full"
-                     style={{ background: item.color, transform: `rotateY(180deg) translateZ(${iVisualDepth / 2}px)` }} />
+                     style={{ background: item.color, transform: `rotateY(180deg) translateZ(${iVisualDepth / 2}px)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className="absolute h-full"
-                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2 }} />
+                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className="absolute h-full"
-                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(-90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2 }} />
+                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(-90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className="absolute w-full flex items-center justify-center"
-                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: 'brightness(1.1)' }}>
+                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: 'brightness(1.1)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }}>
                   <span className="text-[10px] text-black font-bold px-1 bg-white/30 rounded">{item.name}</span>
                 </div>
                 <div className="absolute w-full"
-                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(-90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: 'brightness(0.8)' }} />
+                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(-90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: 'brightness(0.8)', boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
               </div>
             );
           })}

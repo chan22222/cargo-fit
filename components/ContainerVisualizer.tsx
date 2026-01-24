@@ -418,24 +418,24 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
                          style={{ transform: `translateZ(${iVisualDepth/2 + 1}px)` }} />
                 )}
 
-                {/* Box Faces - border 제거로 틈 방지 */}
+                {/* Box Faces - inset shadow로 외곽선 표시 (틈 방지) */}
                 <div className={`absolute w-full h-full transition-colors ${isHovered || isDragged ? 'brightness-125' : ''}`}
-                     style={{ background: item.color, transform: `translateZ(${iVisualDepth / 2}px)`, filter: faceFilter }}>
+                     style={{ background: item.color, transform: `translateZ(${iVisualDepth / 2}px)`, filter: faceFilter, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }}>
                       {(isHovered || isDragged) && <div className="absolute inset-0 border-2 border-white/50"></div>}
                      </div>
                 <div className={`absolute w-full h-full transition-colors ${isHovered || isDragged ? 'brightness-125' : ''}`}
-                     style={{ background: item.color, transform: `rotateY(180deg) translateZ(${iVisualDepth / 2}px)`, filter: faceFilter }} />
+                     style={{ background: item.color, transform: `rotateY(180deg) translateZ(${iVisualDepth / 2}px)`, filter: faceFilter, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className={`absolute h-full transition-colors ${isHovered || isDragged ? 'brightness-125' : ''}`}
-                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2, filter: faceFilter }} />
+                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2, filter: faceFilter, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className={`absolute h-full transition-colors ${isHovered || isDragged ? 'brightness-125' : ''}`}
-                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(-90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2, filter: faceFilter }} />
+                     style={{ width: iVisualDepth, background: item.color, transform: `rotateY(-90deg) translateZ(${iVisualWidth / 2}px)`, left: '50%', marginLeft: -iVisualDepth/2, filter: faceFilter, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
                 <div className={`absolute w-full flex flex-col items-center justify-center overflow-hidden transition-colors ${isHovered || isDragged ? 'brightness-125' : ''}`}
-                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: `${faceFilter} brightness(1.1)` }}>
+                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: `${faceFilter} brightness(1.1)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }}>
                    {(isHovered || isDragged || isGroupSelected) && <span className="text-[10px] text-black font-bold px-1 bg-white/30 rounded">{item.name}</span>}
                    {isHovered && item.weight && showCoG && <span className="text-[8px] text-black font-medium mt-0.5 bg-white/30 px-1 rounded">{item.weight}kg</span>}
                 </div>
                 <div className={`absolute w-full transition-colors ${isHovered || isDragged ? 'brightness-125' : ''}`}
-                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(-90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: `${faceFilter} brightness(0.8)` }} />
+                     style={{ height: iVisualDepth, background: item.color, transform: `rotateX(-90deg) translateZ(${iVisualHeight / 2}px)`, top: '50%', marginTop: -iVisualDepth/2, filter: `${faceFilter} brightness(0.8)`, boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.3)' }} />
               </div>
             );
           })}
