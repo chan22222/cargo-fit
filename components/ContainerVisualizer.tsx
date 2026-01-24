@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html, Line, Edges } from '@react-three/drei';
 import * as THREE from 'three';
@@ -10,6 +10,7 @@ interface ContainerVisualizerProps {
   onItemMove?: (uniqueId: string, newPos: { x: number; y: number; z: number }) => void;
   selectedGroupId?: string | null;
   onSelectGroup?: (id: string) => void;
+  onRemoveCargo?: (id: string) => void;
   isArranging?: boolean;
 }
 
@@ -40,17 +41,18 @@ const CargoBox: React.FC<{
     item.dimensions.length * SCALE
   ] as [number, number, number], [item.dimensions]);
 
+  // Z-fighting 방지를 위해 살짝 안쪽으로 배치 (0.1cm = 0.001 units)
+  const GAP = 0.001;
   const position = useMemo(() => [
-    (item.position.x + item.dimensions.width / 2) * SCALE - (container.width * SCALE / 2),
-    (item.position.y + item.dimensions.height / 2) * SCALE,
-    (item.position.z + item.dimensions.length / 2) * SCALE - (container.length * SCALE / 2)
+    (item.position.x + item.dimensions.width / 2) * SCALE - (container.width * SCALE / 2) + GAP,
+    (item.position.y + item.dimensions.height / 2) * SCALE + GAP,
+    (item.position.z + item.dimensions.length / 2) * SCALE - (container.length * SCALE / 2) + GAP
   ] as [number, number, number], [item.position, item.dimensions, container]);
 
-  // 색상 처리
+  // 색상 처리 - 비활성화 시에도 원래 색상 유지
   const color = useMemo(() => {
-    if (isFaded) return '#666666';
     return item.color;
-  }, [item.color, isFaded]);
+  }, [item.color]);
 
   const emissive = useMemo(() => {
     if (isHovered || isDragging) return item.color;
@@ -106,7 +108,9 @@ const CargoBox: React.FC<{
         emissive={emissive}
         emissiveIntensity={isHovered || isDragging ? 0.3 : (isSelected ? 0.1 : 0)}
         transparent={isFaded}
-        opacity={isFaded ? 0.4 : 1}
+        opacity={isFaded ? 0.5 : 1}
+        roughness={isFaded ? 0.9 : 0.5}
+        metalness={isFaded ? 0 : 0.1}
       />
       <Edges color={isSelected ? '#ffffff' : '#000000'} lineWidth={isSelected ? 2 : 1} />
 
@@ -259,7 +263,7 @@ const Scene: React.FC<{
         <CoGMarker position={cogPosition} containerHeight={container.height} />
       )}
 
-      {/* 카메라 컨트롤 */}
+      {/* 카메라 컨트롤 - 우클릭: 회전, 휠클릭: 이동 */}
       <OrbitControls
         makeDefault
         enableDamping
@@ -270,6 +274,11 @@ const Scene: React.FC<{
         minDistance={1}
         maxDistance={20}
         maxPolarAngle={Math.PI * 0.9}
+        mouseButtons={{
+          LEFT: undefined, // 좌클릭은 화물 드래그용
+          MIDDLE: THREE.MOUSE.PAN,
+          RIGHT: THREE.MOUSE.ROTATE
+        }}
       />
     </>
   );
@@ -281,10 +290,23 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
   onItemMove,
   selectedGroupId,
   onSelectGroup,
+  onRemoveCargo,
   isArranging = false
 }) => {
   const [showCoG, setShowCoG] = useState(true);
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+
+  // Delete 키로 선택된 화물 제거
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Delete' && selectedGroupId && onRemoveCargo) {
+        onRemoveCargo(selectedGroupId);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedGroupId, onRemoveCargo]);
 
   // 무게 중심 계산
   const weightStats = useMemo(() => {
@@ -388,9 +410,10 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
       <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
         <div className="bg-slate-800/80 backdrop-blur text-white text-xs p-2 rounded border border-slate-600 shadow-lg">
           <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-blue-500"></span> 좌클릭 드래그: 화물 이동</p>
-          <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> 좌클릭 드래그 (빈곳): 회전</p>
-          <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-yellow-500"></span> 우클릭 드래그: 화면 이동</p>
+          <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-green-500"></span> 우클릭 드래그: 화면 회전</p>
+          <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-yellow-500"></span> 휠 드래그: 화면 이동</p>
           <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-slate-400"></span> 휠 스크롤: 확대/축소</p>
+          <p className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500"></span> DEL: 선택 화물 제거</p>
         </div>
       </div>
 

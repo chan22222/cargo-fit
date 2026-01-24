@@ -1994,6 +1994,7 @@ const App: React.FC = () => {
                       onItemMove={handleItemMove}
                       selectedGroupId={selectedGroupId}
                       onSelectGroup={handleSelectGroup}
+                      onRemoveCargo={handleRemoveCargo}
                       isArranging={isArranging}
                     />
                     
