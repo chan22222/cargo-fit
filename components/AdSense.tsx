@@ -9,6 +9,26 @@ interface AdSenseProps {
   fullWidthResponsive?: boolean;
 }
 
+// 전역 로드 큐 - 광고를 순차적으로 로드
+let adLoadQueue: (() => void)[] = [];
+let isProcessingQueue = false;
+
+const processQueue = () => {
+  if (isProcessingQueue || adLoadQueue.length === 0) return;
+
+  isProcessingQueue = true;
+  const loadFn = adLoadQueue.shift();
+
+  if (loadFn) {
+    loadFn();
+    // 다음 광고 로드 전 100ms 대기
+    setTimeout(() => {
+      isProcessingQueue = false;
+      processQueue();
+    }, 100);
+  }
+};
+
 const AdSense: React.FC<AdSenseProps> = ({
   adSlot,
   adFormat = 'auto',
@@ -21,7 +41,6 @@ const AdSense: React.FC<AdSenseProps> = ({
   const isAdLoaded = useRef(false);
 
   useEffect(() => {
-    // 광고가 이미 로드되었으면 skip
     if (isAdLoaded.current) return;
 
     const loadAd = () => {
@@ -31,38 +50,27 @@ const AdSense: React.FC<AdSenseProps> = ({
           const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
           if (!hasAd) {
             // @ts-ignore
-            window.adsbygoogle.push({});
+            (window.adsbygoogle = window.adsbygoogle || []).push({});
             isAdLoaded.current = true;
           }
         }
       } catch (err: unknown) {
-        const error = err as Error;
-        if (error.message && !error.message.includes('adsbygoogle')) {
-          console.error('AdSense error:', err);
-        }
+        // AdSense 에러는 무시 (중복 push 등)
       }
     };
 
-    // IntersectionObserver로 요소가 보일 때 광고 로드
-    // rootMargin으로 화면 밖 500px까지 미리 감지
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && !isAdLoaded.current) {
-            loadAd();
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0, rootMargin: '500px' }
-    );
+    // 마운트 후 약간의 지연을 두고 큐에 추가
+    const timer = setTimeout(() => {
+      if (!isAdLoaded.current) {
+        adLoadQueue.push(loadAd);
+        processQueue();
+      }
+    }, 100);
 
-    if (adRef.current) {
-      observer.observe(adRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [adSlot]);
 
   // 인피드 광고 (fluid + layoutKey)
   if (adLayoutKey) {
