@@ -44,6 +44,7 @@ const AdSense: React.FC<AdSenseProps> = ({
     };
 
     // IntersectionObserver로 요소가 보일 때 광고 로드
+    // rootMargin으로 화면 밖 500px까지 미리 감지
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -53,7 +54,7 @@ const AdSense: React.FC<AdSenseProps> = ({
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0, rootMargin: '500px' }
     );
 
     if (adRef.current) {
