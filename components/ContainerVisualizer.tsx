@@ -133,7 +133,10 @@ const CargoBox: React.FC<{
 
       {/* 선택/호버 시 외곽선 - 살짝 크게 해서 Z-fighting 방지 */}
       {(isSelected || isHovered) && (
-        <mesh scale={[1.02, 1.02, 1.02]}>
+        <mesh
+          scale={[1.02, 1.02, 1.02]}
+          raycast={() => null}
+        >
           <boxGeometry args={size} />
           <meshBasicMaterial
             color={isSelected ? '#ffffff' : '#aaaaaa'}
