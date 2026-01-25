@@ -378,8 +378,28 @@ const App: React.FC = () => {
           const pos = { x, y: maxY, z };
           const supportRatio = calculateSupportRatio(pos, dims, existingItems);
           if (supportRatio >= MIN_SUPPORT_RATIO) {
-            // 점수: y가 낮을수록, z가 작을수록(앞), x가 작을수록(왼쪽) 좋음
-            const score = maxY * 1000000 + z * 1000 + x;
+            // 기존 화물과의 접촉 보너스 계산
+            let contactBonus = 0;
+            for (const item of existingItems) {
+              // X 방향 접촉 (왼쪽/오른쪽 면)
+              if (x + dims.width === item.position.x || x === item.position.x + item.dimensions.width) {
+                const zOverlap = Math.min(z + dims.length, item.position.z + item.dimensions.length) - Math.max(z, item.position.z);
+                const yOverlap = Math.min(maxY + dims.height, item.position.y + item.dimensions.height) - Math.max(maxY, item.position.y);
+                if (zOverlap > 0 && yOverlap > 0) contactBonus += zOverlap * yOverlap;
+              }
+              // Z 방향 접촉 (앞/뒤 면)
+              if (z + dims.length === item.position.z || z === item.position.z + item.dimensions.length) {
+                const xOverlap = Math.min(x + dims.width, item.position.x + item.dimensions.width) - Math.max(x, item.position.x);
+                const yOverlap = Math.min(maxY + dims.height, item.position.y + item.dimensions.height) - Math.max(maxY, item.position.y);
+                if (xOverlap > 0 && yOverlap > 0) contactBonus += xOverlap * yOverlap;
+              }
+            }
+            // 벽면 접촉 보너스
+            if (x === 0) contactBonus += dims.length * dims.height;
+            if (z === 0) contactBonus += dims.width * dims.height;
+
+            // 점수: y가 낮을수록, z가 작을수록, x가 작을수록, 접촉이 많을수록 좋음
+            const score = maxY * 1000000 + z * 1000 + x - contactBonus * 0.5;
             if (score < bestScore) {
               bestScore = score;
               bestPosition = pos;
@@ -464,10 +484,30 @@ const App: React.FC = () => {
         if (canPlaceAt(pos, dims, existingItems)) {
           const supportRatio = calculateSupportRatio(pos, dims, existingItems);
           if (supportRatio >= MIN_SUPPORT_RATIO) {
-            // 점수: 뒤쪽 벽(z 높음) → 바닥(y 낮음) → 왼쪽 벽(x 낮음) 우선
+            // 기존 화물과의 접촉 보너스 계산
+            let contactBonus = 0;
+            for (const item of existingItems) {
+              // X 방향 접촉 (왼쪽/오른쪽 면)
+              if (x + dims.width === item.position.x || x === item.position.x + item.dimensions.width) {
+                const zOverlap = Math.min(z + dims.length, item.position.z + item.dimensions.length) - Math.max(z, item.position.z);
+                const yOverlap = Math.min(maxY + dims.height, item.position.y + item.dimensions.height) - Math.max(maxY, item.position.y);
+                if (zOverlap > 0 && yOverlap > 0) contactBonus += zOverlap * yOverlap;
+              }
+              // Z 방향 접촉 (앞/뒤 면)
+              if (z + dims.length === item.position.z || z === item.position.z + item.dimensions.length) {
+                const xOverlap = Math.min(x + dims.width, item.position.x + item.dimensions.width) - Math.max(x, item.position.x);
+                const yOverlap = Math.min(maxY + dims.height, item.position.y + item.dimensions.height) - Math.max(maxY, item.position.y);
+                if (xOverlap > 0 && yOverlap > 0) contactBonus += xOverlap * yOverlap;
+              }
+            }
+            // 벽면 접촉 보너스 (왼쪽 벽, 뒤쪽 벽)
+            if (x === 0) contactBonus += dims.length * dims.height;
+            if (z + dims.length === container.length) contactBonus += dims.width * dims.height;
+
+            // 점수: 뒤쪽 벽(z 높음) → 바닥(y 낮음) → 왼쪽 벽(x 낮음) → 접촉 많을수록 우선
             const score = (container.length - z - dims.length) * 1000000 +
                          maxY * 1000 +
-                         x;
+                         x - contactBonus * 0.5;
 
             if (score < bestScore) {
               bestScore = score;
