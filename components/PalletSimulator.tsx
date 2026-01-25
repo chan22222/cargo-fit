@@ -205,15 +205,15 @@ const MaxHeightGuide: React.FC<{ pallet: PalletSpec }> = ({ pallet }) => {
   );
 };
 
-const PalletLabel: React.FC<{ index: number; position: [number, number, number] }> = ({ index, position }) => {
+const PalletLabel: React.FC<{ index: number; position: [number, number, number]; itemCount: number }> = React.memo(({ index, position, itemCount }) => {
   return (
-    <Html position={position} center style={{ pointerEvents: 'none' }}>
-      <div className="bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
-        #{index + 1}
+    <Html position={position} center sprite transform={false} style={{ pointerEvents: 'none', zIndex: -1 }}>
+      <div className="bg-amber-600/30 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
+        #{index + 1} - {itemCount}ea
       </div>
     </Html>
   );
-};
+});
 
 const Scene: React.FC<{
   pallet: PalletSpec;
@@ -221,10 +221,11 @@ const Scene: React.FC<{
   selectedItemId: string | null;
   hoveredItemId: string | null;
   palletCount: number;
+  showLabels: boolean;
   onSelectItem: (uniqueId: string) => void;
   onHoverItem: (id: string | null) => void;
   onItemMove: (uniqueId: string, pos: { x: number; y: number; z: number }) => void;
-}> = ({ pallet, packedItems, selectedItemId, hoveredItemId, palletCount, onSelectItem, onHoverItem, onItemMove }) => {
+}> = ({ pallet, packedItems, selectedItemId, hoveredItemId, palletCount, showLabels, onSelectItem, onHoverItem, onItemMove }) => {
   const PALLET_GAP = 50 * SCALE;
   const palletWidth = pallet.width * SCALE;
 
@@ -248,8 +249,8 @@ const Scene: React.FC<{
           <group key={palletIndex} position={[offsetX, 0, 0]}>
             <PalletBox pallet={pallet} />
             <MaxHeightGuide pallet={pallet} />
-            {palletCount > 1 && (
-              <PalletLabel index={palletIndex} position={[0, (pallet.height + pallet.maxLoadHeight) * SCALE + 0.15, 0]} />
+            {showLabels && palletCount > 1 && (
+              <PalletLabel index={palletIndex} position={[0, (pallet.height + pallet.maxLoadHeight) * SCALE + 0.5, 0]} itemCount={palItems.length} />
             )}
             {palItems.map((item) => (
               <CargoBox
@@ -288,10 +289,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   const [palletType, setPalletType] = useState<PalletType>(PalletType.KR);
   const [maxHeight, setMaxHeight] = useState(200);
   const [cargoList, setCargoList] = useState<CargoItem[]>([]);
+  const [cargoListInitialized, setCargoListInitialized] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [isArranging, setIsArranging] = useState(false);
   const [noStandUp, setNoStandUp] = useState(true); // 기본값: 높이 고정
+  const [showLabels, setShowLabels] = useState(true);
 
   // 최적화 모달 상태
   const [showOptimization, setShowOptimization] = useState(false);
@@ -332,6 +335,31 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     const efficiency = singlePalletVolume > 0 ? (usedVolume / singlePalletVolume) * 100 : 0;
     return { itemCount: validItems.length, overHeightCount: overHeightItems.length, efficiency, palletCount, wastedSpace: wastedVolumeM3 };
   }, [palletItems, currentPallet, palletCount]);
+
+  // palletItems에서 cargoList 복원 (컴포넌트 재마운트 시)
+  useEffect(() => {
+    if (!cargoListInitialized && palletItems.length > 0 && cargoList.length === 0) {
+      const groupedItems = new Map<string, CargoItem>();
+      palletItems.forEach(item => {
+        const key = item.id;
+        if (groupedItems.has(key)) {
+          const existing = groupedItems.get(key)!;
+          existing.quantity += 1;
+        } else {
+          groupedItems.set(key, {
+            id: item.id,
+            name: item.name,
+            dimensions: { ...item.dimensions },
+            color: item.color,
+            quantity: 1,
+            weight: item.weight,
+          });
+        }
+      });
+      setCargoList(Array.from(groupedItems.values()));
+      setCargoListInitialized(true);
+    }
+  }, [palletItems, cargoList.length, cargoListInitialized]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1500,6 +1528,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   const handleAddCargo = () => {
     if (!newItemName) return;
+    setCargoListInitialized(true);
     const qty = Math.min(100, Math.max(1, Number(newItemQuantity) || 1));
 
     // 동일 조건 화물 찾기 (이름, 크기, 색상)
@@ -1635,6 +1664,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                 selectedItemId={selectedItemId}
                 hoveredItemId={hoveredItemId}
                 palletCount={palletCount}
+                showLabels={showLabels}
                 onSelectItem={setSelectedItemId}
                 onHoverItem={setHoveredItemId}
                 onItemMove={handleItemMove}
@@ -1688,6 +1718,19 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
             <div className="absolute bottom-4 left-4 z-10 text-slate-400 text-xs">
               <p>Pallet: {currentPallet.width}×{currentPallet.length}cm</p>
               <p>Max Height: {currentPallet.maxLoadHeight}cm</p>
+            </div>
+
+            <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+              <button
+                onClick={() => setShowLabels(!showLabels)}
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-all shadow-lg border ${
+                  showLabels
+                    ? 'bg-amber-600 text-white border-amber-500'
+                    : 'bg-slate-800 text-slate-300 border-slate-600 hover:bg-slate-700'
+                }`}
+              >
+                🏷️ 라벨
+              </button>
             </div>
           </div>
 

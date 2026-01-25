@@ -245,8 +245,8 @@ const CoGMarker: React.FC<{
       />
 
       {/* 상단 COG 라벨 */}
-      <Html position={[0, h + 0.15, 0]} center style={{ pointerEvents: 'none' }}>
-        <div className="flex flex-col items-center animate-pulse">
+      <Html position={[0, h + 0.5, 0]} center style={{ pointerEvents: 'none' }}>
+        <div className="flex flex-col items-center animate-pulse opacity-85">
           {/* 타겟 아이콘 SVG */}
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="12" cy="12" r="10" stroke="#ef4444" strokeWidth="2" fill="none" />
@@ -258,7 +258,7 @@ const CoGMarker: React.FC<{
             <line x1="20" y1="12" x2="24" y2="12" stroke="#ef4444" strokeWidth="2" />
           </svg>
           {/* COG 텍스트 */}
-          <div className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded mt-1 shadow-lg">
+          <div className="bg-red-500/50 text-white text-[10px] font-bold px-2 py-0.5 rounded mt-1 shadow-lg">
             COG
           </div>
         </div>
@@ -272,7 +272,7 @@ const CoGMarker: React.FC<{
 const ContainerLabel: React.FC<{ index: number; position: [number, number, number]; itemCount: number }> = React.memo(({ index, position, itemCount }) => {
   return (
     <Html position={position} center sprite transform={false} style={{ pointerEvents: 'none', zIndex: -1 }}>
-      <div className="bg-blue-600/50 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
+      <div className="bg-blue-600/30 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
         #{index + 1} - {itemCount}ea
       </div>
     </Html>
@@ -286,11 +286,12 @@ const Scene: React.FC<{
   selectedItemId: string | null;
   hoveredItemId: string | null;
   showCoG: boolean;
+  showLabels: boolean;
   containerCount: number;
   onSelectItem: (uniqueId: string) => void;
   onHoverItem: (id: string | null) => void;
   onItemMove: (uniqueId: string, pos: { x: number; y: number; z: number }) => void;
-}> = ({ container, packedItems, selectedItemId, hoveredItemId, showCoG, containerCount, onSelectItem, onHoverItem, onItemMove }) => {
+}> = ({ container, packedItems, selectedItemId, hoveredItemId, showCoG, showLabels, containerCount, onSelectItem, onHoverItem, onItemMove }) => {
 
   // 컨테이너 간격 (cm -> three.js units)
   const CONTAINER_GAP = 50 * SCALE; // 50cm 간격
@@ -321,7 +322,7 @@ const Scene: React.FC<{
             <ContainerBox container={container} />
 
             {/* 컨테이너 라벨 (2개 이상일 때만) */}
-            {containerCount > 1 && (
+            {showLabels && containerCount > 1 && (
               <ContainerLabel
                 index={containerIndex}
                 position={[0, container.height * SCALE + 2.0, 0]}
@@ -402,6 +403,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
   isArranging = false
 }) => {
   const [showCoG, setShowCoG] = useState(true);
+  const [showLabels, setShowLabels] = useState(true);
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
   // 컨테이너 수 계산
@@ -502,6 +504,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
           selectedItemId={selectedItemId || null}
           hoveredItemId={hoveredItemId}
           showCoG={showCoG}
+          showLabels={showLabels}
           containerCount={containerCount}
           onSelectItem={handleSelectItem}
           onHoverItem={setHoveredItemId}
@@ -550,7 +553,17 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
         )}
       </div>
 
-      <div className="absolute bottom-4 right-4 z-10">
+      <div className="absolute bottom-4 right-4 z-10 flex gap-2">
+        <button
+          onClick={() => setShowLabels(!showLabels)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-all shadow-lg border ${
+            showLabels
+              ? 'bg-blue-600 text-white border-blue-500'
+              : 'bg-slate-800 text-slate-300 border-slate-600 hover:bg-slate-700'
+          }`}
+        >
+          {showLabels ? '🏷️' : '🏷️'} 라벨
+        </button>
         <button
           onClick={() => setShowCoG(!showCoG)}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium text-xs transition-all shadow-lg border ${
