@@ -236,7 +236,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       const weightSorted = [...cargoList].sort((a, b) => (b.weight || 0) - (a.weight || 0));
       const weightResult = runStrategy(weightSorted, 'weight');
 
-      // 3. 높이 우선 (낮은 것부터 - 층 쌓기)
+      // 3. 작은 화물 우선 (낮은 것부터 - 층 쌓기)
       const heightSorted = [...cargoList].sort((a, b) => a.dimensions.height - b.dimensions.height);
       const heightResult = runStrategy(heightSorted, 'height');
 
@@ -316,7 +316,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         },
         {
           id: 'height',
-          name: '높이 우선',
+          name: '작은 화물 우선',
           description: '낮은 것부터 층 쌓기',
           icon: '📊',
           result: heightResult.items,
@@ -415,7 +415,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
   return (
     <>
       {/* 사이드 패널 */}
-      <div className="fixed right-0 top-0 h-full w-80 z-50 bg-white shadow-2xl flex flex-col border-l border-slate-200">
+      <div className="fixed right-0 top-0 h-full w-[26rem] z-50 bg-white shadow-2xl flex flex-col border-l border-slate-200">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">
