@@ -532,11 +532,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         </div>
       </div>
 
-      {/* 배경 오버레이 (클릭 시 닫기) */}
-      <div
-        className="fixed inset-0 z-40 bg-black/20"
-        onClick={onClose}
-      />
+      {/* 배경 오버레이 제거 - 3D 조작 가능하도록 */}
     </>
   );
 };
