@@ -399,7 +399,7 @@ const App: React.FC = () => {
             if (z === 0) contactBonus += dims.width * dims.height;
 
             // 점수: y가 낮을수록, z가 작을수록, x가 작을수록, 접촉이 많을수록 좋음
-            const score = maxY * 1000000 + z * 1000 + x - contactBonus * 0.5;
+            const score = maxY * 1000000 + z * 1000 + x - contactBonus * 2;
             if (score < bestScore) {
               bestScore = score;
               bestPosition = pos;
@@ -507,7 +507,7 @@ const App: React.FC = () => {
             // 점수: 뒤쪽 벽(z 높음) → 바닥(y 낮음) → 왼쪽 벽(x 낮음) → 접촉 많을수록 우선
             const score = (container.length - z - dims.length) * 1000000 +
                          maxY * 1000 +
-                         x - contactBonus * 0.5;
+                         x - contactBonus * 2;
 
             if (score < bestScore) {
               bestScore = score;
@@ -547,17 +547,10 @@ const App: React.FC = () => {
       const sameGroupItem = currentPackedItems.find(p => p.id === item.id);
       const preferredOrientation = sameGroupItem ? sameGroupItem.dimensions : null;
 
-      // 선호 방향을 먼저, 나머지 방향은 뒤로
+      // 같은 그룹이면 같은 방향만 사용, 아니면 모든 방향 시도
       const allOrientations = getAllOrientations(item.dimensions, noStandUp);
       const orientations = preferredOrientation
-        ? [
-            preferredOrientation,
-            ...allOrientations.filter(o =>
-              o.width !== preferredOrientation.width ||
-              o.height !== preferredOrientation.height ||
-              o.length !== preferredOrientation.length
-            )
-          ]
+        ? [preferredOrientation]  // 같은 그룹은 같은 방향만
         : allOrientations;
 
       // 0번 컨테이너부터 순서대로 빈 공간 찾기
