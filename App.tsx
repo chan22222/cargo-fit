@@ -170,6 +170,8 @@ const App: React.FC = () => {
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null); // uniqueId of selected individual item
   const [isArranging, setIsArranging] = useState<boolean>(false);
   const [globalPackingMode, setGlobalPackingMode] = useState<'bottom-first' | 'inner-first'>('bottom-first');
+  const [noStandUp, setNoStandUp] = useState(false);
+  const [noStack, setNoStack] = useState(false);
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
   const [originalPackedItems, setOriginalPackedItems] = useState<PackedItem[]>([]);
 
@@ -220,8 +222,15 @@ const App: React.FC = () => {
   }, [packedItems, containerType]);
 
   // 모든 회전 방향 가져오기
-  const getAllOrientations = (dims: { width: number, height: number, length: number }) => {
+  const getAllOrientations = (dims: { width: number, height: number, length: number }, keepHeight = false) => {
     const { width: w, height: h, length: l } = dims;
+    if (keepHeight) {
+      // 눕히기 금지 - 높이는 유지하고 가로/세로만 회전
+      return [
+        { width: w, height: h, length: l },
+        { width: l, height: h, length: w },
+      ];
+    }
     return [
       { width: w, height: h, length: l },
       { width: l, height: h, length: w },
@@ -307,7 +316,8 @@ const App: React.FC = () => {
   const findBestPositionBottomFirst = (
     container: ContainerSpec,
     existingItems: PackedItem[],
-    dims: { width: number, height: number, length: number }
+    dims: { width: number, height: number, length: number },
+    onlyFloor = false
   ) => {
     // XZ 후보점 수집
     const xzPoints: { x: number, z: number }[] = [{ x: 0, z: 0 }];
@@ -329,8 +339,10 @@ const App: React.FC = () => {
 
     // Y 높이 레벨 수집 (바닥 + 각 아이템 상단)
     const yLevels = new Set<number>([0]);
-    for (const item of existingItems) {
-      yLevels.add(item.position.y + item.dimensions.height);
+    if (!onlyFloor) {
+      for (const item of existingItems) {
+        yLevels.add(item.position.y + item.dimensions.height);
+      }
     }
 
     let bestPosition = null;
@@ -379,7 +391,8 @@ const App: React.FC = () => {
   const findBestPositionInnerFirst = (
     container: ContainerSpec,
     existingItems: PackedItem[],
-    dims: { width: number, height: number, length: number }
+    dims: { width: number, height: number, length: number },
+    onlyFloor = false
   ) => {
     // XZ 후보점 수집
     const startZ = Math.max(0, container.length - dims.length);
@@ -404,8 +417,10 @@ const App: React.FC = () => {
 
     // Y 높이 레벨 수집 (바닥 + 각 아이템 상단)
     const yLevels = new Set<number>([0]);
-    for (const item of existingItems) {
-      yLevels.add(item.position.y + item.dimensions.height);
+    if (!onlyFloor) {
+      for (const item of existingItems) {
+        yLevels.add(item.position.y + item.dimensions.height);
+      }
     }
 
     let bestPosition = null;
@@ -485,7 +500,7 @@ const App: React.FC = () => {
       const preferredOrientation = sameGroupItem ? sameGroupItem.dimensions : null;
 
       // 선호 방향을 먼저, 나머지 방향은 뒤로
-      const allOrientations = getAllOrientations(item.dimensions);
+      const allOrientations = getAllOrientations(item.dimensions, noStandUp);
       const orientations = preferredOrientation
         ? [
             preferredOrientation,
@@ -506,8 +521,8 @@ const App: React.FC = () => {
 
         for (const orientation of orientations) {
           const position = (item.packingMode || globalPackingMode) === 'inner-first'
-            ? findBestPositionInnerFirst(currentContainer, containerItems, orientation)
-            : findBestPositionBottomFirst(currentContainer, containerItems, orientation);
+            ? findBestPositionInnerFirst(currentContainer, containerItems, orientation, noStack)
+            : findBestPositionBottomFirst(currentContainer, containerItems, orientation, noStack);
 
           if (position) {
             if ((item.packingMode || globalPackingMode) === 'inner-first') {
@@ -2245,6 +2260,10 @@ const App: React.FC = () => {
               isArranging={isArranging}
               packingMode={globalPackingMode}
               onPackingModeChange={setGlobalPackingMode}
+              noStandUp={noStandUp}
+              onNoStandUpChange={setNoStandUp}
+              noStack={noStack}
+              onNoStackChange={setNoStack}
             />
           </div>
 
@@ -2279,6 +2298,8 @@ const App: React.FC = () => {
         container={CONTAINER_SPECS[containerType]}
         cargoList={cargoList}
         packingMode={globalPackingMode}
+        noStandUp={noStandUp}
+        noStack={noStack}
       />
 
       <FeedbackModal

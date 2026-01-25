@@ -15,6 +15,10 @@ interface CargoControlsProps {
   isArranging?: boolean;
   packingMode: 'bottom-first' | 'inner-first';
   onPackingModeChange: (mode: 'bottom-first' | 'inner-first') => void;
+  noStandUp?: boolean;
+  onNoStandUpChange?: (value: boolean) => void;
+  noStack?: boolean;
+  onNoStackChange?: (value: boolean) => void;
 }
 
 export const CargoControls: React.FC<CargoControlsProps> = ({
@@ -28,7 +32,11 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
   onSelectGroup,
   isArranging = false,
   packingMode,
-  onPackingModeChange
+  onPackingModeChange,
+  noStandUp = false,
+  onNoStandUpChange,
+  noStack = false,
+  onNoStackChange
 }) => {
   const [name, setName] = useState('New Item');
   const [dims, setDims] = useState<Dimensions>({ width: 100, height: 100, length: 100 });
@@ -154,6 +162,38 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* 적재 옵션 토글 */}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onNoStandUpChange?.(!noStandUp)}
+              className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${
+                noStandUp
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              눕히기 금지
+            </button>
+            <button
+              type="button"
+              onClick={() => onNoStackChange?.(!noStack)}
+              className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${
+                noStack
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              2단 적재 금지
+            </button>
           </div>
 
           <div className="grid grid-cols-2 gap-3">

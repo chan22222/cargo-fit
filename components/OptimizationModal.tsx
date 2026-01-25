@@ -21,6 +21,8 @@ interface OptimizationModalProps {
   container: ContainerSpec;
   cargoList: CargoItem[];
   packingMode: 'bottom-first' | 'inner-first';
+  noStandUp?: boolean;
+  noStack?: boolean;
 }
 
 const OptimizationModal: React.FC<OptimizationModalProps> = ({
@@ -30,15 +32,23 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
   onPreview,
   container,
   cargoList,
-  packingMode
+  packingMode,
+  noStandUp = false,
+  noStack = false
 }) => {
   const [strategies, setStrategies] = useState<OptimizationStrategy[]>([]);
   const [isCalculating, setIsCalculating] = useState(true);
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
 
   // 모든 회전 방향 가져오기
-  const getAllOrientations = (dims: { width: number, height: number, length: number }) => {
+  const getAllOrientations = (dims: { width: number, height: number, length: number }, keepHeight = false) => {
     const { width: w, height: h, length: l } = dims;
+    if (keepHeight) {
+      return [
+        { width: w, height: h, length: l },
+        { width: l, height: h, length: w },
+      ];
+    }
     return [
       { width: w, height: h, length: l },
       { width: l, height: h, length: w },
@@ -86,7 +96,8 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
   const findBestPosition = (
     existingItems: PackedItem[],
     dims: { width: number, height: number, length: number },
-    mode: 'bottom-first' | 'inner-first'
+    mode: 'bottom-first' | 'inner-first',
+    onlyFloor = false
   ) => {
     // XZ 후보점 수집
     const xzPoints: { x: number, z: number }[] = [{ x: 0, z: 0 }];
@@ -113,8 +124,10 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
 
     // Y 높이 레벨 수집 (바닥 + 각 아이템 상단)
     const yLevels = new Set<number>([0]);
-    for (const item of existingItems) {
-      yLevels.add(item.position.y + item.dimensions.height);
+    if (!onlyFloor) {
+      for (const item of existingItems) {
+        yLevels.add(item.position.y + item.dimensions.height);
+      }
     }
 
     let bestPosition = null;
@@ -177,7 +190,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         const sameGroupItem = arrangedItems.find(p => p.id === cargo.id);
         const preferredOrientation = sameGroupItem ? sameGroupItem.dimensions : null;
 
-        const allOrientations = getAllOrientations(cargo.dimensions);
+        const allOrientations = getAllOrientations(cargo.dimensions, noStandUp);
         const orientations = preferredOrientation
           ? [
               preferredOrientation,
@@ -200,7 +213,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           let bestScore = Infinity;
 
           for (const orientation of orientations) {
-            const position = findBestPosition(containerItems, orientation, packingMode);
+            const position = findBestPosition(containerItems, orientation, packingMode, noStack);
 
             if (position) {
               const score = packingMode === 'inner-first'
@@ -295,7 +308,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
 
             for (let tryContainer = 0; tryContainer < maxContainers && !placed; tryContainer++) {
               const containerItems = getContainerItems(arrangedItems, tryContainer);
-              const pos = findBestPosition(containerItems, ori, packingMode);
+              const pos = findBestPosition(containerItems, ori, packingMode, noStack);
 
               if (pos) {
                 arrangedItems.push({
@@ -336,7 +349,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
             // 같은 그룹 회전 통일
             const sameGroupItem = arrangedItems.find(p => p.id === cargo.id);
             const preferredOri = sameGroupItem ? sameGroupItem.dimensions : null;
-            const allOris = getAllOrientations(cargo.dimensions);
+            const allOris = getAllOrientations(cargo.dimensions, noStandUp);
             const orientations = preferredOri
               ? [preferredOri, ...allOris.filter(o => o.width !== preferredOri.width || o.height !== preferredOri.height || o.length !== preferredOri.length)]
               : allOris;
@@ -349,7 +362,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
               let bestScore = Infinity;
 
               for (const ori of orientations) {
-                const pos = findBestPosition(containerItems, ori, packingMode);
+                const pos = findBestPosition(containerItems, ori, packingMode, noStack);
                 if (pos) {
                   const score = scoreFunc(pos, ori, containerItems);
                   if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
@@ -498,7 +511,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
 
       setIsCalculating(false);
     }, 500);
-  }, [isOpen, cargoList, container, packingMode]);
+  }, [isOpen, cargoList, container, packingMode, noStandUp, noStack]);
 
   // 전략 선택 시 미리보기 업데이트
   const handleStrategySelect = (strategyId: string) => {
