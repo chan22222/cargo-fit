@@ -56,18 +56,33 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
     });
   };
 
-  // 같은 크기 화물이 있으면 그 색상, 없으면 다음 색상
-  const autoSelectColor = (newDims?: Dimensions) => {
+  // 같은 크기+무게 화물이 있으면 그 색상, 없으면 사용되지 않은 다음 색상
+  const autoSelectColor = (newDims?: Dimensions, newWeight?: number) => {
     const targetDims = newDims || dims;
+    const targetWeight = newWeight ?? (Number(weight) || 0);
     const existingCargo = cargoList.find(c =>
       c.dimensions.width === targetDims.width &&
       c.dimensions.height === targetDims.height &&
-      c.dimensions.length === targetDims.length
+      c.dimensions.length === targetDims.length &&
+      (c.weight || 0) === targetWeight
     );
     if (existingCargo) {
       setColor(existingCargo.color);
     } else {
+      // 사용중인 색상 목록
+      const usedColors = new Set(cargoList.map(c => c.color));
       const currentIndex = DEFAULT_CARGO_COLORS.indexOf(color);
+
+      // 사용되지 않은 색상 찾기
+      for (let i = 1; i <= DEFAULT_CARGO_COLORS.length; i++) {
+        const nextIndex = (currentIndex + i) % DEFAULT_CARGO_COLORS.length;
+        const nextColor = DEFAULT_CARGO_COLORS[nextIndex];
+        if (!usedColors.has(nextColor)) {
+          setColor(nextColor);
+          return;
+        }
+      }
+      // 모든 색상이 사용중이면 순차 적용
       const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
       setColor(DEFAULT_CARGO_COLORS[nextIndex]);
     }
@@ -241,6 +256,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={weight}
                 onChange={e => setWeight(String(Math.min(50000, Number(e.target.value))))}
+                onBlur={() => autoSelectColor()}
                 placeholder="0"
                 className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner placeholder:text-slate-300"
                 min="0" max="50000"

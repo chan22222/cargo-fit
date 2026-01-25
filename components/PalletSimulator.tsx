@@ -1520,7 +1520,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   // ============ 핸들러 ============
 
-  // 같은 크기 화물이 있으면 그 색상, 없으면 다음 색상
+  // 같은 크기 화물이 있으면 그 색상, 없으면 사용되지 않은 다음 색상
   const autoSelectColor = (targetDims?: Dimensions) => {
     const dims = targetDims || newItemDims;
     const existingCargo = cargoList.find(c =>
@@ -1531,7 +1531,20 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     if (existingCargo) {
       setNewItemColor(existingCargo.color);
     } else {
+      // 사용중인 색상 목록
+      const usedColors = new Set(cargoList.map(c => c.color));
       const currentIndex = DEFAULT_CARGO_COLORS.indexOf(newItemColor);
+
+      // 사용되지 않은 색상 찾기
+      for (let i = 1; i <= DEFAULT_CARGO_COLORS.length; i++) {
+        const nextIndex = (currentIndex + i) % DEFAULT_CARGO_COLORS.length;
+        const nextColor = DEFAULT_CARGO_COLORS[nextIndex];
+        if (!usedColors.has(nextColor)) {
+          setNewItemColor(nextColor);
+          return;
+        }
+      }
+      // 모든 색상이 사용중이면 순차 적용
       const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
       setNewItemColor(DEFAULT_CARGO_COLORS[nextIndex]);
     }
@@ -1585,8 +1598,6 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       if (newItems.length > 0) setPalletItems([...palletItems, ...newItems]);
       if (placed < qty) alert(`${newItemName} ${qty}개 중 ${placed}개만 배치되었습니다.`);
     }
-
-    setNewItemName('박스');
   };
 
   const handleRemoveItem = (uniqueId: string) => {
