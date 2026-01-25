@@ -248,50 +248,127 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       });
       const areaResult = runStrategy(areaSorted, 'area');
 
-      // 5. 밀집 우선 (작은 것부터 - 틈새 채우기)
-      const compactSorted = [...cargoList].sort((a, b) => {
-        const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
-        const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
-        return volA - volB;
-      });
-      const compactResult = runStrategy(compactSorted, 'compact');
+      // 5. 혼합 전략 (큰 것 먼저 + 작은 것으로 빈틈 채우기)
+      const mixedResult = (() => {
+        const arrangedItems: PackedItem[] = [];
+        // 큰 것부터 70% 배치
+        const bigItems = [...cargoList].sort((a, b) => {
+          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
+          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
+          return volB - volA;
+        });
+        const smallItems = [...bigItems].reverse();
 
-      // 6. 층별 정렬 (같은 높이끼리 그룹핑 - 깔끔한 층 형성)
-      const layerSorted = [...cargoList].sort((a, b) => {
-        // 높이가 같으면 바닥면적 큰 순
-        if (a.dimensions.height === b.dimensions.height) {
+        // 큰 것 먼저 배치
+        for (const cargo of bigItems) {
+          for (let i = 0; i < Math.ceil(cargo.quantity * 0.7); i++) {
+            const orientations = getAllOrientations(cargo.dimensions);
+            let bestPos = null;
+            let bestOri = cargo.dimensions;
+            let bestScore = Infinity;
+            for (const ori of orientations) {
+              const pos = findBestPosition(arrangedItems, ori, packingMode);
+              if (pos) {
+                const score = pos.y * 1000000 + pos.z * 1000 + pos.x;
+                if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
+              }
+            }
+            if (bestPos) {
+              arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-mixed`, dimensions: bestOri, position: bestPos });
+            }
+          }
+        }
+        // 작은 것으로 빈틈 채우기
+        for (const cargo of smallItems) {
+          const remaining = cargo.quantity - Math.ceil(cargo.quantity * 0.7);
+          for (let i = 0; i < remaining; i++) {
+            const orientations = getAllOrientations(cargo.dimensions);
+            let bestPos = null;
+            let bestOri = cargo.dimensions;
+            let bestScore = Infinity;
+            for (const ori of orientations) {
+              const pos = findBestPosition(arrangedItems, ori, packingMode);
+              if (pos) {
+                const score = pos.y * 1000000 + pos.z * 1000 + pos.x;
+                if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
+              }
+            }
+            if (bestPos) {
+              arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-mixed2`, dimensions: bestOri, position: bestPos });
+            }
+          }
+        }
+        const totalVol = container.width * container.height * container.length;
+        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height), 0) };
+      })();
+
+      // 6. 벽면 우선 (벽에 붙여서 배치 - x, z 작은 순 우선)
+      const wallResult = (() => {
+        const sorted = [...cargoList].sort((a, b) => {
+          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
+          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
+          return volB - volA;
+        });
+        const arrangedItems: PackedItem[] = [];
+        for (const cargo of sorted) {
+          for (let i = 0; i < cargo.quantity; i++) {
+            const orientations = getAllOrientations(cargo.dimensions);
+            let bestPos = null;
+            let bestOri = cargo.dimensions;
+            let bestScore = Infinity;
+            for (const ori of orientations) {
+              const pos = findBestPosition(arrangedItems, ori, packingMode);
+              if (pos) {
+                // 벽면 우선: x + z가 작을수록 좋음 (코너 우선)
+                const score = (pos.x + pos.z) * 1000 + pos.y;
+                if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
+              }
+            }
+            if (bestPos) {
+              arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-wall`, dimensions: bestOri, position: bestPos });
+            }
+          }
+        }
+        const totalVol = container.width * container.height * container.length;
+        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height), 0) };
+      })();
+
+      // 7. 높이 최소화 (최대한 낮게 쌓기)
+      const lowResult = (() => {
+        const sorted = [...cargoList].sort((a, b) => {
+          // 바닥면적 큰 순 (넓게 펴서 낮게)
           const areaA = a.dimensions.width * a.dimensions.length;
           const areaB = b.dimensions.width * b.dimensions.length;
           return areaB - areaA;
+        });
+        const arrangedItems: PackedItem[] = [];
+        for (const cargo of sorted) {
+          for (let i = 0; i < cargo.quantity; i++) {
+            const orientations = getAllOrientations(cargo.dimensions);
+            let bestPos = null;
+            let bestOri = cargo.dimensions;
+            let bestScore = Infinity;
+            for (const ori of orientations) {
+              const pos = findBestPosition(arrangedItems, ori, packingMode);
+              if (pos) {
+                // 높이 최소화: y가 작을수록, 높이가 낮은 방향일수록 좋음
+                const finalHeight = pos.y + ori.height;
+                const score = finalHeight * 1000000 + pos.z * 1000 + pos.x;
+                if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
+              }
+            }
+            if (bestPos) {
+              arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-low`, dimensions: bestOri, position: bestPos });
+            }
+          }
         }
-        // 높이가 낮은 것부터 (층을 균일하게)
-        return a.dimensions.height - b.dimensions.height;
-      });
-      const layerResult = runStrategy(layerSorted, 'layer');
-
-      // 7. 상단 평탄화 (큰 것 먼저 + 높이 비슷한 것끼리)
-      const flatTopSorted = [...cargoList].sort((a, b) => {
-        // 먼저 높이로 그룹화 (10cm 단위)
-        const heightGroupA = Math.floor(a.dimensions.height / 10);
-        const heightGroupB = Math.floor(b.dimensions.height / 10);
-        if (heightGroupA !== heightGroupB) {
-          return heightGroupA - heightGroupB;
-        }
-        // 같은 높이 그룹 내에서는 바닥면적 큰 순
-        const areaA = a.dimensions.width * a.dimensions.length;
-        const areaB = b.dimensions.width * b.dimensions.length;
-        return areaB - areaA;
-      });
-      const flatTopResult = runStrategy(flatTopSorted, 'flatTop');
-
-      // 8. 균형 배치 (높이 + 면적 조합 점수)
-      const balancedSorted = [...cargoList].sort((a, b) => {
-        // 바닥면적 대비 높이 비율이 낮은 것 우선 (안정적인 형태)
-        const ratioA = a.dimensions.height / Math.sqrt(a.dimensions.width * a.dimensions.length);
-        const ratioB = b.dimensions.height / Math.sqrt(b.dimensions.width * b.dimensions.length);
-        return ratioA - ratioB;
-      });
-      const balancedResult = runStrategy(balancedSorted, 'balanced');
+        const totalVol = container.width * container.height * container.length;
+        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
+        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: maxH };
+      })();
 
       const newStrategies: OptimizationStrategy[] = [
         {
@@ -335,44 +412,34 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           maxHeight: areaResult.maxHeight
         },
         {
-          id: 'compact',
-          name: '밀집 우선',
-          description: '작은 것부터 틈새',
+          id: 'mixed',
+          name: '혼합 전략',
+          description: '큰것+작은것 빈틈채우기',
           icon: '🧩',
-          result: compactResult.items,
-          efficiency: compactResult.efficiency,
-          itemCount: compactResult.items.length,
-          maxHeight: compactResult.maxHeight
+          result: mixedResult.items,
+          efficiency: mixedResult.efficiency,
+          itemCount: mixedResult.items.length,
+          maxHeight: mixedResult.maxHeight
         },
         {
-          id: 'layer',
-          name: '층별 정렬',
-          description: '같은 높이끼리 층 형성',
-          icon: '🗂️',
-          result: layerResult.items,
-          efficiency: layerResult.efficiency,
-          itemCount: layerResult.items.length,
-          maxHeight: layerResult.maxHeight
+          id: 'wall',
+          name: '벽면 우선',
+          description: '벽에 붙여서 배치',
+          icon: '🧱',
+          result: wallResult.items,
+          efficiency: wallResult.efficiency,
+          itemCount: wallResult.items.length,
+          maxHeight: wallResult.maxHeight
         },
         {
-          id: 'flatTop',
-          name: '상단 평탄화',
-          description: '윗면을 평평하게',
-          icon: '📐',
-          result: flatTopResult.items,
-          efficiency: flatTopResult.efficiency,
-          itemCount: flatTopResult.items.length,
-          maxHeight: flatTopResult.maxHeight
-        },
-        {
-          id: 'balanced',
-          name: '균형 배치',
-          description: '안정적인 형태 우선',
-          icon: '⚖️',
-          result: balancedResult.items,
-          efficiency: balancedResult.efficiency,
-          itemCount: balancedResult.items.length,
-          maxHeight: balancedResult.maxHeight
+          id: 'low',
+          name: '높이 최소화',
+          description: '최대한 낮게 쌓기',
+          icon: '📉',
+          result: lowResult.items,
+          efficiency: lowResult.efficiency,
+          itemCount: lowResult.items.length,
+          maxHeight: lowResult.maxHeight
         }
       ];
 
