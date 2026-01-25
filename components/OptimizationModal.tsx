@@ -87,17 +87,42 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
     dims: { width: number, height: number, length: number },
     mode: 'bottom-first' | 'inner-first'
   ) => {
-    const candidatePoints: { x: number, y: number, z: number }[] = [
-      mode === 'inner-first'
-        ? { x: 0, y: 0, z: container.length - dims.length }
-        : { x: 0, y: 0, z: 0 }
-    ];
+    const candidatePoints: { x: number, y: number, z: number }[] = [];
 
+    // 초기 후보점 추가 - 바닥 레벨에서 여러 시작점
+    if (mode === 'inner-first') {
+      // 안쪽(뒤)에서 시작하는 점들
+      const startZ = Math.max(0, container.length - dims.length);
+      candidatePoints.push({ x: 0, y: 0, z: startZ });
+      candidatePoints.push({ x: container.width - dims.width, y: 0, z: startZ });
+    } else {
+      // 바닥 앞에서 시작
+      candidatePoints.push({ x: 0, y: 0, z: 0 });
+    }
+
+    // 기존 아이템들 기반 후보점 추가
     for (const item of existingItems) {
       const itemTop = item.position.y + item.dimensions.height;
+
+      // 옆으로 확장
       candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z });
-      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
+
+      // 앞/뒤로 확장
+      if (mode === 'inner-first') {
+        // inner-first: 안쪽에서 바깥쪽으로 확장
+        const newZ = item.position.z - dims.length;
+        if (newZ >= 0) {
+          candidatePoints.push({ x: item.position.x, y: item.position.y, z: newZ });
+        }
+      } else {
+        // bottom-first: 바깥쪽에서 안쪽으로 확장
+        candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
+      }
+
+      // 대각선
       candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z + item.dimensions.length });
+
+      // 위로 쌓기
       candidatePoints.push({ x: item.position.x, y: itemTop, z: item.position.z });
     }
 
@@ -314,7 +339,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         uniqueId: `${item.id}-${idx}-${Date.now()}`
       }));
       onSelect(finalItems);
-      onClose();
+      // onClose를 호출하지 않음 - onSelect에서 모달을 닫음
     }
   };
 

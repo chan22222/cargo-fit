@@ -8,9 +8,9 @@ interface ContainerVisualizerProps {
   container: ContainerSpec;
   packedItems: PackedItem[];
   onItemMove?: (uniqueId: string, newPos: { x: number; y: number; z: number }) => void;
-  selectedGroupId?: string | null;
-  onSelectGroup?: (id: string | null) => void;
-  onRemoveCargo?: (id: string) => void;
+  selectedItemId?: string | null;
+  onSelectItem?: (uniqueId: string | null) => void;
+  onRemoveItem?: (uniqueId: string) => void;
   isArranging?: boolean;
 }
 
@@ -272,14 +272,14 @@ const CoGMarker: React.FC<{
 const Scene: React.FC<{
   container: ContainerSpec;
   packedItems: PackedItem[];
-  selectedGroupId: string | null;
+  selectedItemId: string | null;
   hoveredItemId: string | null;
   showCoG: boolean;
   weightStats: { totalWeight: number; cogX: number; cogZ: number };
-  onSelectGroup: (id: string) => void;
+  onSelectItem: (uniqueId: string) => void;
   onHoverItem: (id: string | null) => void;
   onItemMove: (uniqueId: string, pos: { x: number; y: number; z: number }) => void;
-}> = ({ container, packedItems, selectedGroupId, hoveredItemId, showCoG, weightStats, onSelectGroup, onHoverItem, onItemMove }) => {
+}> = ({ container, packedItems, selectedItemId, hoveredItemId, showCoG, weightStats, onSelectItem, onHoverItem, onItemMove }) => {
 
   const cogPosition = useMemo((): [number, number, number] => [
     (weightStats.cogX - container.width / 2) * SCALE,
@@ -303,10 +303,10 @@ const Scene: React.FC<{
           key={item.uniqueId}
           item={item}
           container={container}
-          isSelected={selectedGroupId === item.id}
+          isSelected={selectedItemId === item.uniqueId}
           isHovered={hoveredItemId === item.uniqueId}
-          isFaded={!!selectedGroupId && selectedGroupId !== item.id}
-          onSelect={() => onSelectGroup(item.id)}
+          isFaded={!!selectedItemId && selectedItemId !== item.uniqueId}
+          onSelect={() => onSelectItem(item.uniqueId)}
           onHover={(hovered) => onHoverItem(hovered ? item.uniqueId : null)}
           onDrag={(pos) => onItemMove(item.uniqueId, pos)}
         />
@@ -342,25 +342,25 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
   container,
   packedItems,
   onItemMove,
-  selectedGroupId,
-  onSelectGroup,
-  onRemoveCargo,
+  selectedItemId,
+  onSelectItem,
+  onRemoveItem,
   isArranging = false
 }) => {
   const [showCoG, setShowCoG] = useState(true);
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
 
-  // Delete 키로 선택된 화물 제거
+  // Delete 키로 선택된 화물 개별 제거
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Delete' && selectedGroupId && onRemoveCargo) {
-        onRemoveCargo(selectedGroupId);
+      if (e.key === 'Delete' && selectedItemId && onRemoveItem) {
+        onRemoveItem(selectedItemId);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedGroupId, onRemoveCargo]);
+  }, [selectedItemId, onRemoveItem]);
 
   // 무게 중심 계산
   const weightStats = useMemo(() => {
@@ -418,9 +418,9 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
     }
   }, [onItemMove, packedItems, container.height]);
 
-  const handleSelectGroup = useCallback((id: string | null) => {
-    if (onSelectGroup) onSelectGroup(id);
-  }, [onSelectGroup]);
+  const handleSelectItem = useCallback((uniqueId: string | null) => {
+    if (onSelectItem) onSelectItem(uniqueId);
+  }, [onSelectItem]);
 
   return (
     <div className="w-full h-full bg-slate-900 relative">
@@ -432,17 +432,17 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
         }}
         onPointerMissed={() => {
           // 빈 공간 클릭 시 선택 해제
-          if (onSelectGroup) onSelectGroup(null);
+          if (onSelectItem) onSelectItem(null);
         }}
       >
         <Scene
           container={container}
           packedItems={packedItems}
-          selectedGroupId={selectedGroupId || null}
+          selectedItemId={selectedItemId || null}
           hoveredItemId={hoveredItemId}
           showCoG={showCoG}
           weightStats={weightStats}
-          onSelectGroup={handleSelectGroup}
+          onSelectItem={handleSelectItem}
           onHoverItem={setHoveredItemId}
           onItemMove={handleItemMove}
         />

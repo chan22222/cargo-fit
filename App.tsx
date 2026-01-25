@@ -167,7 +167,7 @@ const App: React.FC = () => {
   const [containerType, setContainerType] = useState<ContainerType>(ContainerType.FT20);
   const [cargoList, setCargoList] = useState<CargoItem[]>([]);
   const [packedItems, setPackedItems] = useState<PackedItem[]>([]);
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null); // uniqueId of selected individual item
   const [isArranging, setIsArranging] = useState<boolean>(false);
   const [globalPackingMode, setGlobalPackingMode] = useState<'bottom-first' | 'inner-first'>('bottom-first');
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
@@ -391,86 +391,211 @@ const App: React.FC = () => {
   };
 
   const handleAddCargo = (newItem: Omit<CargoItem, 'id'> | CargoItem) => {
-    const item: CargoItem = 'id' in newItem
-      ? newItem  // 이미 id가 있으면 (편집 모드) 그대로 사용
-      : {
-          ...newItem,
-          id: Math.random().toString(36).substr(2, 9),
-        };
-
-    // 편집 모드인 경우 기존 항목 먼저 제거
+    // 편집 모드인 경우
     if ('id' in newItem) {
       setCargoList(prev => prev.filter(c => c.id !== newItem.id));
       setPackedItems(prev => prev.filter(p => p.id !== newItem.id));
-    }
 
-    // 현재 globalPackingMode를 item에 추가
-    item.packingMode = globalPackingMode;
+      const item: CargoItem = { ...newItem, packingMode: globalPackingMode };
+      setCargoList(prev => [...prev, item]);
 
-    setCargoList(prev => [...prev, item]);
-    setSelectedGroupId(item.id);
-    const currentContainer = CONTAINER_SPECS[containerType];
-    // 편집 모드인 경우 기존 아이템을 제외한 packedItems 사용
-    let currentPackedItems = 'id' in newItem
-      ? packedItems.filter(p => p.id !== newItem.id)
-      : [...packedItems];
+      const currentContainer = CONTAINER_SPECS[containerType];
+      let currentPackedItems = packedItems.filter(p => p.id !== newItem.id);
 
-    // 화물 처리 (회전 고려한 최적 배치)
-    for (let i = 0; i < item.quantity; i++) {
-      const orientations = getAllOrientations(item.dimensions);
-      let bestPosition = null;
-      let bestOrientation = item.dimensions;
-      let lowestY = Infinity;
+      for (let i = 0; i < item.quantity; i++) {
+        const orientations = getAllOrientations(item.dimensions);
+        let bestPosition = null;
+        let bestOrientation = item.dimensions;
+        let lowestY = Infinity;
 
-      for (const orientation of orientations) {
-        const position = item.packingMode === 'inner-first'
-          ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
-          : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
+        for (const orientation of orientations) {
+          const position = item.packingMode === 'inner-first'
+            ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
+            : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
 
-        if (position) {
-          if (item.packingMode === 'inner-first') {
-            // 안쪽부터는 첫 번째 유효한 위치 선택
-            bestPosition = position;
-            bestOrientation = orientation;
-            break;
-          } else if (position.y < lowestY) {
-            // 바닥부터는 가장 낮은 위치 선택
-            lowestY = position.y;
-            bestPosition = position;
-            bestOrientation = orientation;
+          if (position) {
+            if (item.packingMode === 'inner-first') {
+              bestPosition = position;
+              bestOrientation = orientation;
+              break;
+            } else if (position.y < lowestY) {
+              lowestY = position.y;
+              bestPosition = position;
+              bestOrientation = orientation;
+            }
           }
         }
-      }
 
-      if (bestPosition) {
-        const newInstance: PackedItem = {
-          ...item,
-          uniqueId: `${item.id}-${i}-${Date.now()}`,
-          dimensions: bestOrientation,
-          weight: item.weight,
-          position: bestPosition
-        };
-        currentPackedItems.push(newInstance);
-      } else {
-        // 배치할 수 없으면 경고
-        alert(`${item.name} ${i + 1}/${item.quantity}개를 배치할 공간이 없습니다.`);
-        break;
+        if (bestPosition) {
+          currentPackedItems.push({
+            ...item,
+            uniqueId: `${item.id}-${i}-${Date.now()}`,
+            dimensions: bestOrientation,
+            weight: item.weight,
+            position: bestPosition
+          });
+        } else {
+          alert(`${item.name} ${i + 1}/${item.quantity}개를 배치할 공간이 없습니다.`);
+          break;
+        }
+      }
+      setPackedItems(currentPackedItems);
+      return;
+    }
+
+    // 새 화물 추가 모드 - 동일 조건 화물 찾기 (이름, 크기, 무게, 색상)
+    const existingItem = cargoList.find(c =>
+      c.name === newItem.name &&
+      c.dimensions.width === newItem.dimensions.width &&
+      c.dimensions.height === newItem.dimensions.height &&
+      c.dimensions.length === newItem.dimensions.length &&
+      c.weight === newItem.weight &&
+      c.color === newItem.color
+    );
+
+    const currentContainer = CONTAINER_SPECS[containerType];
+    let currentPackedItems = [...packedItems];
+    const quantityToAdd = newItem.quantity;
+
+    if (existingItem) {
+      // 기존 화물에 수량 추가
+      const updatedItem: CargoItem = {
+        ...existingItem,
+        quantity: existingItem.quantity + quantityToAdd,
+        packingMode: globalPackingMode
+      };
+
+      setCargoList(prev => prev.map(c => c.id === existingItem.id ? updatedItem : c));
+
+      // 추가되는 수량만큼 새 아이템 배치
+      const existingCount = packedItems.filter(p => p.id === existingItem.id).length;
+
+      for (let i = 0; i < quantityToAdd; i++) {
+        const orientations = getAllOrientations(updatedItem.dimensions);
+        let bestPosition = null;
+        let bestOrientation = updatedItem.dimensions;
+        let lowestY = Infinity;
+
+        for (const orientation of orientations) {
+          const position = globalPackingMode === 'inner-first'
+            ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
+            : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
+
+          if (position) {
+            if (globalPackingMode === 'inner-first') {
+              bestPosition = position;
+              bestOrientation = orientation;
+              break;
+            } else if (position.y < lowestY) {
+              lowestY = position.y;
+              bestPosition = position;
+              bestOrientation = orientation;
+            }
+          }
+        }
+
+        if (bestPosition) {
+          currentPackedItems.push({
+            ...updatedItem,
+            uniqueId: `${existingItem.id}-${existingCount + i}-${Date.now()}`,
+            dimensions: bestOrientation,
+            weight: updatedItem.weight,
+            position: bestPosition
+          });
+        } else {
+          alert(`${updatedItem.name} ${i + 1}/${quantityToAdd}개를 배치할 공간이 없습니다.`);
+          break;
+        }
+      }
+    } else {
+      // 새 화물 추가
+      const item: CargoItem = {
+        ...newItem,
+        id: Math.random().toString(36).substr(2, 9),
+        packingMode: globalPackingMode
+      };
+
+      setCargoList(prev => [...prev, item]);
+
+      for (let i = 0; i < item.quantity; i++) {
+        const orientations = getAllOrientations(item.dimensions);
+        let bestPosition = null;
+        let bestOrientation = item.dimensions;
+        let lowestY = Infinity;
+
+        for (const orientation of orientations) {
+          const position = item.packingMode === 'inner-first'
+            ? findBestPositionInnerFirst(currentContainer, currentPackedItems, orientation)
+            : findBestPositionBottomFirst(currentContainer, currentPackedItems, orientation);
+
+          if (position) {
+            if (item.packingMode === 'inner-first') {
+              bestPosition = position;
+              bestOrientation = orientation;
+              break;
+            } else if (position.y < lowestY) {
+              lowestY = position.y;
+              bestPosition = position;
+              bestOrientation = orientation;
+            }
+          }
+        }
+
+        if (bestPosition) {
+          currentPackedItems.push({
+            ...item,
+            uniqueId: `${item.id}-${i}-${Date.now()}`,
+            dimensions: bestOrientation,
+            weight: item.weight,
+            position: bestPosition
+          });
+        } else {
+          alert(`${item.name} ${i + 1}/${item.quantity}개를 배치할 공간이 없습니다.`);
+          break;
+        }
       }
     }
 
     setPackedItems(currentPackedItems);
   };
 
+  // 그룹 전체 삭제 (CargoControls 리스트에서 사용)
   const handleRemoveCargo = (id: string) => {
     setCargoList(prev => prev.filter(item => item.id !== id));
     setPackedItems(prev => prev.filter(item => item.id !== id));
-    if (selectedGroupId === id) setSelectedGroupId(null);
+    // 선택된 아이템이 삭제되는 그룹에 속하면 선택 해제
+    const selectedItem = packedItems.find(item => item.uniqueId === selectedItemId);
+    if (selectedItem && selectedItem.id === id) setSelectedItemId(null);
+  };
+
+  // 개별 아이템 삭제 (3D 뷰어에서 Delete 키로 사용)
+  const handleRemoveItem = (uniqueId: string) => {
+    const itemToRemove = packedItems.find(item => item.uniqueId === uniqueId);
+    if (!itemToRemove) return;
+
+    // packedItems에서 해당 아이템만 제거
+    setPackedItems(prev => prev.filter(item => item.uniqueId !== uniqueId));
+
+    // cargoList에서 수량 감소
+    setCargoList(prev => prev.map(cargo => {
+      if (cargo.id === itemToRemove.id) {
+        const newQuantity = cargo.quantity - 1;
+        if (newQuantity <= 0) {
+          return null; // 삭제 표시
+        }
+        return { ...cargo, quantity: newQuantity };
+      }
+      return cargo;
+    }).filter((cargo): cargo is CargoItem => cargo !== null));
+
+    // 선택 해제
+    if (selectedItemId === uniqueId) setSelectedItemId(null);
   };
 
   const handleClearCargo = () => {
     setCargoList([]);
     setPackedItems([]);
-    setSelectedGroupId(null);
+    setSelectedItemId(null);
   };
 
   const handleRotateCargo = (id: string) => {
@@ -503,7 +628,8 @@ const App: React.FC = () => {
 
   const handleOptimizationSelect = (items: PackedItem[]) => {
     setPackedItems(items);
-    setSelectedGroupId(null);
+    setSelectedItemId(null);
+    setShowOptimizationModal(false);
   };
 
   const handleOptimizationCancel = () => {
@@ -512,9 +638,29 @@ const App: React.FC = () => {
     setShowOptimizationModal(false);
   };
 
-  const handleSelectGroup = (id: string | null) => {
-    setSelectedGroupId(id);
+  const handleOptimizationClose = () => {
+    // 단순히 모달만 닫기 (적용 후 호출됨)
+    setShowOptimizationModal(false);
   };
+
+  const handleSelectItem = (uniqueId: string | null) => {
+    setSelectedItemId(uniqueId);
+  };
+
+  // CargoControls에서 그룹 클릭 시 해당 그룹의 첫 번째 아이템 선택
+  const handleSelectGroup = (groupId: string | null) => {
+    if (groupId === null) {
+      setSelectedItemId(null);
+    } else {
+      const firstItem = packedItems.find(item => item.id === groupId);
+      setSelectedItemId(firstItem?.uniqueId ?? null);
+    }
+  };
+
+  // 선택된 아이템의 그룹 ID (CargoControls 리스트 하이라이트용)
+  const selectedGroupId = selectedItemId
+    ? packedItems.find(item => item.uniqueId === selectedItemId)?.id ?? null
+    : null;
 
   const currentContainer = CONTAINER_SPECS[containerType];
 
@@ -1945,9 +2091,9 @@ const App: React.FC = () => {
                       container={currentContainer}
                       packedItems={packedItems}
                       onItemMove={handleItemMove}
-                      selectedGroupId={selectedGroupId}
-                      onSelectGroup={handleSelectGroup}
-                      onRemoveCargo={handleRemoveCargo}
+                      selectedItemId={selectedItemId}
+                      onSelectItem={handleSelectItem}
+                      onRemoveItem={handleRemoveItem}
                       isArranging={isArranging}
                     />
                     
