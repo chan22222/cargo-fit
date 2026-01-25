@@ -1701,22 +1701,71 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     const item = palletItems.find(i => i.uniqueId === uniqueId);
     if (!item) return;
 
+    // 같은 팔레트의 화물만 필터링
+    const samePalletItems = palletItems.filter(
+      i => (i.palletIndex ?? 0) === (item.palletIndex ?? 0)
+    );
+
+    // 중력/스태킹 로직 - 50% 이상 겹쳐야 올라탐, 아니면 밀림
     let newY = 0;
-    for (const other of palletItems) {
+    let adjustedX = newPos.x;
+    let adjustedZ = newPos.z;
+    const OVERLAP_THRESHOLD = 0.5;
+    const isDescending = item.position.y > 0;
+
+    for (const other of samePalletItems) {
       if (other.uniqueId === uniqueId) continue;
-      const intersects = (newPos.x + 2 < other.position.x + other.dimensions.width &&
-        newPos.x + item.dimensions.width - 2 > other.position.x &&
-        newPos.z + 2 < other.position.z + other.dimensions.length &&
-        newPos.z + item.dimensions.length - 2 > other.position.z);
-      if (intersects) newY = Math.max(newY, other.position.y + other.dimensions.height);
+
+      const oMinX = other.position.x;
+      const oMaxX = other.position.x + other.dimensions.width;
+      const oMinZ = other.position.z;
+      const oMaxZ = other.position.z + other.dimensions.length;
+      const oMaxY = other.position.y + other.dimensions.height;
+
+      // X, Z 각각의 겹침 계산
+      const overlapX = Math.max(0, Math.min(adjustedX + item.dimensions.width, oMaxX) - Math.max(adjustedX, oMinX));
+      const overlapZ = Math.max(0, Math.min(adjustedZ + item.dimensions.length, oMaxZ) - Math.max(adjustedZ, oMinZ));
+
+      if (overlapX <= 0 || overlapZ <= 0) continue;
+
+      const overlapRatioX = overlapX / item.dimensions.width;
+      const overlapRatioZ = overlapZ / item.dimensions.length;
+
+      if (overlapRatioX >= OVERLAP_THRESHOLD && overlapRatioZ >= OVERLAP_THRESHOLD) {
+        if (oMaxY > newY) newY = oMaxY;
+      } else if (isDescending) {
+        if (oMaxY > newY) newY = oMaxY;
+      } else if (newY === 0) {
+        // 바닥에서 이동 중이면 밀어냄
+        const pushLeftDist = adjustedX + item.dimensions.width - oMinX;
+        const pushRightDist = oMaxX - adjustedX;
+        const pushFrontDist = adjustedZ + item.dimensions.length - oMinZ;
+        const pushBackDist = oMaxZ - adjustedZ;
+
+        const minPush = Math.min(pushLeftDist, pushRightDist, pushFrontDist, pushBackDist);
+
+        if (minPush === pushLeftDist) {
+          adjustedX = oMinX - item.dimensions.width;
+        } else if (minPush === pushRightDist) {
+          adjustedX = oMaxX;
+        } else if (minPush === pushFrontDist) {
+          adjustedZ = oMinZ - item.dimensions.length;
+        } else {
+          adjustedZ = oMaxZ;
+        }
+
+        // 팔레트 범위 제한
+        adjustedX = Math.max(0, Math.min(currentPallet.width - item.dimensions.width, adjustedX));
+        adjustedZ = Math.max(0, Math.min(currentPallet.length - item.dimensions.length, adjustedZ));
+      }
     }
 
     if (newY + item.dimensions.height <= currentPallet.maxLoadHeight) {
       setPalletItems(palletItems.map(i =>
-        i.uniqueId === uniqueId ? { ...i, position: { x: newPos.x, y: newY, z: newPos.z } } : i
+        i.uniqueId === uniqueId ? { ...i, position: { x: adjustedX, y: newY, z: adjustedZ } } : i
       ));
     }
-  }, [palletItems, currentPallet.maxLoadHeight]);
+  }, [palletItems, currentPallet]);
 
   const totalCargoItems = cargoList.reduce((sum, c) => sum + c.quantity, 0);
 

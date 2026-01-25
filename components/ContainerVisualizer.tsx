@@ -459,9 +459,12 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
       i => (i.containerIndex ?? 0) === (item.containerIndex ?? 0)
     );
 
-    // 중력/스태킹 로직 - 50% 이상 겹쳐야 올라탐
+    // 중력/스태킹 로직 - 50% 이상 겹쳐야 올라탐, 아니면 밀림
     let newY = 0;
+    let adjustedX = newPos.x;
+    let adjustedZ = newPos.z;
     const OVERLAP_THRESHOLD = 0.5; // 50% 이상 겹쳐야 올라탐
+    const isDescending = item.position.y > 0; // 위에서 내려오는 중인지
 
     for (const other of sameContainerItems) {
       if (other.uniqueId === uniqueId) continue;
@@ -472,22 +475,54 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
       const oMaxZ = other.position.z + other.dimensions.length;
       const oMaxY = other.position.y + other.dimensions.height;
 
-      // X, Z 각각의 겹침 비율 계산
-      const overlapX = Math.max(0, Math.min(newPos.x + item.dimensions.width, oMaxX) - Math.max(newPos.x, oMinX));
-      const overlapZ = Math.max(0, Math.min(newPos.z + item.dimensions.length, oMaxZ) - Math.max(newPos.z, oMinZ));
+      // X, Z 각각의 겹침 계산
+      const overlapX = Math.max(0, Math.min(adjustedX + item.dimensions.width, oMaxX) - Math.max(adjustedX, oMinX));
+      const overlapZ = Math.max(0, Math.min(adjustedZ + item.dimensions.length, oMaxZ) - Math.max(adjustedZ, oMinZ));
+
+      // 겹침이 없으면 스킵
+      if (overlapX <= 0 || overlapZ <= 0) continue;
 
       // 겹침 비율 (내 화물 기준)
       const overlapRatioX = overlapX / item.dimensions.width;
       const overlapRatioZ = overlapZ / item.dimensions.length;
 
       // 둘 다 임계값 이상이면 올라탐
-      if (overlapRatioX >= OVERLAP_THRESHOLD && overlapRatioZ >= OVERLAP_THRESHOLD && oMaxY > newY) {
-        newY = oMaxY;
+      if (overlapRatioX >= OVERLAP_THRESHOLD && overlapRatioZ >= OVERLAP_THRESHOLD) {
+        if (oMaxY > newY) {
+          newY = oMaxY;
+        }
+      } else if (isDescending) {
+        // 위에서 내려오는 중이면 겹치는 화물 위로 올라탐 (겹침 방지)
+        if (oMaxY > newY) {
+          newY = oMaxY;
+        }
+      } else if (newY === 0) {
+        // 바닥에서 이동 중이면 밀어냄
+        const pushLeftDist = adjustedX + item.dimensions.width - oMinX;
+        const pushRightDist = oMaxX - adjustedX;
+        const pushFrontDist = adjustedZ + item.dimensions.length - oMinZ;
+        const pushBackDist = oMaxZ - adjustedZ;
+
+        const minPush = Math.min(pushLeftDist, pushRightDist, pushFrontDist, pushBackDist);
+
+        if (minPush === pushLeftDist) {
+          adjustedX = oMinX - item.dimensions.width;
+        } else if (minPush === pushRightDist) {
+          adjustedX = oMaxX;
+        } else if (minPush === pushFrontDist) {
+          adjustedZ = oMinZ - item.dimensions.length;
+        } else {
+          adjustedZ = oMaxZ;
+        }
+
+        // 컨테이너 범위 제한
+        adjustedX = Math.max(0, Math.min(container.width - item.dimensions.width, adjustedX));
+        adjustedZ = Math.max(0, Math.min(container.length - item.dimensions.length, adjustedZ));
       }
     }
 
     if (newY + item.dimensions.height <= container.height) {
-      onItemMove(uniqueId, { x: newPos.x, y: newY, z: newPos.z });
+      onItemMove(uniqueId, { x: adjustedX, y: newY, z: adjustedZ });
     }
   }, [onItemMove, packedItems, container.height]);
 
