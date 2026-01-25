@@ -258,6 +258,43 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       });
       const compactResult = runStrategy(compactSorted, 'compact');
 
+      // 6. 층별 정렬 (같은 높이끼리 그룹핑 - 깔끔한 층 형성)
+      const layerSorted = [...cargoList].sort((a, b) => {
+        // 높이가 같으면 바닥면적 큰 순
+        if (a.dimensions.height === b.dimensions.height) {
+          const areaA = a.dimensions.width * a.dimensions.length;
+          const areaB = b.dimensions.width * b.dimensions.length;
+          return areaB - areaA;
+        }
+        // 높이가 낮은 것부터 (층을 균일하게)
+        return a.dimensions.height - b.dimensions.height;
+      });
+      const layerResult = runStrategy(layerSorted, 'layer');
+
+      // 7. 상단 평탄화 (큰 것 먼저 + 높이 비슷한 것끼리)
+      const flatTopSorted = [...cargoList].sort((a, b) => {
+        // 먼저 높이로 그룹화 (10cm 단위)
+        const heightGroupA = Math.floor(a.dimensions.height / 10);
+        const heightGroupB = Math.floor(b.dimensions.height / 10);
+        if (heightGroupA !== heightGroupB) {
+          return heightGroupA - heightGroupB;
+        }
+        // 같은 높이 그룹 내에서는 바닥면적 큰 순
+        const areaA = a.dimensions.width * a.dimensions.length;
+        const areaB = b.dimensions.width * b.dimensions.length;
+        return areaB - areaA;
+      });
+      const flatTopResult = runStrategy(flatTopSorted, 'flatTop');
+
+      // 8. 균형 배치 (높이 + 면적 조합 점수)
+      const balancedSorted = [...cargoList].sort((a, b) => {
+        // 바닥면적 대비 높이 비율이 낮은 것 우선 (안정적인 형태)
+        const ratioA = a.dimensions.height / Math.sqrt(a.dimensions.width * a.dimensions.length);
+        const ratioB = b.dimensions.height / Math.sqrt(b.dimensions.width * b.dimensions.length);
+        return ratioA - ratioB;
+      });
+      const balancedResult = runStrategy(balancedSorted, 'balanced');
+
       const newStrategies: OptimizationStrategy[] = [
         {
           id: 'volume',
@@ -308,6 +345,36 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           efficiency: compactResult.efficiency,
           itemCount: compactResult.items.length,
           maxHeight: compactResult.maxHeight
+        },
+        {
+          id: 'layer',
+          name: '층별 정렬',
+          description: '같은 높이끼리 층 형성',
+          icon: '🗂️',
+          result: layerResult.items,
+          efficiency: layerResult.efficiency,
+          itemCount: layerResult.items.length,
+          maxHeight: layerResult.maxHeight
+        },
+        {
+          id: 'flatTop',
+          name: '상단 평탄화',
+          description: '윗면을 평평하게',
+          icon: '📐',
+          result: flatTopResult.items,
+          efficiency: flatTopResult.efficiency,
+          itemCount: flatTopResult.items.length,
+          maxHeight: flatTopResult.maxHeight
+        },
+        {
+          id: 'balanced',
+          name: '균형 배치',
+          description: '안정적인 형태 우선',
+          icon: '⚖️',
+          result: balancedResult.items,
+          efficiency: balancedResult.efficiency,
+          itemCount: balancedResult.items.length,
+          maxHeight: balancedResult.maxHeight
         }
       ];
 
