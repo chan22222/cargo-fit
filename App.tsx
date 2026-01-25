@@ -294,11 +294,14 @@ const App: React.FC = () => {
       candidatePoints.push({ x: item.position.x, z: item.position.z + item.dimensions.length });
       // 아이템 오른쪽 앞 모서리
       candidatePoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z + item.dimensions.length });
+      // 아이템 왼쪽 (빈틈 채우기용)
+      candidatePoints.push({ x: item.position.x - dims.width, z: item.position.z });
+      // 아이템 뒤쪽 (빈틈 채우기용)
+      candidatePoints.push({ x: item.position.x, z: item.position.z - dims.length });
     }
 
-    let bestPosition = { x: 0, y: 0, z: 0 };
-    let lowestY = Infinity;
-    let found = false;
+    let bestPosition = null;
+    let bestScore = Infinity;
 
     for (const { x, z } of candidatePoints) {
       // 컨테이너 범위 체크
@@ -324,16 +327,17 @@ const App: React.FC = () => {
         const pos = { x, y: maxY, z };
         const supportRatio = calculateSupportRatio(pos, dims, existingItems);
         if (supportRatio >= MIN_SUPPORT_RATIO) {
-          if (maxY < lowestY) {
-            lowestY = maxY;
+          // 점수: y가 낮을수록, z가 작을수록(앞), x가 작을수록(왼쪽) 좋음
+          const score = maxY * 1000000 + z * 1000 + x;
+          if (score < bestScore) {
+            bestScore = score;
             bestPosition = pos;
-            found = true;
           }
         }
       }
     }
 
-    return found ? bestPosition : null;
+    return bestPosition;
   };
 
   // 최적 위치 찾기 - 안쪽부터 채우기 방식 (경계 기반)
@@ -343,16 +347,22 @@ const App: React.FC = () => {
     dims: { width: number, height: number, length: number }
   ) => {
     // 후보 위치 생성: 뒤쪽 모서리 + 기존 아이템들의 경계점
+    const startZ = Math.max(0, container.length - dims.length);
     const candidatePoints: { x: number, y: number, z: number }[] = [
-      { x: 0, y: 0, z: container.length - dims.length }
+      { x: 0, y: 0, z: startZ },
+      { x: container.width - dims.width, y: 0, z: startZ }
     ];
 
     for (const item of existingItems) {
       const itemTop = item.position.y + item.dimensions.height;
       // 아이템 오른쪽 (같은 높이)
       candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z });
+      // 아이템 왼쪽 (빈틈 채우기용)
+      candidatePoints.push({ x: item.position.x - dims.width, y: item.position.y, z: item.position.z });
       // 아이템 앞쪽 (같은 높이)
       candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z - dims.length });
+      // 아이템 뒤쪽 (빈틈 채우기용)
+      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
       // 아이템 위쪽
       candidatePoints.push({ x: item.position.x, y: itemTop, z: item.position.z });
     }
@@ -374,7 +384,7 @@ const App: React.FC = () => {
       if (canPlaceAt(pos, dims, existingItems)) {
         const supportRatio = calculateSupportRatio(pos, dims, existingItems);
         if (supportRatio >= MIN_SUPPORT_RATIO) {
-          // 점수: 뒤쪽 벽 → 바닥 → 왼쪽 벽 우선
+          // 점수: 뒤쪽 벽(z 높음) → 바닥(y 낮음) → 왼쪽 벽(x 낮음) 우선
           const score = (container.length - z - dims.length) * 1000000 +
                        y * 1000 +
                        x;
