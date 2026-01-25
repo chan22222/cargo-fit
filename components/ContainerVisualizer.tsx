@@ -21,13 +21,14 @@ const SCALE = 0.01;
 const CargoBox: React.FC<{
   item: PackedItem;
   container: ContainerSpec;
+  containerOffset: number; // 컨테이너 X 오프셋
   isSelected: boolean;
   isHovered: boolean;
   isFaded: boolean;
   onSelect: () => void;
   onHover: (hovered: boolean) => void;
   onDrag: (position: { x: number; y: number; z: number }) => void;
-}> = ({ item, container, isSelected, isHovered, isFaded, onSelect, onHover, onDrag }) => {
+}> = ({ item, container, containerOffset, isSelected, isHovered, isFaded, onSelect, onHover, onDrag }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   const [isPointerDown, setIsPointerDown] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -122,8 +123,8 @@ const CargoBox: React.FC<{
       }
     }
 
-    // three.js 좌표를 cm 좌표로 변환
-    let newX = (intersectPoint.current.x + container.width * SCALE / 2) / SCALE - item.dimensions.width / 2;
+    // three.js 좌표를 cm 좌표로 변환 (컨테이너 오프셋 고려)
+    let newX = (intersectPoint.current.x - containerOffset + container.width * SCALE / 2) / SCALE - item.dimensions.width / 2;
     let newZ = (intersectPoint.current.z + container.length * SCALE / 2) / SCALE - item.dimensions.length / 2;
 
     // 컨테이너 범위 제한
@@ -336,6 +337,7 @@ const Scene: React.FC<{
                 key={item.uniqueId}
                 item={item}
                 container={container}
+                containerOffset={offsetX}
                 isSelected={selectedItemId === item.uniqueId}
                 isHovered={hoveredItemId === item.uniqueId}
                 isFaded={!!selectedItemId && selectedItemId !== item.uniqueId}
@@ -452,6 +454,11 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
     const item = packedItems.find(i => i.uniqueId === uniqueId);
     if (!item) return;
 
+    // 같은 컨테이너의 화물만 필터링
+    const sameContainerItems = packedItems.filter(
+      i => (i.containerIndex ?? 0) === (item.containerIndex ?? 0)
+    );
+
     // 중력/스태킹 로직
     let newY = 0;
     const tolerance = 2;
@@ -460,7 +467,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
     const myMinZ = newPos.z + tolerance;
     const myMaxZ = newPos.z + item.dimensions.length - tolerance;
 
-    for (const other of packedItems) {
+    for (const other of sameContainerItems) {
       if (other.uniqueId === uniqueId) continue;
 
       const oMinX = other.position.x;
