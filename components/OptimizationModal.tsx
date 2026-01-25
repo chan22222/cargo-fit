@@ -497,7 +497,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       setSelectedStrategy(null);
 
       setIsCalculating(false);
-    }, 100);
+    }, 500);
   }, [isOpen, cargoList, container, packingMode]);
 
   // 전략 선택 시 미리보기 업데이트
@@ -552,12 +552,12 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-3">
           {isCalculating ? (
-            <div className="flex flex-col items-center justify-center py-12">
+            <div className="flex flex-col items-center justify-center h-full">
               <div className="relative">
                 <div className="w-12 h-12 border-4 border-blue-200 rounded-full"></div>
                 <div className="absolute top-0 left-0 w-12 h-12 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
               </div>
-              <p className="mt-3 text-slate-600 text-sm font-medium">계산 중...</p>
+              <p className="mt-3 text-slate-600 text-sm font-medium">AI가 최적의 공간을 계산 중입니다.</p>
             </div>
           ) : (
             <div className="space-y-2">

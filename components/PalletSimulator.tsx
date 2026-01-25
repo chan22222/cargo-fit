@@ -1465,7 +1465,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       setStrategies(newStrategies);
       setSelectedStrategy(null);
       setIsCalculating(false);
-    }, 100);
+    }, 500);
   };
 
   const handleOpenOptimization = () => {
@@ -1542,7 +1542,6 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     setNewItemName('박스');
-    setNewItemQuantity('1');
   };
 
   const handleRemoveItem = (uniqueId: string) => {
@@ -1719,15 +1718,15 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                   </button>
                 </div>
                 <div className="grid grid-cols-3 gap-2.5">
-                  <input type="number" value={palletSize.length} onChange={(e) => setPalletSize({...palletSize, length: Number(e.target.value)})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="10" />
-                  <input type="number" value={palletSize.width} onChange={(e) => setPalletSize({...palletSize, width: Number(e.target.value)})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="10" />
-                  <input type="number" value={palletSize.height} onChange={(e) => setPalletSize({...palletSize, height: Number(e.target.value)})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="5" />
+                  <input type="number" value={palletSize.length} onChange={(e) => setPalletSize({...palletSize, length: Math.min(1000, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="10" max="1000" />
+                  <input type="number" value={palletSize.width} onChange={(e) => setPalletSize({...palletSize, width: Math.min(1000, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="10" max="1000" />
+                  <input type="number" value={palletSize.height} onChange={(e) => setPalletSize({...palletSize, height: Math.min(1000, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="5" max="1000" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">최대 적재 높이: <span className="text-slate-700">{maxHeight}cm</span></label>
-                <input type="range" value={maxHeight} onChange={(e) => setMaxHeight(Number(e.target.value))} min="50" max="300" className="w-full" />
+                <input type="range" value={maxHeight} onChange={(e) => setMaxHeight(Number(e.target.value))} min="50" max="500" className="w-full" />
               </div>
             </div>
 
@@ -1758,9 +1757,9 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2.5">
-                  <input type="number" value={newItemDims.length} onChange={(e) => setNewItemDims({...newItemDims, length: Number(e.target.value)})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" />
-                  <input type="number" value={newItemDims.width} onChange={(e) => setNewItemDims({...newItemDims, width: Number(e.target.value)})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" />
-                  <input type="number" value={newItemDims.height} onChange={(e) => setNewItemDims({...newItemDims, height: Number(e.target.value)})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" />
+                  <input type="number" value={newItemDims.length} onChange={(e) => setNewItemDims({...newItemDims, length: Math.min(500, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.width} onChange={(e) => setNewItemDims({...newItemDims, width: Math.min(500, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.height} onChange={(e) => setNewItemDims({...newItemDims, height: Math.min(500, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   <button type="button" onClick={() => { setNewItemDims({ width: 20, height: 20, length: 30 }); setNewItemName('XS박스'); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">XS박스</button>
@@ -1869,12 +1868,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
           <div className="flex-1 overflow-y-auto p-3">
             {isCalculating ? (
-              <div className="flex flex-col items-center justify-center py-12">
+              <div className="flex flex-col items-center justify-center h-full">
                 <div className="relative">
                   <div className="w-12 h-12 border-4 border-amber-200 rounded-full"></div>
                   <div className="absolute top-0 left-0 w-12 h-12 border-4 border-amber-600 rounded-full border-t-transparent animate-spin"></div>
                 </div>
-                <p className="mt-3 text-slate-600 text-sm font-medium">계산 중...</p>
+                <p className="mt-3 text-slate-600 text-sm font-medium">AI가 최적의 공간을 계산 중입니다.</p>
               </div>
             ) : (
               <div className="space-y-2">

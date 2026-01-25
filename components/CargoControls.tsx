@@ -99,21 +99,21 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
               <input
                 type="number"
                 value={dims.length}
-                onChange={e => setDims({...dims, length: Number(e.target.value)})}
+                onChange={e => setDims({...dims, length: Math.min(1200, Number(e.target.value))})}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="1200"
               />
               <input
                 type="number"
                 value={dims.width}
-                onChange={e => setDims({...dims, width: Number(e.target.value)})}
+                onChange={e => setDims({...dims, width: Math.min(250, Number(e.target.value))})}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="250"
               />
               <input
                 type="number"
                 value={dims.height}
-                onChange={e => setDims({...dims, height: Number(e.target.value)})}
+                onChange={e => setDims({...dims, height: Math.min(300, Number(e.target.value))})}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="300"
               />
@@ -175,13 +175,13 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
             </div>
             <div className="space-y-1.5">
                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">무게 (kg)</label>
-               <input 
-                type="number" 
-                value={weight} 
-                onChange={e => setWeight(e.target.value)} 
+               <input
+                type="number"
+                value={weight}
+                onChange={e => setWeight(String(Math.min(50000, Number(e.target.value))))}
                 placeholder="0"
                 className="w-full px-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner placeholder:text-slate-300"
-                min="0"
+                min="0" max="50000"
               />
             </div>
           </div>
