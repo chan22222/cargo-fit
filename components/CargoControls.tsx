@@ -56,17 +56,28 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
     });
   };
 
-  // 다음 색상으로 변경
-  const nextColor = () => {
-    const currentIndex = DEFAULT_CARGO_COLORS.indexOf(color);
-    const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
-    setColor(DEFAULT_CARGO_COLORS[nextIndex]);
+  // 같은 크기 화물이 있으면 그 색상, 없으면 다음 색상
+  const autoSelectColor = (newDims?: Dimensions) => {
+    const targetDims = newDims || dims;
+    const existingCargo = cargoList.find(c =>
+      c.dimensions.width === targetDims.width &&
+      c.dimensions.height === targetDims.height &&
+      c.dimensions.length === targetDims.length
+    );
+    if (existingCargo) {
+      setColor(existingCargo.color);
+    } else {
+      const currentIndex = DEFAULT_CARGO_COLORS.indexOf(color);
+      const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
+      setColor(DEFAULT_CARGO_COLORS[nextIndex]);
+    }
   };
 
   const handlePreset = (w: number, h: number, l: number, n: string) => {
-    setDims({ width: w, height: h, length: l });
+    const newDims = { width: w, height: h, length: l };
+    setDims(newDims);
     setName(n);
-    nextColor();
+    autoSelectColor(newDims);
   };
 
   return (
@@ -116,7 +127,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={dims.length}
                 onChange={e => setDims({...dims, length: Math.min(1200, Number(e.target.value))})}
-                onBlur={nextColor}
+                onBlur={() => autoSelectColor()}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="1200"
               />
@@ -124,7 +135,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={dims.width}
                 onChange={e => setDims({...dims, width: Math.min(250, Number(e.target.value))})}
-                onBlur={nextColor}
+                onBlur={() => autoSelectColor()}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="250"
               />
@@ -132,7 +143,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={dims.height}
                 onChange={e => setDims({...dims, height: Math.min(300, Number(e.target.value))})}
-                onBlur={nextColor}
+                onBlur={() => autoSelectColor()}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="300"
               />

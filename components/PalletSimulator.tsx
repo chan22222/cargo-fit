@@ -1520,11 +1520,21 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   // ============ 핸들러 ============
 
-  // 다음 색상으로 변경
-  const nextColor = () => {
-    const currentIndex = DEFAULT_CARGO_COLORS.indexOf(newItemColor);
-    const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
-    setNewItemColor(DEFAULT_CARGO_COLORS[nextIndex]);
+  // 같은 크기 화물이 있으면 그 색상, 없으면 다음 색상
+  const autoSelectColor = (targetDims?: Dimensions) => {
+    const dims = targetDims || newItemDims;
+    const existingCargo = cargoList.find(c =>
+      c.dimensions.width === dims.width &&
+      c.dimensions.height === dims.height &&
+      c.dimensions.length === dims.length
+    );
+    if (existingCargo) {
+      setNewItemColor(existingCargo.color);
+    } else {
+      const currentIndex = DEFAULT_CARGO_COLORS.indexOf(newItemColor);
+      const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
+      setNewItemColor(DEFAULT_CARGO_COLORS[nextIndex]);
+    }
   };
 
   const handleAddCargo = () => {
@@ -1806,15 +1816,15 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2.5">
-                  <input type="number" value={newItemDims.length} onChange={(e) => setNewItemDims({...newItemDims, length: Math.min(500, Number(e.target.value))})} onBlur={nextColor} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
-                  <input type="number" value={newItemDims.width} onChange={(e) => setNewItemDims({...newItemDims, width: Math.min(500, Number(e.target.value))})} onBlur={nextColor} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
-                  <input type="number" value={newItemDims.height} onChange={(e) => setNewItemDims({...newItemDims, height: Math.min(500, Number(e.target.value))})} onBlur={nextColor} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.length} onChange={(e) => setNewItemDims({...newItemDims, length: Math.min(500, Number(e.target.value))})} onBlur={() => autoSelectColor()} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.width} onChange={(e) => setNewItemDims({...newItemDims, width: Math.min(500, Number(e.target.value))})} onBlur={() => autoSelectColor()} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.height} onChange={(e) => setNewItemDims({...newItemDims, height: Math.min(500, Number(e.target.value))})} onBlur={() => autoSelectColor()} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <button type="button" onClick={() => { setNewItemDims({ width: 20, height: 20, length: 30 }); setNewItemName('XS박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">XS박스</button>
-                  <button type="button" onClick={() => { setNewItemDims({ width: 30, height: 30, length: 40 }); setNewItemName('S박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">S박스</button>
-                  <button type="button" onClick={() => { setNewItemDims({ width: 40, height: 40, length: 50 }); setNewItemName('M박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">M박스</button>
-                  <button type="button" onClick={() => { setNewItemDims({ width: 50, height: 50, length: 60 }); setNewItemName('L박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">L박스</button>
+                  <button type="button" onClick={() => { const d = { width: 20, height: 20, length: 30 }; setNewItemDims(d); setNewItemName('XS박스'); autoSelectColor(d); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">XS박스</button>
+                  <button type="button" onClick={() => { const d = { width: 30, height: 30, length: 40 }; setNewItemDims(d); setNewItemName('S박스'); autoSelectColor(d); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">S박스</button>
+                  <button type="button" onClick={() => { const d = { width: 40, height: 40, length: 50 }; setNewItemDims(d); setNewItemName('M박스'); autoSelectColor(d); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">M박스</button>
+                  <button type="button" onClick={() => { const d = { width: 50, height: 50, length: 60 }; setNewItemDims(d); setNewItemName('L박스'); autoSelectColor(d); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">L박스</button>
                 </div>
               </div>
 
