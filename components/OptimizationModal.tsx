@@ -370,6 +370,71 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: maxH };
       })();
 
+      // 8. 회전 최적화 (빈틈에 가장 잘 맞는 회전 선택)
+      const rotateResult = (() => {
+        const sorted = [...cargoList].sort((a, b) => {
+          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
+          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
+          return volB - volA;
+        });
+        const arrangedItems: PackedItem[] = [];
+
+        for (const cargo of sorted) {
+          for (let i = 0; i < cargo.quantity; i++) {
+            const orientations = getAllOrientations(cargo.dimensions);
+            let bestPos = null;
+            let bestOri = cargo.dimensions;
+            let bestFit = Infinity;
+
+            for (const ori of orientations) {
+              const pos = findBestPosition(arrangedItems, ori, packingMode);
+              if (pos) {
+                // 빈틈 최소화: 주변 공간과의 갭 계산
+                let gapScore = 0;
+
+                // 왼쪽 벽/화물과의 갭
+                let leftGap = pos.x;
+                for (const item of arrangedItems) {
+                  if (item.position.x + item.dimensions.width <= pos.x &&
+                      pos.z < item.position.z + item.dimensions.length &&
+                      pos.z + ori.length > item.position.z) {
+                    leftGap = Math.min(leftGap, pos.x - (item.position.x + item.dimensions.width));
+                  }
+                }
+                gapScore += leftGap;
+
+                // 뒤쪽 벽/화물과의 갭
+                let backGap = pos.z;
+                for (const item of arrangedItems) {
+                  if (item.position.z + item.dimensions.length <= pos.z &&
+                      pos.x < item.position.x + item.dimensions.width &&
+                      pos.x + ori.width > item.position.x) {
+                    backGap = Math.min(backGap, pos.z - (item.position.z + item.dimensions.length));
+                  }
+                }
+                gapScore += backGap;
+
+                // 최종 점수: 갭 + 높이
+                const fitScore = gapScore * 100 + pos.y;
+
+                if (fitScore < bestFit) {
+                  bestFit = fitScore;
+                  bestPos = pos;
+                  bestOri = ori;
+                }
+              }
+            }
+            if (bestPos) {
+              arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-rotate`, dimensions: bestOri, position: bestPos });
+            }
+          }
+        }
+        const totalVol = container.width * container.height * container.length;
+        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
+        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: maxH };
+      })();
+
       const newStrategies: OptimizationStrategy[] = [
         {
           id: 'volume',
@@ -440,6 +505,16 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           efficiency: lowResult.efficiency,
           itemCount: lowResult.items.length,
           maxHeight: lowResult.maxHeight
+        },
+        {
+          id: 'rotate',
+          name: '회전 최적화',
+          description: '빈틈에 맞게 회전',
+          icon: '🔄',
+          result: rotateResult.items,
+          efficiency: rotateResult.efficiency,
+          itemCount: rotateResult.items.length,
+          maxHeight: rotateResult.maxHeight
         }
       ];
 
