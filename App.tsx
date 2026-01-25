@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useCallback, useEffect, Suspense, lazy } from 'react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 import { Analytics } from '@vercel/analytics/react';
-import { ContainerType, CargoItem, PackedItem, ContainerSpec } from './types';
+import { ContainerType, CargoItem, PackedItem, ContainerSpec, PackedPalletItem } from './types';
 import { CONTAINER_SPECS } from './constants';
 import { calculatePacking } from './services/packingService';
 import LandingPage from './components/LandingPage';
@@ -174,23 +174,38 @@ const App: React.FC = () => {
   const [originalPackedItems, setOriginalPackedItems] = useState<PackedItem[]>([]);
 
   // Pallet Simulator State
-  const [palletItems, setPalletItems] = useState<any[]>([]);
+  const [palletItems, setPalletItems] = useState<PackedPalletItem[]>([]);
   const [palletSize, setPalletSize] = useState({ width: 110, height: 15, length: 110 });
 
   // Stats calculation
   const stats = useMemo(() => {
     const currentContainer = CONTAINER_SPECS[containerType];
-    const totalVolume = currentContainer.width * currentContainer.height * currentContainer.length;
+    const singleContainerVolume = currentContainer.width * currentContainer.height * currentContainer.length;
     const usedVolume = packedItems.reduce((acc, i) => acc + (i.dimensions.width * i.dimensions.height * i.dimensions.length), 0);
 
     // 그룹별 아이템 개수 계산
     const groupCounts = new Set(packedItems.map(item => item.id));
 
+    // 컨테이너 수 계산
+    const containerCount = packedItems.length > 0
+      ? Math.max(...packedItems.map(item => (item.containerIndex ?? 0) + 1))
+      : 1;
+
+    // 낭비 공간 계산 (㎥)
+    const totalAvailableVolume = singleContainerVolume * containerCount;
+    const wastedVolumeCm3 = totalAvailableVolume - usedVolume;
+    const wastedVolumeM3 = wastedVolumeCm3 / 1000000; // cm³ → m³
+
+    // 단일 컨테이너 효율 (1대일 때만 의미있음)
+    const volumeEfficiency = singleContainerVolume > 0 ? (usedVolume / singleContainerVolume) * 100 : 0;
+
     return {
-      volumeEfficiency: totalVolume > 0 ? (usedVolume / totalVolume) * 100 : 0,
+      volumeEfficiency,
       count: packedItems.length,
       totalItems: packedItems.length,
-      totalGroups: groupCounts.size
+      totalGroups: groupCounts.size,
+      containerCount,
+      wastedSpace: wastedVolumeM3
     };
   }, [packedItems, containerType]);
 
@@ -2140,19 +2155,38 @@ const App: React.FC = () => {
                     {/* Floating UI - Adjusted border-radius */}
                     <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-none">
                       <div className="bg-white/90 backdrop-blur-xl shadow-xl p-5 rounded-2xl border border-white flex flex-col gap-1 min-w-[180px]">
-                          <span className="text-[9px] text-blue-700 uppercase font-black tracking-[0.2em] leading-none mb-1.5">Efficiency</span>
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                              {stats.volumeEfficiency.toFixed(1)}
-                            </span>
-                            <span className="text-sm text-slate-300 font-black">%</span>
-                          </div>
-                          <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.volumeEfficiency > 90 ? 'bg-emerald-500' : 'bg-blue-600'}`}
-                              style={{ width: `${stats.volumeEfficiency}%` }}
-                              />
-                          </div>
+                          {stats.containerCount > 1 ? (
+                            <>
+                              <span className="text-[9px] text-blue-700 uppercase font-black tracking-[0.2em] leading-none mb-1.5">Containers</span>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                                  {stats.containerCount}
+                                </span>
+                                <span className="text-sm text-slate-600 font-black">대</span>
+                              </div>
+                              <div className="flex items-baseline gap-1 mt-1">
+                                <span className="text-[10px] text-red-400">낭비:</span>
+                                <span className="text-sm font-bold text-red-500">{stats.wastedSpace.toFixed(1)}</span>
+                                <span className="text-[10px] text-red-400">㎥</span>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-[9px] text-blue-700 uppercase font-black tracking-[0.2em] leading-none mb-1.5">Efficiency</span>
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                                  {stats.volumeEfficiency.toFixed(1)}
+                                </span>
+                                <span className="text-sm text-slate-300 font-black">%</span>
+                              </div>
+                              <div className="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all duration-1000 ease-out ${stats.volumeEfficiency > 90 ? 'bg-emerald-500' : 'bg-blue-600'}`}
+                                  style={{ width: `${Math.min(stats.volumeEfficiency, 100)}%` }}
+                                />
+                              </div>
+                            </>
+                          )}
                           <div className="mt-3 pt-3 border-t border-slate-100 space-y-1">
                             <p className="text-[10px] text-slate-500">
                               <span className="font-black text-slate-700">아이템:</span> {stats.totalItems}개

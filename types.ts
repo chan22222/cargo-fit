@@ -43,3 +43,29 @@ export interface PackingResult {
   totalItems: number;
   remainingSpace: number; // Approximate cubic cm
 }
+
+// 팔레트 관련 타입
+export enum PalletType {
+  EUR = 'EUR',     // 120×100
+  KR = 'KR',       // 110×110
+  US = 'US',       // 122×102 (48"×40")
+  HALF = 'HALF',   // 120×80
+  AU = 'AU',       // 114×114
+  CUSTOM = 'CUSTOM'
+}
+
+export interface PalletSpec {
+  type: PalletType;
+  width: number;   // cm
+  length: number;  // cm
+  height: number;  // 팔레트 자체 높이 (cm)
+  maxLoadHeight: number; // 최대 적재 높이 (cm)
+  color: string;
+}
+
+export interface PackedPalletItem extends CargoItem {
+  position: { x: number; y: number; z: number }; // cm, y는 팔레트 상단 기준
+  uniqueId: string;
+  palletIndex?: number; // 다중 팔레트용
+  isOverHeight?: boolean; // 높이 초과 여부
+}
