@@ -290,12 +290,8 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       newStrategies.sort((a, b) => b.efficiency - a.efficiency);
 
       setStrategies(newStrategies);
-
-      // 첫 번째 전략 자동 선택 및 미리보기
-      if (newStrategies[0]?.result) {
-        setSelectedStrategy(newStrategies[0].id);
-        onPreview(newStrategies[0].result);
-      }
+      // 초기에는 선택하지 않음 - 사용자가 직접 선택해야 미리보기 적용
+      setSelectedStrategy(null);
 
       setIsCalculating(false);
     }, 100);

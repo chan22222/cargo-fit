@@ -171,6 +171,7 @@ const App: React.FC = () => {
   const [isArranging, setIsArranging] = useState<boolean>(false);
   const [globalPackingMode, setGlobalPackingMode] = useState<'bottom-first' | 'inner-first'>('bottom-first');
   const [showOptimizationModal, setShowOptimizationModal] = useState(false);
+  const [originalPackedItems, setOriginalPackedItems] = useState<PackedItem[]>([]);
 
   // Pallet Simulator State
   const [palletItems, setPalletItems] = useState<any[]>([]);
@@ -495,13 +496,20 @@ const App: React.FC = () => {
 
   const handleAutoArrange = async () => {
     if (cargoList.length === 0) return;
-    // 최적화 모달 열기
+    // 원래 상태 저장 후 모달 열기
+    setOriginalPackedItems([...packedItems]);
     setShowOptimizationModal(true);
   };
 
   const handleOptimizationSelect = (items: PackedItem[]) => {
     setPackedItems(items);
     setSelectedGroupId(null);
+  };
+
+  const handleOptimizationCancel = () => {
+    // 원래 상태로 복원
+    setPackedItems(originalPackedItems);
+    setShowOptimizationModal(false);
   };
 
   const handleSelectGroup = (id: string | null) => {
@@ -2021,7 +2029,7 @@ const App: React.FC = () => {
       {/* Optimization Modal */}
       <OptimizationModal
         isOpen={showOptimizationModal}
-        onClose={() => setShowOptimizationModal(false)}
+        onClose={handleOptimizationCancel}
         onSelect={handleOptimizationSelect}
         onPreview={setPackedItems}
         container={CONTAINER_SPECS[containerType]}
