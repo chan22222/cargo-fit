@@ -272,7 +272,7 @@ const CoGMarker: React.FC<{
 const ContainerLabel: React.FC<{ index: number; position: [number, number, number]; itemCount: number }> = React.memo(({ index, position, itemCount }) => {
   return (
     <Html position={position} center sprite transform={false} style={{ pointerEvents: 'none', zIndex: -1 }}>
-      <div className="bg-blue-600/70 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
+      <div className="bg-blue-600/50 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
         #{index + 1} - {itemCount}ea
       </div>
     </Html>
