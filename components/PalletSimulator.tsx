@@ -1455,8 +1455,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
       const preferredOrder = ['layer-pinwheel2', 'layer-pinwheel', 'layer-interlock', 'layer-corner', 'layer-basket', 'norotate'];
       newStrategies.sort((a, b) => {
+        // 1순위: 배치 개수 (많을수록 좋음)
+        if (a.itemCount !== b.itemCount) return b.itemCount - a.itemCount;
+        // 2순위: 팔레트 수 (적을수록 좋음)
         if (a.palletCount !== b.palletCount) return a.palletCount - b.palletCount;
+        // 3순위: 공간 낭비 (적을수록 좋음)
         if (Math.abs(a.wastedSpace - b.wastedSpace) > 0.1) return a.wastedSpace - b.wastedSpace;
+        // 4순위: 선호 전략 순서
         const aIdx = preferredOrder.indexOf(a.id);
         const bIdx = preferredOrder.indexOf(b.id);
         return (aIdx >= 0 ? aIdx : 100) - (bIdx >= 0 ? bIdx : 100);
@@ -1841,7 +1846,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           {cargoList.length > 0 && (
             <div className="p-3 bg-white border-t border-slate-100 shrink-0">
               <button onClick={handleOpenOptimization} className="w-full py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 group bg-amber-600 hover:bg-amber-700 text-white active:scale-[0.98]">
-                <span className="text-[10px] font-black uppercase tracking-widest">최적화 전략 선택</span>
+                <span className="text-[10px] font-black uppercase tracking-widest">AI 자동 최적화</span>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 group-hover:scale-125 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
@@ -1857,7 +1862,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
           <div className="bg-gradient-to-r from-amber-600 to-orange-600 px-4 py-3 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-bold text-white">최적화 전략</h2>
+                <h2 className="text-lg font-bold text-white">AI 자동 최적화</h2>
                 <p className="text-amber-100 text-xs">{cargoList.length}종 / {totalCargoItems}개</p>
               </div>
               <button onClick={handleCloseOptimization} className="text-white/80 hover:text-white transition-colors p-1">

@@ -497,12 +497,16 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         }
       ];
 
-      // 정렬: 컨테이너 수 적은 순 → 공간 낭비 적은 순 → 선호 전략 순
+      // 정렬: 배치 개수 많은 순 → 컨테이너 수 적은 순 → 공간 낭비 적은 순 → 선호 전략 순
       const preferredOrder = ['norotate', 'low', 'volume'];
       newStrategies.sort((a, b) => {
+        // 1순위: 배치 개수 (많을수록 좋음)
+        if (a.itemCount !== b.itemCount) return b.itemCount - a.itemCount;
+        // 2순위: 컨테이너 수 (적을수록 좋음)
         if (a.containerCount !== b.containerCount) return a.containerCount - b.containerCount;
+        // 3순위: 공간 낭비 (적을수록 좋음)
         if (Math.abs(a.wastedSpace - b.wastedSpace) > 0.1) return a.wastedSpace - b.wastedSpace;
-        // 같은 조건이면 선호 전략 순서
+        // 4순위: 선호 전략 순서
         const aIdx = preferredOrder.indexOf(a.id);
         const bIdx = preferredOrder.indexOf(b.id);
         const aPriority = aIdx >= 0 ? aIdx : 100;
@@ -551,7 +555,7 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-bold text-white">최적화 전략</h2>
+              <h2 className="text-lg font-bold text-white">AI 자동 최적화</h2>
               <p className="text-blue-100 text-xs">
                 {cargoList.length}종 / {totalItems}개
               </p>
