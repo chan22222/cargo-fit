@@ -129,7 +129,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
             <div className="space-y-2">
               <div className="flex gap-2 flex-wrap">
                 {[
-                  {w: 20, h: 20, l: 30, n: 'XS박스'},
+                  {w: 110, h: 180, l: 110, n: 'KR팔레트'},
                   {w: 30, h: 30, l: 40, n: 'S박스'},
                   {w: 40, h: 40, l: 50, n: 'M박스'},
                   {w: 50, h: 50, l: 60, n: 'L박스'},

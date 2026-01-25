@@ -152,6 +152,11 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           }
         }
 
+        // 2단 적재 금지 시 바닥(y=0)에만 배치 가능
+        if (onlyFloor && maxY > 0) {
+          continue;
+        }
+
         if (maxY + dims.height <= container.height) {
           const pos = { x, y: maxY, z };
           const supportRatio = calculateSupportRatio(pos, dims, existingItems);

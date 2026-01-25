@@ -301,7 +301,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   const [originalItems, setOriginalItems] = useState<PackedPalletItem[]>([]);
 
   const [newItemName, setNewItemName] = useState('박스');
-  const [newItemDims, setNewItemDims] = useState<Dimensions>({ width: 30, height: 30, length: 40 });
+  const [newItemDims, setNewItemDims] = useState<Dimensions>({ width: 50, height: 50, length: 60 });
   const [newItemQuantity, setNewItemQuantity] = useState('1');
   const [newItemColor, setNewItemColor] = useState('#4A90D9');
 
