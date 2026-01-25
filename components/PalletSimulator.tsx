@@ -558,9 +558,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-    const totalVol = pallet.width * pallet.length * pallet.maxLoadHeight * usedPallets;
-    const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-    return { items: arrangedItems, palletCount: usedPallets, wastedSpace: (totalVol - usedVol) / 1000000 };
+    // 마지막 팔레트만 낭비 계산
+    const lastPalletIdx = usedPallets - 1;
+    const lastPalletItems = arrangedItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
+    const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
+    const lastTotalVol = pallet.width * pallet.length * lastActualHeight;
+    const lastUsedVol = lastPalletItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+    return { items: arrangedItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
   };
 
   // 1층 패턴 생성 함수들
@@ -1088,9 +1092,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-    const totalVol = pallet.width * pallet.length * pallet.maxLoadHeight * usedPallets;
-    const usedVol = allItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-    return { items: allItems, palletCount: usedPallets, wastedSpace: (totalVol - usedVol) / 1000000 };
+    // 마지막 팔레트만 낭비 계산
+    const lastPalletIdx = usedPallets - 1;
+    const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
+    const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
+    const lastTotalVol = pallet.width * pallet.length * lastActualHeight;
+    const lastUsedVol = lastPalletItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+    return { items: allItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
   };
 
   // 특정 패턴으로 레이어 반복 전략 실행
@@ -1166,9 +1174,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         }
 
         const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-        const totalVol = pallet.width * pallet.length * pallet.maxLoadHeight * usedPallets;
-        const usedVol = allItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-        return { items: allItems, palletCount: usedPallets, wastedSpace: (totalVol - usedVol) / 1000000 };
+        // 마지막 팔레트만 낭비 계산
+        const lastPalletIdx = usedPallets - 1;
+        const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
+        const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
+        const lastTotalVol = pallet.width * pallet.length * lastActualHeight;
+        const lastUsedVol = lastPalletItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        return { items: allItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
       };
 
       // 높이 고정 모드와 높이 변경 모드 둘 다 시도
@@ -1296,9 +1308,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       }
 
       const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-      const totalVol = pallet.width * pallet.length * pallet.maxLoadHeight * usedPallets;
-      const usedVol = allItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-      return { items: allItems, palletCount: usedPallets, wastedSpace: (totalVol - usedVol) / 1000000 };
+      // 마지막 팔레트만 낭비 계산
+      const lastPalletIdx = usedPallets - 1;
+      const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
+      const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
+      const lastTotalVol = pallet.width * pallet.length * lastActualHeight;
+      const lastUsedVol = lastPalletItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+      return { items: allItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
     }
 
     // 여러 화물 종류일 때는 기존 로직
@@ -1375,9 +1391,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-    const totalVol = pallet.width * pallet.length * pallet.maxLoadHeight * usedPallets;
-    const usedVol = allItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-    return { items: allItems, palletCount: usedPallets, wastedSpace: (totalVol - usedVol) / 1000000 };
+    // 마지막 팔레트만 낭비 계산
+    const lastPalletIdx = usedPallets - 1;
+    const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
+    const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
+    const lastTotalVol = pallet.width * pallet.length * lastActualHeight;
+    const lastUsedVol = lastPalletItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+    return { items: allItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
   };
 
   const calculateStrategies = () => {
