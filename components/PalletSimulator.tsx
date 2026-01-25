@@ -872,6 +872,92 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     return horizontalFirst.length >= verticalFirst.length ? horizontalFirst : verticalFirst;
   };
 
+  // 바스켓 위브 패턴 (Basket Weave) - 블록 단위로 가로/세로 교차 반복
+  const generateBasketWeavePattern = (
+    cargo: CargoItem,
+    pallet: PalletSpec,
+    maxItems: number
+  ): PackedPalletItem[] => {
+    const items: PackedPalletItem[] = [];
+    const { width: w, length: l, height: h } = cargo.dimensions;
+
+    const horizontal: Dimensions = { width: w, height: h, length: l };
+    const vertical: Dimensions = { width: l, height: h, length: w };
+
+    // 블록 크기: 박스 2개분 (가로 2개 또는 세로 2개가 들어갈 크기)
+    // 가로 블록: w × 2l (가로 박스 2개 세로로 쌓기)
+    // 세로 블록: 2l × w (세로 박스 2개 가로로 나열) 또는 l × 2w (세로로 쌓기)
+    // 공통 블록 크기로 통일
+    const blockWidth = w + l;   // 가로+세로 너비
+    const blockLength = l + w;  // 가로+세로 길이
+
+    // 블록 내에서 해당 방향으로 채우기
+    const fillBlock = (
+      startX: number, startZ: number,
+      endX: number, endZ: number,
+      ori: Dimensions
+    ) => {
+      for (let z = startZ; z + ori.length <= endZ && items.length < maxItems; z += ori.length) {
+        for (let x = startX; x + ori.width <= endX && items.length < maxItems; x += ori.width) {
+          const pos = { x, y: 0, z };
+          if (canPlaceAt(pos, ori, items)) {
+            items.push({
+              ...cargo,
+              dimensions: ori,
+              position: pos,
+              uniqueId: `${cargo.id}-basket-${items.length}`,
+              palletIndex: 0,
+              isOverHeight: false
+            });
+          }
+        }
+      }
+    };
+
+    // 블록 단위로 반복 (체크무늬처럼 방향 교차)
+    // ┌─H─┬─V─┬─H─┬─V─┐
+    // ├─V─┼─H─┼─V─┼─H─┤
+    // ├─H─┼─V─┼─H─┼─V─┤
+    // └───┴───┴───┴───┘
+    let blockRow = 0;
+    for (let z = 0; z < pallet.length && items.length < maxItems; z += blockLength) {
+      let blockCol = 0;
+      for (let x = 0; x < pallet.width && items.length < maxItems; x += blockWidth) {
+        const useHorizontal = (blockRow + blockCol) % 2 === 0;
+        const ori = useHorizontal ? horizontal : vertical;
+        const endX = Math.min(x + blockWidth, pallet.width);
+        const endZ = Math.min(z + blockLength, pallet.length);
+        fillBlock(x, z, endX, endZ, ori);
+        blockCol++;
+      }
+      blockRow++;
+    }
+
+    // 남은 빈틈 채우기
+    if (items.length < maxItems) {
+      for (const ori of [horizontal, vertical]) {
+        if (items.length >= maxItems) break;
+        for (let z = 0; z + ori.length <= pallet.length && items.length < maxItems; z += ori.length) {
+          for (let x = 0; x + ori.width <= pallet.width && items.length < maxItems; x += ori.width) {
+            const pos = { x, y: 0, z };
+            if (canPlaceAt(pos, ori, items)) {
+              items.push({
+                ...cargo,
+                dimensions: ori,
+                position: pos,
+                uniqueId: `${cargo.id}-basket-fill-${items.length}`,
+                palletIndex: 0,
+                isOverHeight: false
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return items;
+  };
+
   // 바람개비+ 전략: 바람개비 전체 쌓고 나서 가운데 세워넣기
   const runPinwheel2Strategy = (
     cargo: CargoItem,
@@ -1011,7 +1097,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   const runLayerPatternStrategy = (
     cargos: CargoItem[],
     pallet: PalletSpec,
-    patternType: 'corner' | 'pinwheel' | 'pinwheel2' | 'interlock'
+    patternType: 'corner' | 'pinwheel' | 'pinwheel2' | 'interlock' | 'basket'
   ): { items: PackedPalletItem[], palletCount: number, wastedSpace: number } => {
     // 단일 화물 종류일 때
     if (cargos.length === 1) {
@@ -1037,6 +1123,9 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
             return runPinwheel2Strategy(cargo, pallet, totalQty);
           case 'interlock':
             firstLayerItems = generateInterlockPattern(modifiedCargo as CargoItem, pallet, totalQty);
+            break;
+          case 'basket':
+            firstLayerItems = generateBasketWeavePattern(modifiedCargo as CargoItem, pallet, totalQty);
             break;
           case 'corner':
           default:
@@ -1312,6 +1401,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       const layerPinwheelResult = runLayerPatternStrategy(volumeSorted, currentPallet, 'pinwheel');
       const layerPinwheel2Result = runLayerPatternStrategy(volumeSorted, currentPallet, 'pinwheel2');
       const layerInterlockResult = runLayerPatternStrategy(volumeSorted, currentPallet, 'interlock');
+      const layerBasketResult = runLayerPatternStrategy(volumeSorted, currentPallet, 'basket');
 
       // 기존 전략 (팔레트에 유용한 것만)
       const volumeResult = runOptimizationStrategy(volumeSorted, 'volume', currentPallet);
@@ -1324,11 +1414,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         { id: 'layer-pinwheel', name: '바람개비', description: '회전 맞물림 패턴', icon: '🔄', result: layerPinwheelResult.items, itemCount: layerPinwheelResult.items.length, palletCount: layerPinwheelResult.palletCount, wastedSpace: layerPinwheelResult.wastedSpace },
         { id: 'layer-pinwheel2', name: '바람개비+', description: '가운데 세워넣기', icon: '🎯', result: layerPinwheel2Result.items, itemCount: layerPinwheel2Result.items.length, palletCount: layerPinwheel2Result.palletCount, wastedSpace: layerPinwheel2Result.wastedSpace },
         { id: 'layer-interlock', name: '인터락', description: '행 교차 패턴', icon: '🧩', result: layerInterlockResult.items, itemCount: layerInterlockResult.items.length, palletCount: layerInterlockResult.palletCount, wastedSpace: layerInterlockResult.wastedSpace },
+        { id: 'layer-basket', name: '바스켓 위브', description: '블록 교차 반복', icon: '🧺', result: layerBasketResult.items, itemCount: layerBasketResult.items.length, palletCount: layerBasketResult.palletCount, wastedSpace: layerBasketResult.wastedSpace },
         { id: 'volume', name: '부피 우선', description: '큰 화물부터 배치', icon: '📦', result: volumeResult.items, itemCount: volumeResult.items.length, palletCount: volumeResult.palletCount, wastedSpace: volumeResult.wastedSpace },
         { id: 'norotate', name: '회전 금지', description: '원래 방향 유지', icon: '🔒', result: noRotateResult.items, itemCount: noRotateResult.items.length, palletCount: noRotateResult.palletCount, wastedSpace: noRotateResult.wastedSpace },
       ];
 
-      const preferredOrder = ['layer-pinwheel2', 'layer-pinwheel', 'layer-interlock', 'layer-corner', 'norotate'];
+      const preferredOrder = ['layer-pinwheel2', 'layer-pinwheel', 'layer-interlock', 'layer-corner', 'layer-basket', 'norotate'];
       newStrategies.sort((a, b) => {
         if (a.palletCount !== b.palletCount) return a.palletCount - b.palletCount;
         if (Math.abs(a.wastedSpace - b.wastedSpace) > 0.1) return a.wastedSpace - b.wastedSpace;
