@@ -98,29 +98,27 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
     } else {
       // 바닥 앞에서 시작
       candidatePoints.push({ x: 0, y: 0, z: 0 });
+      candidatePoints.push({ x: container.width - dims.width, y: 0, z: 0 });
     }
 
-    // 기존 아이템들 기반 후보점 추가
+    // 기존 아이템들 기반 후보점 추가 (빈틈 채우기 포함)
     for (const item of existingItems) {
       const itemTop = item.position.y + item.dimensions.height;
 
-      // 옆으로 확장
+      // 오른쪽으로 확장
       candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z });
+      // 왼쪽 빈틈 채우기
+      candidatePoints.push({ x: item.position.x - dims.width, y: item.position.y, z: item.position.z });
 
-      // 앞/뒤로 확장
-      if (mode === 'inner-first') {
-        // inner-first: 안쪽에서 바깥쪽으로 확장
-        const newZ = item.position.z - dims.length;
-        if (newZ >= 0) {
-          candidatePoints.push({ x: item.position.x, y: item.position.y, z: newZ });
-        }
-      } else {
-        // bottom-first: 바깥쪽에서 안쪽으로 확장
-        candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
-      }
+      // 앞쪽으로 확장
+      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
+      // 뒤쪽 빈틈 채우기
+      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z - dims.length });
 
-      // 대각선
+      // 대각선들
       candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z + item.dimensions.length });
+      candidatePoints.push({ x: item.position.x - dims.width, y: item.position.y, z: item.position.z + item.dimensions.length });
+      candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z - dims.length });
 
       // 위로 쌓기
       candidatePoints.push({ x: item.position.x, y: itemTop, z: item.position.z });
