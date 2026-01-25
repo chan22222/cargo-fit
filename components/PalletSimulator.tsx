@@ -1233,8 +1233,87 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       }
     }
 
-    // 여러 화물 종류일 때는 코너 패턴 기반으로 처리
-    return runLayerRepeatStrategy(cargos, pallet);
+    // 여러 화물 종류일 때는 같은 크기끼리 묶어서 해당 패턴 적용
+    // 크기별로 그룹화하여 수량 합산
+    const groupedBySize: Map<string, CargoItem> = new Map();
+    for (const cargo of cargos) {
+      const key = `${cargo.dimensions.width}-${cargo.dimensions.height}-${cargo.dimensions.length}`;
+      if (groupedBySize.has(key)) {
+        const existing = groupedBySize.get(key)!;
+        existing.quantity += cargo.quantity;
+      } else {
+        groupedBySize.set(key, { ...cargo });
+      }
+    }
+    const mergedCargos = Array.from(groupedBySize.values());
+
+    const allItems: PackedPalletItem[] = [];
+    let palletIdx = 0;
+    let currentY = 0;
+
+    for (const cargo of mergedCargos) {
+      if (cargo.quantity <= 0) continue;
+
+      // 해당 패턴으로 1층 생성
+      let firstLayerItems: PackedPalletItem[];
+      switch (patternType) {
+        case 'pinwheel':
+        case 'pinwheel2':
+          firstLayerItems = generatePinwheelPattern(cargo, pallet, cargo.quantity);
+          break;
+        case 'interlock':
+          firstLayerItems = generateInterlockPattern(cargo, pallet, cargo.quantity);
+          break;
+        case 'basket':
+          firstLayerItems = generateBasketWeavePattern(cargo, pallet, cargo.quantity);
+          break;
+        case 'corner':
+        default:
+          firstLayerItems = generateCornerPatternFixed(cargo, pallet, cargo.quantity, true);
+          break;
+      }
+
+      if (firstLayerItems.length === 0) continue;
+
+      const layerHeight = Math.max(...firstLayerItems.map(i => i.dimensions.height));
+      const itemsPerLayer = firstLayerItems.length;
+      let remainingQty = cargo.quantity;
+
+      while (remainingQty > 0 && palletIdx < 10) {
+        if (currentY + layerHeight > pallet.maxLoadHeight) {
+          palletIdx++;
+          currentY = 0;
+        }
+
+        for (const item of firstLayerItems) {
+          if (remainingQty <= 0) break;
+          allItems.push({
+            ...item,
+            position: { ...item.position, y: currentY },
+            uniqueId: `${cargo.id}-${patternType}-${palletIdx}-${allItems.length}`,
+            palletIndex: palletIdx
+          });
+          remainingQty--;
+        }
+
+        currentY += layerHeight;
+      }
+
+      // 한 종류 끝나면 새 팔레트에서 다음 종류 시작
+      if (currentY > 0) {
+        palletIdx++;
+        currentY = 0;
+      }
+    }
+
+    const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
+    const lastPalletIdx = usedPallets - 1;
+    const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
+    const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
+    const lastTotalVol = pallet.width * pallet.length * lastActualHeight;
+    const lastUsedVol = lastPalletItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+
+    return { items: allItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
   };
 
   // 코너 패턴 (높이 고정 옵션 지원)
@@ -1353,81 +1432,85 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       return { items: allItems, palletCount: usedPallets, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
     }
 
-    // 여러 화물 종류일 때는 기존 로직
+    // 여러 화물 종류일 때 - 같은 종류끼리 묶어서 순차 처리
     const allItems: PackedPalletItem[] = [];
     let remainingCargos = cargos.map(c => ({ ...c }));
+    let palletIdx = 0;
+    let currentY = 0; // 현재 팔레트에서의 Y 위치
 
-    for (let palletIdx = 0; palletIdx < 10; palletIdx++) {
-      if (remainingCargos.every(c => c.quantity <= 0)) break;
+    // 화물 종류별로 순차 처리
+    for (const cargo of remainingCargos) {
+      if (cargo.quantity <= 0) continue;
 
+      // 이 화물의 1층 패턴 생성
       const firstLayerItems: PackedPalletItem[] = [];
+      for (let i = 0; i < cargo.quantity; i++) {
+        let bestResult: { position: { x: number; y: number; z: number }; orientation: Dimensions } | null = null;
+        let bestScore = Infinity;
 
-      for (const cargo of remainingCargos) {
-        if (cargo.quantity <= 0) continue;
+        for (const ori of getAllOrientations(cargo.dimensions)) {
+          if (ori.width > pallet.width || ori.length > pallet.length) continue;
 
-        for (let i = 0; i < cargo.quantity; i++) {
-          let bestResult: { position: { x: number; y: number; z: number }; orientation: Dimensions } | null = null;
-          let bestScore = Infinity;
-
-          for (const ori of getAllOrientations(cargo.dimensions)) {
-            if (ori.width > pallet.width || ori.length > pallet.length) continue;
-
-            const xzPoints: { x: number; z: number }[] = [{ x: 0, z: 0 }];
-            for (const item of firstLayerItems) {
-              xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z });
-              xzPoints.push({ x: item.position.x, z: item.position.z + item.dimensions.length });
-              xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z + item.dimensions.length });
-            }
-
-            for (const { x, z } of xzPoints) {
-              if (x < 0 || z < 0 || x + ori.width > pallet.width || z + ori.length > pallet.length) continue;
-              const pos = { x, y: 0, z };
-              if (!canPlaceAt(pos, ori, firstLayerItems)) continue;
-
-              const score = pos.z * 1000 + pos.x;
-              if (score < bestScore) { bestScore = score; bestResult = { position: pos, orientation: ori }; }
-            }
+          const xzPoints: { x: number; z: number }[] = [{ x: 0, z: 0 }];
+          for (const item of firstLayerItems) {
+            xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z });
+            xzPoints.push({ x: item.position.x, z: item.position.z + item.dimensions.length });
+            xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z + item.dimensions.length });
           }
 
-          if (bestResult) {
-            firstLayerItems.push({
-              ...cargo,
-              dimensions: bestResult.orientation,
-              position: bestResult.position,
-              uniqueId: `${cargo.id}-layer-${palletIdx}-0-${i}`,
-              palletIndex: palletIdx,
-              isOverHeight: false
-            });
-          } else break;
+          for (const { x, z } of xzPoints) {
+            if (x < 0 || z < 0 || x + ori.width > pallet.width || z + ori.length > pallet.length) continue;
+            const pos = { x, y: 0, z };
+            if (!canPlaceAt(pos, ori, firstLayerItems)) continue;
+
+            const score = pos.z * 1000 + pos.x;
+            if (score < bestScore) { bestScore = score; bestResult = { position: pos, orientation: ori }; }
+          }
         }
+
+        if (bestResult) {
+          firstLayerItems.push({
+            ...cargo,
+            dimensions: bestResult.orientation,
+            position: bestResult.position,
+            uniqueId: `temp-${i}`,
+            palletIndex: 0,
+            isOverHeight: false
+          });
+        } else break;
       }
 
-      if (firstLayerItems.length === 0) break;
+      if (firstLayerItems.length === 0) continue;
 
       const layerHeight = Math.max(...firstLayerItems.map(i => i.dimensions.height));
-      const maxLayers = Math.floor(pallet.maxLoadHeight / layerHeight);
+      const itemsPerLayer = firstLayerItems.length;
+      let remainingQty = cargo.quantity;
 
-      for (let layer = 0; layer < maxLayers; layer++) {
-        const layerY = layer * layerHeight;
-        if (layerY + layerHeight > pallet.maxLoadHeight) break;
+      // 한 층씩 쌓기
+      while (remainingQty > 0 && palletIdx < 10) {
+        // 현재 팔레트에 공간 확인
+        if (currentY + layerHeight > pallet.maxLoadHeight) {
+          palletIdx++;
+          currentY = 0;
+        }
 
+        // 한 층 쌓기
         for (const item of firstLayerItems) {
-          const cargoRef = remainingCargos.find(c => c.id === item.id);
-          if (!cargoRef || cargoRef.quantity <= 0) continue;
-
+          if (remainingQty <= 0) break;
           allItems.push({
             ...item,
-            position: { ...item.position, y: layerY },
-            uniqueId: `${item.id}-layer-${palletIdx}-${layer}-${Date.now()}-${Math.random()}`,
+            position: { ...item.position, y: currentY },
+            uniqueId: `${cargo.id}-layer-${palletIdx}-${allItems.length}`,
             palletIndex: palletIdx
           });
-          cargoRef.quantity--;
+          remainingQty--;
         }
+
+        currentY += layerHeight;
       }
     }
 
     const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-    // 마지막 팔레트만 낭비 계산
     const lastPalletIdx = usedPallets - 1;
     const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
     const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
