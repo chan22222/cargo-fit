@@ -1010,6 +1010,20 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         }
       }
 
+      // 바람개비 패턴이 안 맞으면 (블록이 팔레트보다 큼) 일반 배치로 대체
+      if (firstLayerPositions.length === 0) {
+        // 가로/세로 방향 중 더 많이 들어가는 방향으로 채우기
+        const hCount = Math.floor(pallet.width / horizontal.width) * Math.floor(pallet.length / horizontal.length);
+        const vCount = Math.floor(pallet.width / vertical.width) * Math.floor(pallet.length / vertical.length);
+        const bestOri = hCount >= vCount ? horizontal : vertical;
+
+        for (let z = 0; z + bestOri.length <= pallet.length; z += bestOri.length) {
+          for (let x = 0; x + bestOri.width <= pallet.width; x += bestOri.width) {
+            firstLayerPositions.push({ x, z, ori: bestOri });
+          }
+        }
+      }
+
       // 모든 레이어 쌓기 (바람개비만)
       for (let layer = 0; layer < maxLayers && remainingQty > 0; layer++) {
         const layerY = layer * layerHeight;

@@ -579,45 +579,59 @@ const App: React.FC = () => {
     const quantityToAdd = newItem.quantity;
 
     if (existingItem) {
-      // 기존 화물에 수량 추가
-      const updatedItem: CargoItem = {
-        ...existingItem,
-        quantity: existingItem.quantity + quantityToAdd,
-        packingMode: globalPackingMode
-      };
-
-      setCargoList(prev => prev.map(c => c.id === existingItem.id ? updatedItem : c));
-
-      // 추가되는 수량만큼 새 아이템 배치
+      // 기존 화물에 수량 추가 - 실제 배치된 개수만큼만
       const existingCount = packedItems.filter(p => p.id === existingItem.id).length;
+      let placedCount = 0;
 
       for (let i = 0; i < quantityToAdd; i++) {
-        const result = placeItemWithMultiContainer(updatedItem, currentPackedItems, existingItem.id, existingCount + i);
+        const tempItem: CargoItem = { ...existingItem, packingMode: globalPackingMode };
+        const result = placeItemWithMultiContainer(tempItem, currentPackedItems, existingItem.id, existingCount + i);
         if (result.placed) {
           currentPackedItems = result.items;
+          placedCount++;
         } else {
-          alert(`${updatedItem.name} - 최대 컨테이너 수(${maxContainers}대)를 초과했습니다.`);
           break;
         }
       }
+
+      if (placedCount > 0) {
+        const updatedItem: CargoItem = {
+          ...existingItem,
+          quantity: existingItem.quantity + placedCount,
+          packingMode: globalPackingMode
+        };
+        setCargoList(prev => prev.map(c => c.id === existingItem.id ? updatedItem : c));
+      }
+
+      if (placedCount < quantityToAdd) {
+        alert(`${existingItem.name} ${quantityToAdd}개 중 ${placedCount}개만 배치되었습니다.`);
+      }
     } else {
-      // 새 화물 추가
+      // 새 화물 추가 - 실제 배치된 개수만큼만
+      const itemId = Math.random().toString(36).substr(2, 9);
       const item: CargoItem = {
         ...newItem,
-        id: Math.random().toString(36).substr(2, 9),
+        id: itemId,
         packingMode: globalPackingMode
       };
-
-      setCargoList(prev => [...prev, item]);
+      let placedCount = 0;
 
       for (let i = 0; i < item.quantity; i++) {
         const result = placeItemWithMultiContainer(item, currentPackedItems, item.id, i);
         if (result.placed) {
           currentPackedItems = result.items;
+          placedCount++;
         } else {
-          alert(`${item.name} - 최대 컨테이너 수(${maxContainers}대)를 초과했습니다.`);
           break;
         }
+      }
+
+      if (placedCount > 0) {
+        setCargoList(prev => [...prev, { ...item, quantity: placedCount }]);
+      }
+
+      if (placedCount < item.quantity) {
+        alert(`${item.name} ${item.quantity}개 중 ${placedCount}개만 배치되었습니다.`);
       }
     }
 
