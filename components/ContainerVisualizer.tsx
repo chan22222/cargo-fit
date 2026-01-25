@@ -459,13 +459,9 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
       i => (i.containerIndex ?? 0) === (item.containerIndex ?? 0)
     );
 
-    // 중력/스태킹 로직
+    // 중력/스태킹 로직 - 50% 이상 겹쳐야 올라탐
     let newY = 0;
-    const tolerance = 2;
-    const myMinX = newPos.x + tolerance;
-    const myMaxX = newPos.x + item.dimensions.width - tolerance;
-    const myMinZ = newPos.z + tolerance;
-    const myMaxZ = newPos.z + item.dimensions.length - tolerance;
+    const OVERLAP_THRESHOLD = 0.5; // 50% 이상 겹쳐야 올라탐
 
     for (const other of sameContainerItems) {
       if (other.uniqueId === uniqueId) continue;
@@ -476,9 +472,16 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
       const oMaxZ = other.position.z + other.dimensions.length;
       const oMaxY = other.position.y + other.dimensions.height;
 
-      const intersects = (myMinX < oMaxX && myMaxX > oMinX) && (myMinZ < oMaxZ && myMaxZ > oMinZ);
+      // X, Z 각각의 겹침 비율 계산
+      const overlapX = Math.max(0, Math.min(newPos.x + item.dimensions.width, oMaxX) - Math.max(newPos.x, oMinX));
+      const overlapZ = Math.max(0, Math.min(newPos.z + item.dimensions.length, oMaxZ) - Math.max(newPos.z, oMinZ));
 
-      if (intersects && oMaxY > newY) {
+      // 겹침 비율 (내 화물 기준)
+      const overlapRatioX = overlapX / item.dimensions.width;
+      const overlapRatioZ = overlapZ / item.dimensions.length;
+
+      // 둘 다 임계값 이상이면 올라탐
+      if (overlapRatioX >= OVERLAP_THRESHOLD && overlapRatioZ >= OVERLAP_THRESHOLD && oMaxY > newY) {
         newY = oMaxY;
       }
     }
