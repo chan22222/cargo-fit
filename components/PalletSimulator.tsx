@@ -3,6 +3,7 @@ import { Canvas, useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls, Html, Line } from '@react-three/drei';
 import * as THREE from 'three';
 import { Dimensions, CargoItem, PalletType, PalletSpec, PackedPalletItem } from '../types';
+import { DEFAULT_CARGO_COLORS } from '../constants';
 
 const AdSense = lazy(() => import('./AdSense'));
 
@@ -306,14 +307,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   const [newItemName, setNewItemName] = useState('박스');
   const [newItemDims, setNewItemDims] = useState<Dimensions>({ width: 50, height: 50, length: 60 });
   const [newItemQuantity, setNewItemQuantity] = useState('1');
-  const [newItemColor, setNewItemColor] = useState('#4A90D9');
-
-  // 색상 팔레트
-  const COLOR_PALETTE = [
-    '#4A90D9', '#5B8DEF', '#7C3AED', '#EC4899', '#EF4444',
-    '#F97316', '#EAB308', '#22C55E', '#14B8A6', '#06B6D4',
-    '#8B5CF6', '#D946EF', '#F43F5E', '#FB923C', '#84CC16',
-  ];
+  const [newItemColor, setNewItemColor] = useState(DEFAULT_CARGO_COLORS[0]);
 
   const currentPallet = useMemo((): PalletSpec => {
     const preset = PALLET_PRESETS[palletType];
@@ -1526,6 +1520,13 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
   // ============ 핸들러 ============
 
+  // 다음 색상으로 변경
+  const nextColor = () => {
+    const currentIndex = DEFAULT_CARGO_COLORS.indexOf(newItemColor);
+    const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
+    setNewItemColor(DEFAULT_CARGO_COLORS[nextIndex]);
+  };
+
   const handleAddCargo = () => {
     if (!newItemName) return;
     setCargoListInitialized(true);
@@ -1805,15 +1806,15 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2.5">
-                  <input type="number" value={newItemDims.length} onChange={(e) => setNewItemDims({...newItemDims, length: Math.min(500, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
-                  <input type="number" value={newItemDims.width} onChange={(e) => setNewItemDims({...newItemDims, width: Math.min(500, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
-                  <input type="number" value={newItemDims.height} onChange={(e) => setNewItemDims({...newItemDims, height: Math.min(500, Number(e.target.value))})} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.length} onChange={(e) => setNewItemDims({...newItemDims, length: Math.min(500, Number(e.target.value))})} onBlur={nextColor} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.width} onChange={(e) => setNewItemDims({...newItemDims, width: Math.min(500, Number(e.target.value))})} onBlur={nextColor} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
+                  <input type="number" value={newItemDims.height} onChange={(e) => setNewItemDims({...newItemDims, height: Math.min(500, Number(e.target.value))})} onBlur={nextColor} className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner" min="1" max="500" />
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  <button type="button" onClick={() => { setNewItemDims({ width: 20, height: 20, length: 30 }); setNewItemName('XS박스'); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">XS박스</button>
-                  <button type="button" onClick={() => { setNewItemDims({ width: 30, height: 30, length: 40 }); setNewItemName('S박스'); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">S박스</button>
-                  <button type="button" onClick={() => { setNewItemDims({ width: 40, height: 40, length: 50 }); setNewItemName('M박스'); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">M박스</button>
-                  <button type="button" onClick={() => { setNewItemDims({ width: 50, height: 50, length: 60 }); setNewItemName('L박스'); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">L박스</button>
+                  <button type="button" onClick={() => { setNewItemDims({ width: 20, height: 20, length: 30 }); setNewItemName('XS박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">XS박스</button>
+                  <button type="button" onClick={() => { setNewItemDims({ width: 30, height: 30, length: 40 }); setNewItemName('S박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">S박스</button>
+                  <button type="button" onClick={() => { setNewItemDims({ width: 40, height: 40, length: 50 }); setNewItemName('M박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">M박스</button>
+                  <button type="button" onClick={() => { setNewItemDims({ width: 50, height: 50, length: 60 }); setNewItemName('L박스'); nextColor(); }} className="px-2.5 py-1 text-[9px] font-black bg-white border border-slate-200 text-slate-400 rounded-lg hover:text-blue-600 hover:border-blue-500 transition-all">L박스</button>
                 </div>
               </div>
 
@@ -1824,27 +1825,18 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
 
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">색상</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {COLOR_PALETTE.map((color) => (
+                <div className="grid grid-cols-7 gap-1.5">
+                  {DEFAULT_CARGO_COLORS.map((c) => (
                     <button
-                      key={color}
+                      key={c}
                       type="button"
-                      onClick={() => setNewItemColor(color)}
-                      className={`w-6 h-6 rounded-lg transition-all border-2 ${
-                        newItemColor === color
-                          ? 'border-slate-800 scale-110 shadow-md'
-                          : 'border-transparent hover:border-slate-300 hover:scale-105'
-                      }`}
-                      style={{ backgroundColor: color }}
-                    />
+                      onClick={() => setNewItemColor(c)}
+                      className={`w-full aspect-square rounded-lg shadow-sm transition-all hover:scale-110 flex items-center justify-center ${newItemColor === c ? 'ring-2 ring-offset-1 ring-slate-900' : ''}`}
+                      style={{ backgroundColor: c }}
+                    >
+                      {newItemColor === c && <div className="w-1 h-1 bg-white rounded-full" />}
+                    </button>
                   ))}
-                  <input
-                    type="color"
-                    value={newItemColor}
-                    onChange={(e) => setNewItemColor(e.target.value)}
-                    className="w-6 h-6 rounded-lg cursor-pointer border-0 p-0 overflow-hidden"
-                    title="커스텀 색상"
-                  />
                 </div>
               </div>
 

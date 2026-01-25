@@ -56,9 +56,17 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
     });
   };
 
+  // 다음 색상으로 변경
+  const nextColor = () => {
+    const currentIndex = DEFAULT_CARGO_COLORS.indexOf(color);
+    const nextIndex = (currentIndex + 1) % DEFAULT_CARGO_COLORS.length;
+    setColor(DEFAULT_CARGO_COLORS[nextIndex]);
+  };
+
   const handlePreset = (w: number, h: number, l: number, n: string) => {
     setDims({ width: w, height: h, length: l });
     setName(n);
+    nextColor();
   };
 
   return (
@@ -108,6 +116,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={dims.length}
                 onChange={e => setDims({...dims, length: Math.min(1200, Number(e.target.value))})}
+                onBlur={nextColor}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="1200"
               />
@@ -115,6 +124,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={dims.width}
                 onChange={e => setDims({...dims, width: Math.min(250, Number(e.target.value))})}
+                onBlur={nextColor}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="250"
               />
@@ -122,6 +132,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
                 type="number"
                 value={dims.height}
                 onChange={e => setDims({...dims, height: Math.min(300, Number(e.target.value))})}
+                onBlur={nextColor}
                 className="w-full px-2 py-2.5 bg-slate-50 border-none rounded-xl text-center text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500 transition-all shadow-inner"
                 min="10" max="300"
               />
@@ -228,7 +239,7 @@ export const CargoControls: React.FC<CargoControlsProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">컬러</label>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">색상</label>
               <div className="grid grid-cols-4 gap-1.5">
                 {DEFAULT_CARGO_COLORS.map(c => (
                   <button
