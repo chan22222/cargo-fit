@@ -271,7 +271,7 @@ const CoGMarker: React.FC<{
 // 컨테이너 라벨
 const ContainerLabel: React.FC<{ index: number; position: [number, number, number]; itemCount: number }> = React.memo(({ index, position, itemCount }) => {
   return (
-    <Html position={position} center sprite transform={false} style={{ pointerEvents: 'none' }}>
+    <Html position={position} center sprite transform={false} style={{ pointerEvents: 'none', zIndex: 1 }}>
       <div className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
         #{index + 1} ({itemCount})
       </div>
@@ -324,7 +324,7 @@ const Scene: React.FC<{
             {containerCount > 1 && (
               <ContainerLabel
                 index={containerIndex}
-                position={[0, container.height * SCALE + 1.0, 0]}
+                position={[0, container.height * SCALE + 2.0, 0]}
                 itemCount={containerItems.length}
               />
             )}
