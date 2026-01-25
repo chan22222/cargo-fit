@@ -2023,6 +2023,7 @@ const App: React.FC = () => {
         isOpen={showOptimizationModal}
         onClose={() => setShowOptimizationModal(false)}
         onSelect={handleOptimizationSelect}
+        onPreview={setPackedItems}
         container={CONTAINER_SPECS[containerType]}
         cargoList={cargoList}
         packingMode={globalPackingMode}
