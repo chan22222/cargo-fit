@@ -268,6 +268,17 @@ const CoGMarker: React.FC<{
   );
 };
 
+// 컨테이너 라벨
+const ContainerLabel: React.FC<{ index: number; position: [number, number, number] }> = ({ index, position }) => {
+  return (
+    <Html position={position} center style={{ pointerEvents: 'none' }}>
+      <div className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg whitespace-nowrap">
+        #{index + 1}
+      </div>
+    </Html>
+  );
+};
+
 // 메인 3D 씬
 const Scene: React.FC<{
   container: ContainerSpec;
@@ -275,17 +286,22 @@ const Scene: React.FC<{
   selectedItemId: string | null;
   hoveredItemId: string | null;
   showCoG: boolean;
-  weightStats: { totalWeight: number; cogX: number; cogZ: number };
+  containerCount: number;
   onSelectItem: (uniqueId: string) => void;
   onHoverItem: (id: string | null) => void;
   onItemMove: (uniqueId: string, pos: { x: number; y: number; z: number }) => void;
-}> = ({ container, packedItems, selectedItemId, hoveredItemId, showCoG, weightStats, onSelectItem, onHoverItem, onItemMove }) => {
+}> = ({ container, packedItems, selectedItemId, hoveredItemId, showCoG, containerCount, onSelectItem, onHoverItem, onItemMove }) => {
 
-  const cogPosition = useMemo((): [number, number, number] => [
-    (weightStats.cogX - container.width / 2) * SCALE,
-    0,
-    (weightStats.cogZ - container.length / 2) * SCALE
-  ], [weightStats, container]);
+  // 컨테이너 간격 (cm -> three.js units)
+  const CONTAINER_GAP = 50 * SCALE; // 50cm 간격
+  const containerWidth = container.width * SCALE;
+
+  // 컨테이너별 X 오프셋 계산
+  const getContainerOffset = (index: number) => {
+    const totalWidth = containerCount * containerWidth + (containerCount - 1) * CONTAINER_GAP;
+    const startX = -totalWidth / 2 + containerWidth / 2;
+    return startX + index * (containerWidth + CONTAINER_GAP);
+  };
 
   return (
     <>
@@ -294,28 +310,65 @@ const Scene: React.FC<{
       <directionalLight position={[10, 10, 5]} intensity={0.8} />
       <directionalLight position={[-5, 5, -5]} intensity={0.3} />
 
-      {/* 컨테이너 */}
-      <ContainerBox container={container} />
+      {/* 각 컨테이너 렌더링 */}
+      {Array.from({ length: containerCount }).map((_, containerIndex) => {
+        const offsetX = getContainerOffset(containerIndex);
+        const containerItems = packedItems.filter(item => (item.containerIndex ?? 0) === containerIndex);
 
-      {/* 화물들 */}
-      {packedItems.map((item) => (
-        <CargoBox
-          key={item.uniqueId}
-          item={item}
-          container={container}
-          isSelected={selectedItemId === item.uniqueId}
-          isHovered={hoveredItemId === item.uniqueId}
-          isFaded={!!selectedItemId && selectedItemId !== item.uniqueId}
-          onSelect={() => onSelectItem(item.uniqueId)}
-          onHover={(hovered) => onHoverItem(hovered ? item.uniqueId : null)}
-          onDrag={(pos) => onItemMove(item.uniqueId, pos)}
-        />
-      ))}
+        return (
+          <group key={containerIndex} position={[offsetX, 0, 0]}>
+            {/* 컨테이너 박스 */}
+            <ContainerBox container={container} />
 
-      {/* CoG 마커 */}
-      {showCoG && weightStats.totalWeight > 0 && (
-        <CoGMarker position={cogPosition} containerHeight={container.height} />
-      )}
+            {/* 컨테이너 라벨 (2개 이상일 때만) */}
+            {containerCount > 1 && (
+              <ContainerLabel
+                index={containerIndex}
+                position={[0, container.height * SCALE + 0.15, 0]}
+              />
+            )}
+
+            {/* 해당 컨테이너의 화물들 */}
+            {containerItems.map((item) => (
+              <CargoBox
+                key={item.uniqueId}
+                item={item}
+                container={container}
+                isSelected={selectedItemId === item.uniqueId}
+                isHovered={hoveredItemId === item.uniqueId}
+                isFaded={!!selectedItemId && selectedItemId !== item.uniqueId}
+                onSelect={() => onSelectItem(item.uniqueId)}
+                onHover={(hovered) => onHoverItem(hovered ? item.uniqueId : null)}
+                onDrag={(pos) => onItemMove(item.uniqueId, pos)}
+              />
+            ))}
+
+            {/* CoG 마커 (각 컨테이너별) */}
+            {showCoG && containerItems.length > 0 && (() => {
+              let totalWeight = 0;
+              let momentX = 0;
+              let momentZ = 0;
+              containerItems.forEach(item => {
+                const w = item.weight || 0;
+                totalWeight += w;
+                momentX += w * (item.position.x + item.dimensions.width / 2);
+                momentZ += w * (item.position.z + item.dimensions.length / 2);
+              });
+              if (totalWeight > 0) {
+                const cogX = momentX / totalWeight;
+                const cogZ = momentZ / totalWeight;
+                const cogPosition: [number, number, number] = [
+                  (cogX - container.width / 2) * SCALE,
+                  0,
+                  (cogZ - container.length / 2) * SCALE
+                ];
+                return <CoGMarker position={cogPosition} containerHeight={container.height} />;
+              }
+              return null;
+            })()}
+          </group>
+        );
+      })}
 
       {/* 카메라 컨트롤 - 우클릭: 회전, 휠클릭: 이동 */}
       <OrbitControls
@@ -326,7 +379,7 @@ const Scene: React.FC<{
         zoomSpeed={0.8}
         panSpeed={0.8}
         minDistance={1}
-        maxDistance={20}
+        maxDistance={50}
         maxPolarAngle={Math.PI * 0.9}
         mouseButtons={{
           LEFT: undefined, // 좌클릭은 화물 드래그용
@@ -349,6 +402,13 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
 }) => {
   const [showCoG, setShowCoG] = useState(true);
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+
+  // 컨테이너 수 계산
+  const containerCount = useMemo(() => {
+    if (packedItems.length === 0) return 1;
+    const maxIndex = Math.max(...packedItems.map(item => item.containerIndex ?? 0));
+    return maxIndex + 1;
+  }, [packedItems]);
 
   // Delete 키로 선택된 화물 개별 제거
   useEffect(() => {
@@ -441,7 +501,7 @@ const ContainerVisualizer: React.FC<ContainerVisualizerProps> = ({
           selectedItemId={selectedItemId || null}
           hoveredItemId={hoveredItemId}
           showCoG={showCoG}
-          weightStats={weightStats}
+          containerCount={containerCount}
           onSelectItem={handleSelectItem}
           onHoverItem={setHoveredItemId}
           onItemMove={handleItemMove}

@@ -34,6 +34,7 @@ export interface CargoItem {
 export interface PackedItem extends CargoItem {
   position: { x: number; y: number; z: number }; // cm relative to container origin
   uniqueId: string; // Individual instance ID
+  containerIndex?: number; // 컨테이너 번호 (0부터 시작, 다중 컨테이너용)
 }
 
 export interface PackingResult {
