@@ -7,10 +7,10 @@ interface OptimizationStrategy {
   description: string;
   icon: string;
   result: PackedItem[] | null;
-  efficiency: number;
   itemCount: number;
   maxHeight: number;
   containerCount: number;
+  wastedSpace: number; // 공간 낭비 (㎥)
 }
 
 interface OptimizationModalProps {
@@ -88,73 +88,69 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
     dims: { width: number, height: number, length: number },
     mode: 'bottom-first' | 'inner-first'
   ) => {
-    const candidatePoints: { x: number, y: number, z: number }[] = [];
+    // XZ 후보점 수집
+    const xzPoints: { x: number, z: number }[] = [{ x: 0, z: 0 }];
 
-    // 초기 후보점 추가 - 바닥 레벨에서 여러 시작점
     if (mode === 'inner-first') {
-      // 안쪽(뒤)에서 시작하는 점들
       const startZ = Math.max(0, container.length - dims.length);
-      candidatePoints.push({ x: 0, y: 0, z: startZ });
-      candidatePoints.push({ x: container.width - dims.width, y: 0, z: startZ });
+      xzPoints.push({ x: 0, z: startZ });
+      xzPoints.push({ x: container.width - dims.width, z: startZ });
     } else {
-      // 바닥 앞에서 시작
-      candidatePoints.push({ x: 0, y: 0, z: 0 });
-      candidatePoints.push({ x: container.width - dims.width, y: 0, z: 0 });
+      xzPoints.push({ x: container.width - dims.width, z: 0 });
     }
 
-    // 기존 아이템들 기반 후보점 추가 (빈틈 채우기 포함)
     for (const item of existingItems) {
-      const itemTop = item.position.y + item.dimensions.height;
+      // 아이템 주변 모든 경계점
+      xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z });
+      xzPoints.push({ x: item.position.x - dims.width, z: item.position.z });
+      xzPoints.push({ x: item.position.x, z: item.position.z + item.dimensions.length });
+      xzPoints.push({ x: item.position.x, z: item.position.z - dims.length });
+      xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z + item.dimensions.length });
+      xzPoints.push({ x: item.position.x - dims.width, z: item.position.z + item.dimensions.length });
+      xzPoints.push({ x: item.position.x + item.dimensions.width, z: item.position.z - dims.length });
+      xzPoints.push({ x: item.position.x, z: item.position.z });
+    }
 
-      // 오른쪽으로 확장
-      candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z });
-      // 왼쪽 빈틈 채우기
-      candidatePoints.push({ x: item.position.x - dims.width, y: item.position.y, z: item.position.z });
-
-      // 앞쪽으로 확장
-      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z + item.dimensions.length });
-      // 뒤쪽 빈틈 채우기
-      candidatePoints.push({ x: item.position.x, y: item.position.y, z: item.position.z - dims.length });
-
-      // 대각선들
-      candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z + item.dimensions.length });
-      candidatePoints.push({ x: item.position.x - dims.width, y: item.position.y, z: item.position.z + item.dimensions.length });
-      candidatePoints.push({ x: item.position.x + item.dimensions.width, y: item.position.y, z: item.position.z - dims.length });
-
-      // 위로 쌓기
-      candidatePoints.push({ x: item.position.x, y: itemTop, z: item.position.z });
+    // Y 높이 레벨 수집 (바닥 + 각 아이템 상단)
+    const yLevels = new Set<number>([0]);
+    for (const item of existingItems) {
+      yLevels.add(item.position.y + item.dimensions.height);
     }
 
     let bestPosition = null;
     let bestScore = Infinity;
 
-    for (const { x, y: baseY, z } of candidatePoints) {
-      if (x < 0 || z < 0 || x + dims.width > container.width || z + dims.length > container.length) {
-        continue;
-      }
-
-      let maxY = baseY;
-      for (const item of existingItems) {
-        if (x < item.position.x + item.dimensions.width &&
-            x + dims.width > item.position.x &&
-            z < item.position.z + item.dimensions.length &&
-            z + dims.length > item.position.z) {
-          const itemTop = item.position.y + item.dimensions.height;
-          maxY = Math.max(maxY, itemTop);
+    // 각 Y 레벨에서 모든 XZ 후보점 시도
+    for (const baseY of yLevels) {
+      for (const { x, z } of xzPoints) {
+        if (x < 0 || z < 0 || x + dims.width > container.width || z + dims.length > container.length) {
+          continue;
         }
-      }
 
-      if (maxY + dims.height <= container.height) {
-        const pos = { x, y: maxY, z };
-        const supportRatio = calculateSupportRatio(pos, dims, existingItems);
-        if (supportRatio >= 1.0) {
-          const score = mode === 'inner-first'
-            ? (container.length - z - dims.length) * 1000000 + maxY * 1000 + x
-            : maxY * 1000000 + z * 1000 + x;
+        // 이 XZ 위치에서 실제로 놓일 Y 계산
+        let maxY = baseY;
+        for (const item of existingItems) {
+          if (x < item.position.x + item.dimensions.width &&
+              x + dims.width > item.position.x &&
+              z < item.position.z + item.dimensions.length &&
+              z + dims.length > item.position.z) {
+            const itemTop = item.position.y + item.dimensions.height;
+            maxY = Math.max(maxY, itemTop);
+          }
+        }
 
-          if (score < bestScore) {
-            bestScore = score;
-            bestPosition = pos;
+        if (maxY + dims.height <= container.height) {
+          const pos = { x, y: maxY, z };
+          const supportRatio = calculateSupportRatio(pos, dims, existingItems);
+          if (supportRatio >= 1.0) {
+            const score = mode === 'inner-first'
+              ? (container.length - z - dims.length) * 1000000 + maxY * 1000 + x
+              : maxY * 1000000 + z * 1000 + x;
+
+            if (score < bestScore) {
+              bestScore = score;
+              bestPosition = pos;
+            }
           }
         }
       }
@@ -168,24 +164,36 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
     return items.filter(item => (item.containerIndex ?? 0) === containerIndex);
   };
 
-  // 전략별 배치 실행 (다중 컨테이너 지원)
+  // 전략별 배치 실행 (다중 컨테이너 지원 + 같은 그룹 회전 통일)
   const runStrategy = (
     sortedCargo: CargoItem[],
     strategyName: string
-  ): { items: PackedItem[], efficiency: number, maxHeight: number, containerCount: number } => {
+  ): { items: PackedItem[], maxHeight: number, containerCount: number, wastedSpace: number } => {
     const arrangedItems: PackedItem[] = [];
-    let currentContainerIndex = 0;
 
     for (const cargo of sortedCargo) {
       for (let i = 0; i < cargo.quantity; i++) {
-        const orientations = getAllOrientations(cargo.dimensions);
+        // 같은 그룹의 이미 배치된 아이템 찾기 (회전 방향 통일)
+        const sameGroupItem = arrangedItems.find(p => p.id === cargo.id);
+        const preferredOrientation = sameGroupItem ? sameGroupItem.dimensions : null;
+
+        const allOrientations = getAllOrientations(cargo.dimensions);
+        const orientations = preferredOrientation
+          ? [
+              preferredOrientation,
+              ...allOrientations.filter(o =>
+                o.width !== preferredOrientation.width ||
+                o.height !== preferredOrientation.height ||
+                o.length !== preferredOrientation.length
+              )
+            ]
+          : allOrientations;
+
         let placed = false;
+        const maxContainers = 10;
 
-        // 현재 컨테이너부터 시도, 안되면 새 컨테이너 추가
-        let tryContainerIndex = currentContainerIndex;
-        const maxContainers = 10; // 최대 컨테이너 수 제한
-
-        while (!placed && tryContainerIndex < maxContainers) {
+        // 0번 컨테이너부터 순서대로 빈 공간 찾기
+        for (let tryContainerIndex = 0; tryContainerIndex < maxContainers && !placed; tryContainerIndex++) {
           const containerItems = getContainerItems(arrangedItems, tryContainerIndex);
           let bestPosition = null;
           let bestOrientation = cargo.dimensions;
@@ -217,11 +225,6 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
               containerIndex: tryContainerIndex
             });
             placed = true;
-            // 다음 화물도 현재 컨테이너에서 먼저 시도
-            currentContainerIndex = tryContainerIndex;
-          } else {
-            // 현재 컨테이너에 공간 없음 -> 새 컨테이너 시도
-            tryContainerIndex++;
           }
         }
       }
@@ -232,16 +235,16 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       ? Math.max(...arrangedItems.map(item => (item.containerIndex ?? 0))) + 1
       : 1;
 
-    // 효율성: 총 사용 부피 / 총 컨테이너 부피
+    // 공간 낭비 계산 (㎥) - cm³ -> ㎥ 변환 (/ 1000000)
     const totalVolume = container.width * container.height * container.length * usedContainers;
     const usedVolume = arrangedItems.reduce((acc, i) =>
       acc + (i.dimensions.width * i.dimensions.height * i.dimensions.length), 0);
-    const efficiency = totalVolume > 0 ? (usedVolume / totalVolume) * 100 : 0;
+    const wastedSpace = (totalVolume - usedVolume) / 1000000; // cm³ -> ㎥
 
     const maxHeight = arrangedItems.reduce((max, item) =>
       Math.max(max, item.position.y + item.dimensions.height), 0);
 
-    return { items: arrangedItems, efficiency, maxHeight, containerCount: usedContainers };
+    return { items: arrangedItems, maxHeight, containerCount: usedContainers, wastedSpace };
   };
 
   // 전략 계산
@@ -269,265 +272,119 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       const heightSorted = [...cargoList].sort((a, b) => a.dimensions.height - b.dimensions.height);
       const heightResult = runStrategy(heightSorted, 'height');
 
-      // 4. 바닥면적 우선 (넓은 것부터 - 기반 우선)
-      const areaSorted = [...cargoList].sort((a, b) => {
+      // 4. 회전 금지 (원래 방향 유지)
+      const noRotateResult = (() => {
+        const sorted = [...cargoList].sort((a, b) => {
+          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
+          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
+          return volB - volA;
+        });
+        const arrangedItems: PackedItem[] = [];
+        const maxContainers = 10;
+
+        for (const cargo of sorted) {
+          for (let i = 0; i < cargo.quantity; i++) {
+            // 회전 없이 원래 dimensions만 사용
+            const ori = cargo.dimensions;
+            let placed = false;
+
+            for (let tryContainer = 0; tryContainer < maxContainers && !placed; tryContainer++) {
+              const containerItems = getContainerItems(arrangedItems, tryContainer);
+              const pos = findBestPosition(containerItems, ori, packingMode);
+
+              if (pos) {
+                arrangedItems.push({
+                  ...cargo,
+                  uniqueId: `${cargo.id}-${i}-norotate`,
+                  dimensions: ori,
+                  position: pos,
+                  containerIndex: tryContainer
+                });
+                placed = true;
+              }
+            }
+          }
+        }
+
+        const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
+        const totalVol = container.width * container.height * container.length * usedContainers;
+        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
+        return { items: arrangedItems, maxHeight: maxH, containerCount: usedContainers, wastedSpace: (totalVol - usedVol) / 1000000 };
+      })();
+
+      // 커스텀 전략용 헬퍼 함수 (같은 그룹 회전 통일 + 0번 컨테이너부터 탐색)
+      const runCustomStrategy = (
+        sortedCargo: CargoItem[],
+        strategyName: string,
+        scoreFunc: (pos: { x: number, y: number, z: number }, ori: { width: number, height: number, length: number }, containerItems: PackedItem[]) => number
+      ) => {
+        const arrangedItems: PackedItem[] = [];
+        const maxContainers = 10;
+
+        for (const cargo of sortedCargo) {
+          for (let i = 0; i < cargo.quantity; i++) {
+            // 같은 그룹 회전 통일
+            const sameGroupItem = arrangedItems.find(p => p.id === cargo.id);
+            const preferredOri = sameGroupItem ? sameGroupItem.dimensions : null;
+            const allOris = getAllOrientations(cargo.dimensions);
+            const orientations = preferredOri
+              ? [preferredOri, ...allOris.filter(o => o.width !== preferredOri.width || o.height !== preferredOri.height || o.length !== preferredOri.length)]
+              : allOris;
+
+            let placed = false;
+            for (let tryContainer = 0; tryContainer < maxContainers && !placed; tryContainer++) {
+              const containerItems = getContainerItems(arrangedItems, tryContainer);
+              let bestPos = null;
+              let bestOri = cargo.dimensions;
+              let bestScore = Infinity;
+
+              for (const ori of orientations) {
+                const pos = findBestPosition(containerItems, ori, packingMode);
+                if (pos) {
+                  const score = scoreFunc(pos, ori, containerItems);
+                  if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
+                }
+              }
+
+              if (bestPos) {
+                arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-${strategyName}`, dimensions: bestOri, position: bestPos, containerIndex: tryContainer });
+                placed = true;
+              }
+            }
+          }
+        }
+
+        const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
+        const totalVol = container.width * container.height * container.length * usedContainers;
+        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
+        const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
+        return { items: arrangedItems, maxHeight: maxH, containerCount: usedContainers, wastedSpace: (totalVol - usedVol) / 1000000 };
+      };
+
+      // 5. 혼합 전략
+      const mixedSorted = [...cargoList].sort((a, b) => {
+        const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
+        const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
+        return volB - volA;
+      });
+      const mixedResult = runCustomStrategy(mixedSorted, 'mixed', (pos, ori) => pos.y * 1000000 + pos.z * 1000 + pos.x);
+
+      // 6. 벽면 우선
+      const wallSorted = [...cargoList].sort((a, b) => {
+        const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
+        const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
+        return volB - volA;
+      });
+      const wallResult = runCustomStrategy(wallSorted, 'wall', (pos) => (pos.x + pos.z) * 1000 + pos.y);
+
+      // 7. 높이 최소화
+      const lowSorted = [...cargoList].sort((a, b) => {
         const areaA = a.dimensions.width * a.dimensions.length;
         const areaB = b.dimensions.width * b.dimensions.length;
         return areaB - areaA;
       });
-      const areaResult = runStrategy(areaSorted, 'area');
-
-      // 5. 혼합 전략 (큰 것 먼저 + 작은 것으로 빈틈 채우기) - 다중 컨테이너 지원
-      const mixedResult = (() => {
-        const arrangedItems: PackedItem[] = [];
-        let currentContainer = 0;
-        const maxContainers = 10;
-
-        // 큰 것부터 70% 배치
-        const bigItems = [...cargoList].sort((a, b) => {
-          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
-          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
-          return volB - volA;
-        });
-        const smallItems = [...bigItems].reverse();
-
-        // 큰 것 먼저 배치
-        for (const cargo of bigItems) {
-          for (let i = 0; i < Math.ceil(cargo.quantity * 0.7); i++) {
-            const orientations = getAllOrientations(cargo.dimensions);
-            let placed = false;
-            let tryContainer = currentContainer;
-
-            while (!placed && tryContainer < maxContainers) {
-              const containerItems = getContainerItems(arrangedItems, tryContainer);
-              let bestPos = null;
-              let bestOri = cargo.dimensions;
-              let bestScore = Infinity;
-              for (const ori of orientations) {
-                const pos = findBestPosition(containerItems, ori, packingMode);
-                if (pos) {
-                  const score = pos.y * 1000000 + pos.z * 1000 + pos.x;
-                  if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
-                }
-              }
-              if (bestPos) {
-                arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-mixed`, dimensions: bestOri, position: bestPos, containerIndex: tryContainer });
-                placed = true;
-                currentContainer = tryContainer;
-              } else {
-                tryContainer++;
-              }
-            }
-          }
-        }
-        // 작은 것으로 빈틈 채우기
-        for (const cargo of smallItems) {
-          const remaining = cargo.quantity - Math.ceil(cargo.quantity * 0.7);
-          for (let i = 0; i < remaining; i++) {
-            const orientations = getAllOrientations(cargo.dimensions);
-            let placed = false;
-            let tryContainer = currentContainer;
-
-            while (!placed && tryContainer < maxContainers) {
-              const containerItems = getContainerItems(arrangedItems, tryContainer);
-              let bestPos = null;
-              let bestOri = cargo.dimensions;
-              let bestScore = Infinity;
-              for (const ori of orientations) {
-                const pos = findBestPosition(containerItems, ori, packingMode);
-                if (pos) {
-                  const score = pos.y * 1000000 + pos.z * 1000 + pos.x;
-                  if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
-                }
-              }
-              if (bestPos) {
-                arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-mixed2`, dimensions: bestOri, position: bestPos, containerIndex: tryContainer });
-                placed = true;
-                currentContainer = tryContainer;
-              } else {
-                tryContainer++;
-              }
-            }
-          }
-        }
-        const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
-        const totalVol = container.width * container.height * container.length * usedContainers;
-        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height), 0), containerCount: usedContainers };
-      })();
-
-      // 6. 벽면 우선 (벽에 붙여서 배치 - x, z 작은 순 우선) - 다중 컨테이너 지원
-      const wallResult = (() => {
-        const sorted = [...cargoList].sort((a, b) => {
-          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
-          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
-          return volB - volA;
-        });
-        const arrangedItems: PackedItem[] = [];
-        let currentContainer = 0;
-        const maxContainers = 10;
-
-        for (const cargo of sorted) {
-          for (let i = 0; i < cargo.quantity; i++) {
-            const orientations = getAllOrientations(cargo.dimensions);
-            let placed = false;
-            let tryContainer = currentContainer;
-
-            while (!placed && tryContainer < maxContainers) {
-              const containerItems = getContainerItems(arrangedItems, tryContainer);
-              let bestPos = null;
-              let bestOri = cargo.dimensions;
-              let bestScore = Infinity;
-              for (const ori of orientations) {
-                const pos = findBestPosition(containerItems, ori, packingMode);
-                if (pos) {
-                  // 벽면 우선: x + z가 작을수록 좋음 (코너 우선)
-                  const score = (pos.x + pos.z) * 1000 + pos.y;
-                  if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
-                }
-              }
-              if (bestPos) {
-                arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-wall`, dimensions: bestOri, position: bestPos, containerIndex: tryContainer });
-                placed = true;
-                currentContainer = tryContainer;
-              } else {
-                tryContainer++;
-              }
-            }
-          }
-        }
-        const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
-        const totalVol = container.width * container.height * container.length * usedContainers;
-        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height), 0), containerCount: usedContainers };
-      })();
-
-      // 7. 높이 최소화 (최대한 낮게 쌓기) - 다중 컨테이너 지원
-      const lowResult = (() => {
-        const sorted = [...cargoList].sort((a, b) => {
-          // 바닥면적 큰 순 (넓게 펴서 낮게)
-          const areaA = a.dimensions.width * a.dimensions.length;
-          const areaB = b.dimensions.width * b.dimensions.length;
-          return areaB - areaA;
-        });
-        const arrangedItems: PackedItem[] = [];
-        let currentContainer = 0;
-        const maxContainers = 10;
-
-        for (const cargo of sorted) {
-          for (let i = 0; i < cargo.quantity; i++) {
-            const orientations = getAllOrientations(cargo.dimensions);
-            let placed = false;
-            let tryContainer = currentContainer;
-
-            while (!placed && tryContainer < maxContainers) {
-              const containerItems = getContainerItems(arrangedItems, tryContainer);
-              let bestPos = null;
-              let bestOri = cargo.dimensions;
-              let bestScore = Infinity;
-              for (const ori of orientations) {
-                const pos = findBestPosition(containerItems, ori, packingMode);
-                if (pos) {
-                  // 높이 최소화: y가 작을수록, 높이가 낮은 방향일수록 좋음
-                  const finalHeight = pos.y + ori.height;
-                  const score = finalHeight * 1000000 + pos.z * 1000 + pos.x;
-                  if (score < bestScore) { bestScore = score; bestPos = pos; bestOri = ori; }
-                }
-              }
-              if (bestPos) {
-                arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-low`, dimensions: bestOri, position: bestPos, containerIndex: tryContainer });
-                placed = true;
-                currentContainer = tryContainer;
-              } else {
-                tryContainer++;
-              }
-            }
-          }
-        }
-        const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
-        const totalVol = container.width * container.height * container.length * usedContainers;
-        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-        const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
-        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: maxH, containerCount: usedContainers };
-      })();
-
-      // 8. 회전 최적화 (빈틈에 가장 잘 맞는 회전 선택) - 다중 컨테이너 지원
-      const rotateResult = (() => {
-        const sorted = [...cargoList].sort((a, b) => {
-          const volA = a.dimensions.width * a.dimensions.height * a.dimensions.length;
-          const volB = b.dimensions.width * b.dimensions.height * b.dimensions.length;
-          return volB - volA;
-        });
-        const arrangedItems: PackedItem[] = [];
-        let currentContainer = 0;
-        const maxContainers = 10;
-
-        for (const cargo of sorted) {
-          for (let i = 0; i < cargo.quantity; i++) {
-            const orientations = getAllOrientations(cargo.dimensions);
-            let placed = false;
-            let tryContainer = currentContainer;
-
-            while (!placed && tryContainer < maxContainers) {
-              const containerItems = getContainerItems(arrangedItems, tryContainer);
-              let bestPos = null;
-              let bestOri = cargo.dimensions;
-              let bestFit = Infinity;
-
-              for (const ori of orientations) {
-                const pos = findBestPosition(containerItems, ori, packingMode);
-                if (pos) {
-                  // 빈틈 최소화: 주변 공간과의 갭 계산
-                  let gapScore = 0;
-
-                  // 왼쪽 벽/화물과의 갭
-                  let leftGap = pos.x;
-                  for (const item of containerItems) {
-                    if (item.position.x + item.dimensions.width <= pos.x &&
-                        pos.z < item.position.z + item.dimensions.length &&
-                        pos.z + ori.length > item.position.z) {
-                      leftGap = Math.min(leftGap, pos.x - (item.position.x + item.dimensions.width));
-                    }
-                  }
-                  gapScore += leftGap;
-
-                  // 뒤쪽 벽/화물과의 갭
-                  let backGap = pos.z;
-                  for (const item of containerItems) {
-                    if (item.position.z + item.dimensions.length <= pos.z &&
-                        pos.x < item.position.x + item.dimensions.width &&
-                        pos.x + ori.width > item.position.x) {
-                      backGap = Math.min(backGap, pos.z - (item.position.z + item.dimensions.length));
-                    }
-                  }
-                  gapScore += backGap;
-
-                  // 최종 점수: 갭 + 높이
-                  const fitScore = gapScore * 100 + pos.y;
-
-                  if (fitScore < bestFit) {
-                    bestFit = fitScore;
-                    bestPos = pos;
-                    bestOri = ori;
-                  }
-                }
-              }
-              if (bestPos) {
-                arrangedItems.push({ ...cargo, uniqueId: `${cargo.id}-${i}-rotate`, dimensions: bestOri, position: bestPos, containerIndex: tryContainer });
-                placed = true;
-                currentContainer = tryContainer;
-              } else {
-                tryContainer++;
-              }
-            }
-          }
-        }
-        const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
-        const totalVol = container.width * container.height * container.length * usedContainers;
-        const usedVol = arrangedItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-        const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
-        return { items: arrangedItems, efficiency: (usedVol / totalVol) * 100, maxHeight: maxH, containerCount: usedContainers };
-      })();
+      const lowResult = runCustomStrategy(lowSorted, 'low', (pos, ori) => (pos.y + ori.height) * 1000000 + pos.z * 1000 + pos.x);
 
       const newStrategies: OptimizationStrategy[] = [
         {
@@ -536,10 +393,10 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           description: '큰 화물부터 배치',
           icon: '📦',
           result: volumeResult.items,
-          efficiency: volumeResult.efficiency,
           itemCount: volumeResult.items.length,
           maxHeight: volumeResult.maxHeight,
-          containerCount: volumeResult.containerCount
+          containerCount: volumeResult.containerCount,
+          wastedSpace: volumeResult.wastedSpace
         },
         {
           id: 'weight',
@@ -547,10 +404,10 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           description: '무거운 것 먼저',
           icon: '⚖️',
           result: weightResult.items,
-          efficiency: weightResult.efficiency,
           itemCount: weightResult.items.length,
           maxHeight: weightResult.maxHeight,
-          containerCount: weightResult.containerCount
+          containerCount: weightResult.containerCount,
+          wastedSpace: weightResult.wastedSpace
         },
         {
           id: 'height',
@@ -558,21 +415,21 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           description: '낮은 것부터 층 쌓기',
           icon: '📊',
           result: heightResult.items,
-          efficiency: heightResult.efficiency,
           itemCount: heightResult.items.length,
           maxHeight: heightResult.maxHeight,
-          containerCount: heightResult.containerCount
+          containerCount: heightResult.containerCount,
+          wastedSpace: heightResult.wastedSpace
         },
         {
-          id: 'area',
-          name: '면적 우선',
-          description: '넓은 것부터 기반',
-          icon: '🏗️',
-          result: areaResult.items,
-          efficiency: areaResult.efficiency,
-          itemCount: areaResult.items.length,
-          maxHeight: areaResult.maxHeight,
-          containerCount: areaResult.containerCount
+          id: 'norotate',
+          name: '회전 금지',
+          description: '원래 방향 유지',
+          icon: '🔒',
+          result: noRotateResult.items,
+          itemCount: noRotateResult.items.length,
+          maxHeight: noRotateResult.maxHeight,
+          containerCount: noRotateResult.containerCount,
+          wastedSpace: noRotateResult.wastedSpace
         },
         {
           id: 'mixed',
@@ -580,10 +437,10 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           description: '큰것+작은것 빈틈채우기',
           icon: '🧩',
           result: mixedResult.items,
-          efficiency: mixedResult.efficiency,
           itemCount: mixedResult.items.length,
           maxHeight: mixedResult.maxHeight,
-          containerCount: mixedResult.containerCount
+          containerCount: mixedResult.containerCount,
+          wastedSpace: mixedResult.wastedSpace
         },
         {
           id: 'wall',
@@ -591,10 +448,10 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           description: '벽에 붙여서 배치',
           icon: '🧱',
           result: wallResult.items,
-          efficiency: wallResult.efficiency,
           itemCount: wallResult.items.length,
           maxHeight: wallResult.maxHeight,
-          containerCount: wallResult.containerCount
+          containerCount: wallResult.containerCount,
+          wastedSpace: wallResult.wastedSpace
         },
         {
           id: 'low',
@@ -602,26 +459,25 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
           description: '최대한 낮게 쌓기',
           icon: '📉',
           result: lowResult.items,
-          efficiency: lowResult.efficiency,
           itemCount: lowResult.items.length,
           maxHeight: lowResult.maxHeight,
-          containerCount: lowResult.containerCount
-        },
-        {
-          id: 'rotate',
-          name: '회전 최적화',
-          description: '빈틈에 맞게 회전',
-          icon: '🔄',
-          result: rotateResult.items,
-          efficiency: rotateResult.efficiency,
-          itemCount: rotateResult.items.length,
-          maxHeight: rotateResult.maxHeight,
-          containerCount: rotateResult.containerCount
+          containerCount: lowResult.containerCount,
+          wastedSpace: lowResult.wastedSpace
         }
       ];
 
-      // 효율성 기준 정렬
-      newStrategies.sort((a, b) => b.efficiency - a.efficiency);
+      // 정렬: 컨테이너 수 적은 순 → 공간 낭비 적은 순 → 선호 전략 순
+      const preferredOrder = ['wall', 'norotate', 'low'];
+      newStrategies.sort((a, b) => {
+        if (a.containerCount !== b.containerCount) return a.containerCount - b.containerCount;
+        if (Math.abs(a.wastedSpace - b.wastedSpace) > 0.1) return a.wastedSpace - b.wastedSpace;
+        // 같은 조건이면 선호 전략 순서
+        const aIdx = preferredOrder.indexOf(a.id);
+        const bIdx = preferredOrder.indexOf(b.id);
+        const aPriority = aIdx >= 0 ? aIdx : 100;
+        const bPriority = bIdx >= 0 ? bIdx : 100;
+        return aPriority - bPriority;
+      });
 
       setStrategies(newStrategies);
       // 초기에는 선택하지 않음 - 사용자가 직접 선택해야 미리보기 적용
@@ -726,33 +582,31 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
                       <p className="text-xs text-slate-500 truncate">{strategy.description}</p>
                     </div>
 
-                    {/* Stats */}
+                    {/* Stats - 컨테이너 수 + 공간 낭비 */}
                     <div className="text-right flex-shrink-0">
-                      <span className={`text-lg font-bold ${
-                        strategy.efficiency >= 50 ? 'text-green-600' :
-                        strategy.efficiency >= 30 ? 'text-amber-600' : 'text-red-500'
-                      }`}>
-                        {strategy.efficiency.toFixed(1)}%
-                      </span>
+                      <div className="flex items-baseline gap-1 justify-end">
+                        <span className="text-lg font-bold text-blue-600">
+                          {strategy.containerCount}대
+                        </span>
+                      </div>
                       <p className="text-[10px] text-slate-400">
                         {strategy.itemCount}/{totalItems}개
-                        {strategy.containerCount > 1 && (
-                          <span className="ml-1 text-blue-500 font-medium">
-                            ({strategy.containerCount}대)
-                          </span>
-                        )}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        낭비: <span className={strategy.wastedSpace < 5 ? 'text-green-600' : strategy.wastedSpace < 15 ? 'text-amber-600' : 'text-red-500'}>
+                          {strategy.wastedSpace.toFixed(1)}㎥
+                        </span>
                       </p>
                     </div>
                   </div>
 
-                  {/* Progress bar */}
+                  {/* 배치 완료 바 */}
                   <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${
-                        strategy.efficiency >= 50 ? 'bg-green-500' :
-                        strategy.efficiency >= 30 ? 'bg-amber-500' : 'bg-red-500'
+                        strategy.itemCount === totalItems ? 'bg-green-500' : 'bg-amber-500'
                       }`}
-                      style={{ width: `${Math.min(strategy.efficiency, 100)}%` }}
+                      style={{ width: `${(strategy.itemCount / totalItems) * 100}%` }}
                     />
                   </div>
                 </div>
