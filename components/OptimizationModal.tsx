@@ -572,25 +572,35 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         </div>
 
         {/* 옵션 토글 */}
-        <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex gap-3 flex-shrink-0">
-          <label className="flex items-center gap-1.5 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={noStandUp}
-              onChange={(e) => setNoStandUp?.(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
-            />
-            <span className="text-xs text-slate-600 group-hover:text-slate-800">눕히기 금지</span>
-          </label>
-          <label className="flex items-center gap-1.5 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={noStack}
-              onChange={(e) => setNoStack?.(e.target.checked)}
-              className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
-            />
-            <span className="text-xs text-slate-600 group-hover:text-slate-800">2단 적재 금지</span>
-          </label>
+        <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex gap-2 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setNoStandUp?.(!noStandUp)}
+            className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${
+              noStandUp
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+            눕히기 금지
+          </button>
+          <button
+            type="button"
+            onClick={() => setNoStack?.(!noStack)}
+            className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${
+              noStack
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            2단 적재 금지
+          </button>
         </div>
 
         {/* Content */}

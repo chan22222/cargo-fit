@@ -2061,6 +2061,24 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
             </div>
           </div>
 
+          {/* 옵션 토글 */}
+          <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex gap-2 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setNoStandUp(!noStandUp)}
+              className={`flex-1 px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1.5 ${
+                noStandUp
+                  ? 'bg-amber-600 text-white'
+                  : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              </svg>
+              높이 고정
+            </button>
+          </div>
+
           <div className="flex-1 overflow-y-auto p-3">
             {isCalculating ? (
               <div className="flex flex-col items-center justify-center h-full">
