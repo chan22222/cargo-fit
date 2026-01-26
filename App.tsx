@@ -2334,6 +2334,8 @@ const App: React.FC = () => {
         packingMode={globalPackingMode}
         noStandUp={noStandUp}
         noStack={noStack}
+        setNoStandUp={setNoStandUp}
+        setNoStack={setNoStack}
       />
 
       <FeedbackModal

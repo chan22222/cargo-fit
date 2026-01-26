@@ -23,6 +23,8 @@ interface OptimizationModalProps {
   packingMode: 'bottom-first' | 'inner-first';
   noStandUp?: boolean;
   noStack?: boolean;
+  setNoStandUp?: (value: boolean) => void;
+  setNoStack?: (value: boolean) => void;
 }
 
 const OptimizationModal: React.FC<OptimizationModalProps> = ({
@@ -34,7 +36,9 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
   cargoList,
   packingMode,
   noStandUp = false,
-  noStack = false
+  noStack = false,
+  setNoStandUp,
+  setNoStack
 }) => {
   const [strategies, setStrategies] = useState<OptimizationStrategy[]>([]);
   const [isCalculating, setIsCalculating] = useState(true);
@@ -565,6 +569,28 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
               </svg>
             </button>
           </div>
+        </div>
+
+        {/* 옵션 토글 */}
+        <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex gap-3 flex-shrink-0">
+          <label className="flex items-center gap-1.5 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={noStandUp}
+              onChange={(e) => setNoStandUp?.(e.target.checked)}
+              className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            />
+            <span className="text-xs text-slate-600 group-hover:text-slate-800">눕히기 금지</span>
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer group">
+            <input
+              type="checkbox"
+              checked={noStack}
+              onChange={(e) => setNoStack?.(e.target.checked)}
+              className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+            />
+            <span className="text-xs text-slate-600 group-hover:text-slate-800">2단 적재 금지</span>
+          </label>
         </div>
 
         {/* Content */}
