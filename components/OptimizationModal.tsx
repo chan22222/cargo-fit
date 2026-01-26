@@ -328,14 +328,13 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         }
 
         const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
-        // 마지막 컨테이너만 낭비 계산
+        // 마지막 컨테이너의 낭비 계산 - 컨테이너 전체 용량 기준
         const lastIdx = usedContainers - 1;
         const lastItems = arrangedItems.filter(i => (i.containerIndex ?? 0) === lastIdx);
-        const lastHeight = lastItems.length > 0 ? Math.max(...lastItems.map(i => i.position.y + i.dimensions.height)) : 0;
-        const lastTotalVol = container.width * container.length * lastHeight;
+        const singleContainerVol = container.width * container.height * container.length;
         const lastUsedVol = lastItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
         const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
-        return { items: arrangedItems, maxHeight: maxH, containerCount: usedContainers, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
+        return { items: arrangedItems, maxHeight: maxH, containerCount: usedContainers, wastedSpace: (singleContainerVol - lastUsedVol) / 1000000 };
       })();
 
       // 커스텀 전략용 헬퍼 함수 (같은 그룹 회전 통일 + 0번 컨테이너부터 탐색)
@@ -381,14 +380,13 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
         }
 
         const usedContainers = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.containerIndex ?? 0))) + 1 : 1;
-        // 마지막 컨테이너만 낭비 계산
+        // 마지막 컨테이너의 낭비 계산 - 컨테이너 전체 용량 기준
         const lastIdx = usedContainers - 1;
         const lastItems = arrangedItems.filter(i => (i.containerIndex ?? 0) === lastIdx);
-        const lastHeight = lastItems.length > 0 ? Math.max(...lastItems.map(i => i.position.y + i.dimensions.height)) : 0;
-        const lastTotalVol = container.width * container.length * lastHeight;
+        const singleContainerVol = container.width * container.height * container.length;
         const lastUsedVol = lastItems.reduce((acc, i) => acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
         const maxH = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => i.position.y + i.dimensions.height)) : 0;
-        return { items: arrangedItems, maxHeight: maxH, containerCount: usedContainers, wastedSpace: (lastTotalVol - lastUsedVol) / 1000000 };
+        return { items: arrangedItems, maxHeight: maxH, containerCount: usedContainers, wastedSpace: (singleContainerVol - lastUsedVol) / 1000000 };
       };
 
       // 5. 혼합 전략
