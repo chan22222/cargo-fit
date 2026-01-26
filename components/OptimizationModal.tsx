@@ -253,16 +253,14 @@ const OptimizationModal: React.FC<OptimizationModalProps> = ({
       ? Math.max(...arrangedItems.map(item => (item.containerIndex ?? 0))) + 1
       : 1;
 
-    // 마지막 컨테이너만 낭비 계산 (㎥)
+    // 마지막 컨테이너의 낭비 계산 - 컨테이너 전체 용량 기준 (㎥)
     const lastContainerIdx = usedContainers - 1;
     const lastContainerItems = arrangedItems.filter(i => (i.containerIndex ?? 0) === lastContainerIdx);
-    const lastActualHeight = lastContainerItems.length > 0
-      ? Math.max(...lastContainerItems.map(i => i.position.y + i.dimensions.height))
-      : 0;
-    const lastTotalVol = container.width * container.length * lastActualHeight;
     const lastUsedVol = lastContainerItems.reduce((acc, i) =>
       acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-    const wastedSpace = (lastTotalVol - lastUsedVol) / 1000000;
+    const singleContainerVolume = container.width * container.height * container.length;
+    // 컨테이너 전체 용량 - 사용 용량 = 낭비 (화물 추가할수록 낭비 감소)
+    const wastedSpace = (singleContainerVolume - lastUsedVol) / 1000000;
 
     const maxHeight = arrangedItems.reduce((max, item) =>
       Math.max(max, item.position.y + item.dimensions.height), 0);

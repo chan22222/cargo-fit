@@ -193,23 +193,16 @@ const App: React.FC = () => {
       ? Math.max(...packedItems.map(item => (item.containerIndex ?? 0) + 1))
       : 1;
 
-    // 마지막 컨테이너만 낭비 계산 (㎥)
+    // 마지막 컨테이너의 낭비 계산 - 컨테이너 전체 용량 기준 (㎥)
     const lastContainerIdx = containerCount - 1;
     const lastContainerItems = packedItems.filter(i => (i.containerIndex ?? 0) === lastContainerIdx);
-    const lastActualHeight = lastContainerItems.length > 0
-      ? Math.max(...lastContainerItems.map(i => i.position.y + i.dimensions.height))
-      : 0;
-    const lastTotalVol = currentContainer.width * currentContainer.length * lastActualHeight;
     const lastUsedVol = lastContainerItems.reduce((acc, i) =>
       acc + i.dimensions.width * i.dimensions.height * i.dimensions.length, 0);
-    const wastedVolumeM3 = (lastTotalVol - lastUsedVol) / 1000000;
+    // 컨테이너 전체 용량 - 사용 용량 = 낭비 (화물 추가할수록 낭비 감소)
+    const wastedVolumeM3 = (singleContainerVolume - lastUsedVol) / 1000000;
 
-    // 단일 컨테이너 효율 (실제 적재 높이 기준)
-    const actualHeight = packedItems.length > 0
-      ? Math.max(...packedItems.map(i => i.position.y + i.dimensions.height))
-      : 0;
-    const actualVolume = currentContainer.width * currentContainer.length * actualHeight;
-    const volumeEfficiency = actualVolume > 0 ? (usedVolume / actualVolume) * 100 : 0;
+    // 단일 컨테이너 효율 (컨테이너 전체 용량 기준)
+    const volumeEfficiency = singleContainerVolume > 0 ? (usedVolume / singleContainerVolume) * 100 : 0;
 
     return {
       volumeEfficiency,

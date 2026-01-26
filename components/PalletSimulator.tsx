@@ -580,7 +580,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = arrangedItems.length > 0 ? Math.max(...arrangedItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-    // 마지막 팔레트만 낭비 계산
+    // 마지막 팔레트만 낭비 계산 (높이 기준)
     const lastPalletIdx = usedPallets - 1;
     const lastPalletItems = arrangedItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
     const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
@@ -1128,7 +1128,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-    // 마지막 팔레트만 낭비 계산
+    // 마지막 팔레트만 낭비 계산 (높이 기준)
     const lastPalletIdx = usedPallets - 1;
     const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
     const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
@@ -1210,7 +1210,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
         }
 
         const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-        // 마지막 팔레트만 낭비 계산
+        // 마지막 팔레트만 낭비 계산 (높이 기준)
         const lastPalletIdx = usedPallets - 1;
         const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
         const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
@@ -1307,6 +1307,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
+    // 마지막 팔레트만 낭비 계산 (높이 기준)
     const lastPalletIdx = usedPallets - 1;
     const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
     const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
@@ -1423,7 +1424,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
       }
 
       const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
-      // 마지막 팔레트만 낭비 계산
+      // 마지막 팔레트만 낭비 계산 (높이 기준)
       const lastPalletIdx = usedPallets - 1;
       const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
       const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
@@ -1511,6 +1512,7 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
     }
 
     const usedPallets = allItems.length > 0 ? Math.max(...allItems.map(i => (i.palletIndex ?? 0))) + 1 : 1;
+    // 마지막 팔레트만 낭비 계산 (높이 기준)
     const lastPalletIdx = usedPallets - 1;
     const lastPalletItems = allItems.filter(i => (i.palletIndex ?? 0) === lastPalletIdx);
     const lastActualHeight = lastPalletItems.length > 0 ? Math.max(...lastPalletItems.map(i => i.position.y + i.dimensions.height)) : 0;
