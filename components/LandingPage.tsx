@@ -315,7 +315,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                 <span className="text-blue-600">Ship Faster.</span>
               </h1>
               <p className="text-base md:text-xl text-slate-500 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium px-4 md:px-0">
-                쉽다고는 복잡한 물류 프로세스를 데이터와 AI로 혁신합니다.
+                쉽다고(SHIPDAGO)는 복잡한 물류 프로세스를 데이터와 AI로 혁신합니다.
                 컨테이너 3D 시뮬레이션을 가입 없이 무료로 이용해보세요.
               </p>
             </div>
@@ -365,7 +365,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center space-y-4 mb-20">
              <h2 className="text-sm font-black text-blue-500 uppercase tracking-[0.3em]">How it works</h2>
-             <p className="text-4xl font-black text-white tracking-tight">SHIPDAGO를 통한 스마트한 적재 프로세스</p>
+             <p className="text-4xl font-black text-white tracking-tight">쉽다고와 함께하는 스마트한 적재 프로세스</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-12">
@@ -874,7 +874,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(37,99,235,0.2),transparent)]"></div>
             <div className="relative z-10 space-y-10">
                <h2 className="text-3xl sm:text-4xl md:text-6xl font-black text-white tracking-tight">
-                  물류의 디지털 전환,<br/>SHIPDAGO와 시작하세요.
+                  <span className="block">물류의 디지털 전환,</span>
+                  <span className="block mt-3">쉽다고와 시작하세요.</span>
                </h2>
                <a
                  href="/container"
@@ -904,7 +905,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
                     </div>
                  </div>
                  <p className="text-xs text-slate-600 leading-relaxed text-center md:text-left">
-                    물류의 디지털 혁신을 선도하는<br/>
+                    쉽다고 - 물류를 쉽게<br/>
                     스마트 포워딩 솔루션
                  </p>
                  <div className="flex gap-3">
