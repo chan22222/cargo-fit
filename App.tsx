@@ -1703,14 +1703,6 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        {/* Mega Menu Overlay */}
-        {megaMenuOpen && (
-          <div
-            className="hidden md:block fixed inset-0 z-40"
-            onClick={() => { setMegaMenuOpen(false); setOpenDropdown(null); }}
-          />
-        )}
-
         {/* Mobile Menu Button */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -2035,6 +2027,14 @@ const App: React.FC = () => {
           </div>
         )}
       </header>
+
+      {/* Mega Menu Overlay - Outside header for proper stacking */}
+      {megaMenuOpen && (
+        <div
+          className="hidden md:block fixed inset-0 z-40"
+          onClick={() => { setMegaMenuOpen(false); setOpenDropdown(null); }}
+        />
+      )}
 
       {/* Content Injection */}
       <Suspense fallback={<LoadingFallback />}>
