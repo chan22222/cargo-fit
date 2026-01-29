@@ -2174,8 +2174,10 @@ const App: React.FC = () => {
           {/* Main Visualizer Area with Left Ad Space */}
           <div className="lg:col-span-3 flex h-full gap-4 min-w-0">
               {/* Left Vertical Ad Space */}
-              <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 135px)' }}>
-                <AdSense adSlot="6357216596" adFormat="auto" />
+              <div className="hidden lg:block w-40 shrink-0">
+                <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: 'calc(100vh - 135px)' }}>
+                  <AdSense adSlot="6357216596" adFormat="auto" />
+                </div>
               </div>
 
               {/* Main Content */}

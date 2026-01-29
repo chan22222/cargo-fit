@@ -1774,10 +1774,12 @@ const PalletSimulator: React.FC<PalletSimulatorProps> = ({
   return (
     <main className="p-6 mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden bg-slate-50/50" style={{ height: 'calc(100vh - 80px)' }}>
       <div className="lg:col-span-3 flex gap-4 min-w-0" style={{ height: 'calc(100vh - 135px)' }}>
-        <div className="hidden lg:flex w-40 bg-white border border-slate-200 rounded-2xl items-center justify-center shrink-0 shadow-sm overflow-hidden" style={{ height: 'calc(100vh - 135px)' }}>
-          <Suspense fallback={<div className="w-40 h-[600px]" />}>
-            <AdSense adSlot="6357216596" adFormat="auto" />
-          </Suspense>
+        <div className="hidden lg:block w-40 shrink-0">
+          <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: 'calc(100vh - 135px)' }}>
+            <Suspense fallback={<div className="w-40 h-[600px]" />}>
+              <AdSense adSlot="6357216596" adFormat="auto" />
+            </Suspense>
+          </div>
         </div>
 
         <div className="flex-1 flex flex-col gap-4 min-w-0" style={{ height: 'calc(100vh - 135px)' }}>
