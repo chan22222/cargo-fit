@@ -516,7 +516,6 @@ const CurrencyCalculator: React.FC<CurrencyCalculatorProps> = ({
 
     const proxyUrls = [
       `https://pr.refra2n-511.workers.dev/?url=${encodeURIComponent(unipassUrl)}`,
-      `https://corsproxy.io/?url=${encodeURIComponent(unipassUrl)}`,
       `https://api.allorigins.win/get?url=${encodeURIComponent(unipassUrl)}`
     ];
 
@@ -653,7 +652,6 @@ const CurrencyCalculator: React.FC<CurrencyCalculatorProps> = ({
 
     const proxyBases = [
       'https://pr.refra2n-511.workers.dev/?url=',
-      'https://corsproxy.io/?url=',
       'https://api.allorigins.win/raw?url='
     ];
 
@@ -669,6 +667,11 @@ const CurrencyCalculator: React.FC<CurrencyCalculatorProps> = ({
           });
           if (response.ok) {
             mall1501Html = await response.text();
+            // 에러 JSON 응답 감지 (하나은행 API가 200 OK로 에러 반환할 수 있음)
+            if (mall1501Html.includes('errorCode') || mall1501Html.includes('errorMessage')) {
+              mall1501Html = '';
+              continue;
+            }
             if (mall1501Html.includes('tbl_type1') || mall1501Html.includes('<table')) {
               break;
             }
@@ -691,6 +694,11 @@ const CurrencyCalculator: React.FC<CurrencyCalculatorProps> = ({
           });
           if (response.ok) {
             mall1502Html = await response.text();
+            // 에러 JSON 응답 감지
+            if (mall1502Html.includes('errorCode') || mall1502Html.includes('errorMessage')) {
+              mall1502Html = '';
+              continue;
+            }
             if (mall1502Html.includes('tbl_type1') || mall1502Html.includes('<table')) {
               break;
             }
