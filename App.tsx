@@ -28,6 +28,7 @@ const InsightsList = lazy(() => import('./components/InsightsList'));
 const Tracker = lazy(() => import('./components/tracker').then(m => ({ default: m.Tracker })));
 const FSSC = lazy(() => import('./components/fssc'));
 const WorldClock = lazy(() => import('./components/WorldClock'));
+const TradeMbti = lazy(() => import('./components/TradeMbti'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const AdSense = lazy(() => import('./components/AdSense'));
@@ -48,7 +49,7 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1000);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'notfound'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti' | 'notfound'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
   const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
@@ -90,6 +91,8 @@ const App: React.FC = () => {
         setCurrentRoute('fssc');
       } else if (path === '/worldclock') {
         setCurrentRoute('worldclock');
+      } else if (path === '/trade-mbti') {
+        setCurrentRoute('tradembti');
       } else if (path.startsWith('/tracker')) {
         setCurrentRoute('tracker');
         setActiveTab('tracker');
@@ -143,7 +146,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc' | 'worldclock'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -1005,6 +1008,13 @@ const App: React.FC = () => {
         canonicalUrl: `${BASE_URL}/worldclock`,
         jsonLd: [schemas.softwareApplication('세계 시간', '전 세계 주요 도시의 현재 시간 확인.', `${BASE_URL}/worldclock`)],
       },
+      tradembti: {
+        title: '물류 성향 테스트 (Trade MBTI)',
+        description: '나의 무역 스타일은? 10가지 질문으로 알아보는 인코텀즈 성향 테스트. 결과를 SNS에 공유하세요!',
+        keywords: '물류 MBTI, 무역 성향 테스트, 인코텀즈 테스트, Trade MBTI, 물류 유형, FOB, CIF, EXW, DDP',
+        canonicalUrl: `${BASE_URL}/trade-mbti`,
+        jsonLd: [schemas.softwareApplication('물류 성향 테스트 (Trade MBTI)', '나의 무역 스타일을 인코텀즈로 알아보는 성향 테스트.', `${BASE_URL}/trade-mbti`)],
+      },
       insights: {
         title: '물류 인사이트',
         description: '물류 트렌드, 규제 변화, 실무 팁 등 물류 전문 콘텐츠.',
@@ -1053,6 +1063,8 @@ const App: React.FC = () => {
       setActiveTab('tracker');
     } else if (currentRoute === 'fssc') {
       setActiveTab('fssc');
+    } else if (currentRoute === 'tradembti') {
+      setActiveTab('tradembti');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -1397,7 +1409,7 @@ const App: React.FC = () => {
              <button
                onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'info'); setMegaMenuOpen(!megaMenuOpen); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
-                 activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+                 activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'tradembti' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
@@ -1453,6 +1465,15 @@ const App: React.FC = () => {
                    >
                      <div className="text-sm font-bold">FS/SC 조회</div>
                      <div className="text-[10px] text-slate-400">유류할증료/보안료</div>
+                   </button>
+                   <button
+                     onClick={() => { setActiveTab('tradembti'); navigate('/trade-mbti'); setOpenDropdown(null); }}
+                     className={`w-full px-5 py-2.5 text-center transition-all ${
+                       activeTab === 'tradembti' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                     }`}
+                   >
+                     <div className="text-sm font-bold">Trade MBTI</div>
+                     <div className="text-[10px] text-slate-400">물류 성향 테스트</div>
                    </button>
                  </div>
                </div>
@@ -1665,6 +1686,7 @@ const App: React.FC = () => {
                           { tab: 'incoterms', route: '/incoterms', label: '인코텀즈', desc: '무역 조건 가이드', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
                           { tab: 'regulations', route: '/regulations', label: '수입 규제', desc: '품목별 규제 확인', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /> },
                           { tab: 'fssc', route: '/fssc', label: 'FS/SC 조회', desc: '유류할증료/보안료', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> },
+                          { tab: 'tradembti', route: '/trade-mbti', label: 'Trade MBTI', desc: '물류 성향 테스트', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /> },
                         ].map(item => (
                           <button
                             key={item.tab}
@@ -1924,7 +1946,7 @@ const App: React.FC = () => {
                 <button
                   onClick={() => setMobileAccordion(mobileAccordion === 'info' ? null : 'info')}
                   className={`w-full text-left px-4 py-3 font-bold transition-all flex items-center justify-between ${
-                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock' || activeTab === 'tradembti' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   수/출입 정보
@@ -2002,6 +2024,20 @@ const App: React.FC = () => {
                       <div className="leading-none">
                         <span className="text-sm font-semibold text-slate-700 block">FS/SC 조회</span>
                         <span className="text-[10px] text-slate-400 leading-tight">유류할증료/보안료</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('tradembti'); navigate('/trade-mbti'); setMobileMenuOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        activeTab === 'tradembti' ? 'bg-blue-50' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                      <div className="leading-none">
+                        <span className="text-sm font-semibold text-slate-700 block">Trade MBTI</span>
+                        <span className="text-[10px] text-slate-400 leading-tight">물류 성향 테스트</span>
                       </div>
                     </button>
                   </div>
@@ -2106,6 +2142,11 @@ const App: React.FC = () => {
         />
       ) : activeTab === 'worldclock' ? (
         <WorldClock
+          leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+          rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+        />
+      ) : activeTab === 'tradembti' ? (
+        <TradeMbti
           leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
