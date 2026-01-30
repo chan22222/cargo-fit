@@ -546,6 +546,15 @@ export const db = {
       return { error };
     },
 
+    markAdminRead: async (id: string) => {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .update({ admin_last_read_at: new Date().toISOString() })
+        .eq('id', id)
+        .select();
+      return { data, error };
+    },
+
     incrementViewCount: async (id: string) => {
       try {
         const { data: rpcData, error: rpcError } = await supabase

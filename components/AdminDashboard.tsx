@@ -145,29 +145,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     setCommunityLoading(false);
   };
 
-  const getAdminVisited = (): Record<string, string> => {
-    try {
-      return JSON.parse(localStorage.getItem('admin_post_visited') || '{}');
-    } catch { return {}; }
-  };
-
-  const markAdminVisited = (postId: string) => {
-    const visited = getAdminVisited();
-    visited[postId] = new Date().toISOString();
-    localStorage.setItem('admin_post_visited', JSON.stringify(visited));
-  };
-
   const isPostNew = (post: CommunityPost): boolean => {
-    const visited = getAdminVisited();
-    const lastVisit = visited[post.id];
-    if (!lastVisit) return true;
+    if (!post.admin_last_read_at) return true;
     const latestComment = latestCommentMap[post.id];
-    if (latestComment && latestComment > lastVisit) return true;
+    if (latestComment && latestComment > post.admin_last_read_at) return true;
     return false;
   };
 
   const openPostModal = async (post: CommunityPost) => {
-    markAdminVisited(post.id);
+    await db.communityPosts.markAdminRead(post.id);
+    setCommunityPosts(prev => prev.map(p =>
+      p.id === post.id ? { ...p, admin_last_read_at: new Date().toISOString() } : p
+    ));
     setViewingPost(post);
     setViewingPostComments([]);
     setViewingPostCommentsLoading(true);

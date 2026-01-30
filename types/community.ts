@@ -8,6 +8,7 @@ export interface CommunityPost {
   is_private: boolean;
   created_at: string;
   updated_at: string;
+  admin_last_read_at: string | null;
 }
 
 export interface CommunityComment {
