@@ -273,25 +273,30 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
 
   return (
     <main className="flex-1 flex flex-col bg-white overflow-y-auto w-full relative">
-      
-      {/* Advertisement Banner - Looking for Advertisers */}
+
+      {/* New Feature Banner */}
       <div
-        className="w-full bg-gradient-to-r from-blue-50 to-slate-50 border-b border-slate-200 py-4 cursor-pointer hover:from-blue-100 hover:to-slate-100 transition-colors"
-        onClick={() => setIsFeedbackModalOpen(true)}
+        className="w-full bg-gradient-to-r from-indigo-50 to-cyan-50 border-b border-indigo-100 py-3 cursor-pointer hover:from-indigo-100 hover:to-cyan-100 transition-colors"
+        onClick={() => {
+          window.history.pushState({}, '', '/trade-mbti');
+          window.dispatchEvent(new PopStateEvent('popstate'));
+        }}
       >
-         <div className="max-w-7xl mx-auto px-10">
-            <div className="flex items-center justify-center gap-3">
-               <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-               </svg>
-               <span className="text-sm font-medium text-slate-700">
-                  광고주를 찾습니다 | 물류 업계 타겟 광고 문의
-               </span>
-               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-               </svg>
-            </div>
-         </div>
+        <div className="max-w-7xl mx-auto px-10">
+          <div className="flex items-center justify-center gap-3">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-indigo-500"></span>
+            </span>
+            <span className="text-sm font-semibold text-indigo-700">NEW</span>
+            <span className="text-sm text-slate-700">
+              Trade MBTI - 나의 물류 성향 테스트가 출시되었습니다
+            </span>
+            <svg className="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       {/* Dynamic Background */}
@@ -844,29 +849,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
             </div>
          </div>
       </section>
-
-      {/* Advertisement Banner - Looking for Advertisers (Inline) */}
-      <div className="w-full py-12">
-         <div className="max-w-4xl mx-auto px-10">
-            <div
-              className="bg-gradient-to-r from-slate-50 to-blue-50 border border-slate-200 rounded-xl p-8 text-center cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
-              onClick={() => setIsFeedbackModalOpen(true)}
-            >
-               <div className="flex items-center justify-center gap-4">
-                  <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <div className="text-left">
-                     <h3 className="text-lg font-bold text-slate-800">광고주를 찾습니다</h3>
-                     <p className="text-sm text-slate-600">물류 업계 타겟 마케팅 · 클릭하여 문의하기</p>
-                  </div>
-                  <svg className="w-5 h-5 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-               </div>
-            </div>
-         </div>
-      </div>
 
       {/* Bottom CTA */}
       <section className="py-32 px-10 bg-white">
