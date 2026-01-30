@@ -6,9 +6,11 @@ import { getThumbnailUrl, getFeaturedImageUrl } from '../lib/image';
 interface InsightsListProps {
   onNavigateToInsight: (id: string) => void;
   onNavigateBack: () => void;
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
 }
 
-const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavigateBack }) => {
+const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavigateBack, leftSideAdSlot, rightSideAdSlot }) => {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTag, setSelectedTag] = useState<string>('all');
@@ -161,8 +163,17 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Main Content with Side Ads */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-12">
+        <div className="flex gap-6">
+          {leftSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+          <main className="flex-1 min-w-0">
         {filteredInsights.length === 0 ? (
           <div className="text-center py-20">
             <svg className="w-24 h-24 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -277,7 +288,16 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
             </div>
           </>
         )}
-      </main>
+          </main>
+          {rightSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

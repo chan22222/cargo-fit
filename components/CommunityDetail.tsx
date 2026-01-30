@@ -5,9 +5,11 @@ import { db } from '../lib/supabase';
 interface CommunityDetailProps {
   postId: string;
   onNavigateBack: () => void;
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
 }
 
-const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBack }) => {
+const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBack, leftSideAdSlot, rightSideAdSlot }) => {
   const [post, setPost] = useState<CommunityPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -117,8 +119,43 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Content */}
-      <div className="max-w-3xl mx-auto px-4 md:px-8 py-8">
+      {/* Hero Header */}
+      <header className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute w-96 h-96 -top-48 -left-48 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse"></div>
+          <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center">
+            <span className="inline-block px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-4">
+              SHIPDAGO COMMUNITY
+            </span>
+            <h1 className="text-5xl md:text-6xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
+              커뮤니티
+            </h1>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              물류 실무자들의 소통 공간. 자유롭게 정보를 공유하고 의견을 나눠보세요.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* Content with Side Ads */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+        <div className="flex gap-6">
+          {leftSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+          <div className="flex-1 min-w-0 max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
           {/* Post Header */}
           <div className="p-6 md:p-8 border-b border-slate-100">
@@ -168,6 +205,15 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
           >
             삭제
           </button>
+        </div>
+          </div>
+          {rightSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

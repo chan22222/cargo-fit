@@ -1211,7 +1211,7 @@ const App: React.FC = () => {
       <Analytics />
       {/* Tailwind CDN safelist - 시뮬레이터에서 사용하는 클래스를 미리 로드 */}
       <div className="hidden lg:grid lg:grid-cols-4 lg:col-span-3 lg:col-span-1 lg:flex lg:flex-row lg:h-auto grid-cols-1" aria-hidden="true" />
-      <div className="h-screen w-full bg-white flex flex-col font-sans overflow-x-hidden text-slate-900">
+      <div className="min-h-screen w-full bg-white flex flex-col font-sans overflow-x-hidden text-slate-900">
       {/* Premium Navigation Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-100 px-4 md:px-10 flex justify-between items-center shrink-0 z-50 h-[60px] md:h-[80px] relative">
         <div
@@ -2316,11 +2316,15 @@ const App: React.FC = () => {
             onNavigateToPost={handleNavigateToPost}
             onNavigateToWrite={handleNavigateToCommunityWrite}
             onNavigateBack={handleNavigateBack}
+            leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+            rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           />
         ) : currentRoute === 'community-post' && currentPostId ? (
           <CommunityDetail
             postId={currentPostId}
             onNavigateBack={handleNavigateToCommunity}
+            leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+            rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           />
         ) : currentRoute === 'community-write' ? (
           <CommunityWrite
@@ -2331,12 +2335,16 @@ const App: React.FC = () => {
           <InsightsList
             onNavigateToInsight={handleNavigateToInsight}
             onNavigateBack={handleNavigateBack}
+            leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+            rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           />
         ) : currentRoute === 'insight' && currentInsightId ? (
           <InsightDetail
             insightId={currentInsightId}
             onNavigateBack={() => navigate('/insights')}
             onNavigateToInsight={handleNavigateToInsight}
+            leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
+            rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           />
         ) : null
       ) : activeTab === 'pallet' ? (

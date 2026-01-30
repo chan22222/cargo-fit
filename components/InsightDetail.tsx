@@ -7,9 +7,11 @@ interface InsightDetailProps {
   insightId: string;
   onNavigateBack: () => void;
   onNavigateToInsight: (id: string) => void;
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
 }
 
-const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack, onNavigateToInsight }) => {
+const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack, onNavigateToInsight, leftSideAdSlot, rightSideAdSlot }) => {
   const [insight, setInsight] = useState<Insight | null>(null);
   const [relatedInsights, setRelatedInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,7 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="mt-4 text-slate-600">로딩 중...</p>
@@ -91,7 +93,7 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
 
   if (!insight) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <svg className="w-24 h-24 text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
@@ -163,8 +165,17 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content with Side Ads */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+        <div className="flex gap-6">
+          {leftSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+          <main className="flex-1 min-w-0">
         {/* Article */}
         <article className="bg-white rounded-3xl shadow-xl overflow-hidden">
           {/* Hero Image */}
@@ -381,7 +392,16 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
             </div>
           </section>
         )}
-      </main>
+          </main>
+          {rightSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

@@ -6,9 +6,11 @@ interface CommunityListProps {
   onNavigateToPost: (id: string) => void;
   onNavigateToWrite: () => void;
   onNavigateBack: () => void;
+  leftSideAdSlot?: React.ReactNode;
+  rightSideAdSlot?: React.ReactNode;
 }
 
-const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavigateToWrite, onNavigateBack }) => {
+const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavigateToWrite, onNavigateBack, leftSideAdSlot, rightSideAdSlot }) => {
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -75,28 +77,43 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-800 text-white">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-48 h-48 bg-blue-300 rounded-full blur-3xl"></div>
-        </div>
-        <div className="relative max-w-5xl mx-auto px-4 md:px-8 py-12 md:py-16">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-              </svg>
-            </div>
-            <span className="text-sm font-semibold text-blue-200 uppercase tracking-wider">Community</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-black mb-3">커뮤니티</h2>
-          <p className="text-blue-100 text-lg max-w-xl">물류 실무자들의 소통 공간. 자유롭게 정보를 공유하고 의견을 나눠보세요.</p>
-        </div>
-      </div>
+      {/* Hero Header */}
+      <header className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
 
-      {/* Content */}
-      <div className="max-w-5xl mx-auto px-4 md:px-8 py-8">
+        {/* Animated Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute w-96 h-96 -top-48 -left-48 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse"></div>
+          <div className="absolute w-96 h-96 -bottom-48 -right-48 bg-white rounded-full mix-blend-overlay filter blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+          <div className="text-center">
+            <span className="inline-block px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-4">
+              SHIPDAGO COMMUNITY
+            </span>
+            <h1 className="text-5xl md:text-6xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-100">
+              커뮤니티
+            </h1>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              물류 실무자들의 소통 공간. 자유롭게 정보를 공유하고 의견을 나눠보세요.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {/* Content with Side Ads */}
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
+        <div className="flex gap-6">
+          {leftSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {leftSideAdSlot}
+              </div>
+            </div>
+          )}
+          <div className="flex-1 min-w-0 max-w-5xl mx-auto">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-slate-500">
@@ -232,6 +249,15 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
             )}
           </>
         )}
+          </div>
+          {rightSideAdSlot && (
+            <div className="hidden md:block w-40 shrink-0">
+              <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
+                {rightSideAdSlot}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
