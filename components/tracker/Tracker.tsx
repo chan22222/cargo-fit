@@ -119,7 +119,7 @@ const Tracker: React.FC<TrackerProps> = ({
           <div className="flex-1 min-w-0 space-y-4">
             {/* Infeed Ad - 탭 전환해도 유지됨 */}
             {contentAdSlot && (
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+              <div className="bg-white rounded-xl border border-slate-200">
                 {contentAdSlot}
               </div>
             )}

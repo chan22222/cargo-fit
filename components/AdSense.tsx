@@ -36,58 +36,77 @@ const AdSense: React.FC<AdSenseProps> = ({
     if (isAdLoaded.current) return;
 
     let retryCount = 0;
-    const maxRetries = 5;
-    let retryTimer: ReturnType<typeof setTimeout>;
+    const maxRetries = 10;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let cancelled = false;
 
     const tryPush = () => {
+      if (cancelled || isAdLoaded.current) return;
+
       try {
         // @ts-ignore
-        if (window.adsbygoogle && adRef.current) {
-          const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
-          if (hasAd) {
-            isAdLoaded.current = true;
-            return;
+        if (!window.adsbygoogle || !adRef.current) {
+          // adsbygoogle 스크립트가 아직 로드되지 않은 경우에도 재시도
+          if (retryCount < maxRetries) {
+            retryCount++;
+            const t = setTimeout(tryPush, 300);
+            timers.push(t);
           }
-
-          // push 전: 현재 마운트된 컴포넌트가 아닌 미처리 유령 <ins> 제거
-          document.querySelectorAll('ins.adsbygoogle').forEach(el => {
-            if (activeAdElements.has(el as HTMLElement)) return;
-            const status = el.getAttribute('data-adsbygoogle-status');
-            if (!status) {
-              el.remove();
-            }
-          });
-
-          // @ts-ignore
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-
-          // push 후 우리 요소가 처리되었는지 확인
-          retryTimer = setTimeout(() => {
-            if (adRef.current) {
-              const filled = adRef.current.getAttribute('data-adsbygoogle-status');
-              if (filled) {
-                isAdLoaded.current = true;
-              } else if (retryCount < maxRetries) {
-                retryCount++;
-                tryPush();
-              }
-            }
-          }, 200);
+          return;
         }
+
+        const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
+        if (hasAd) {
+          isAdLoaded.current = true;
+          return;
+        }
+
+        // push 전: 현재 마운트된 컴포넌트가 아닌 미처리 유령 <ins> 제거
+        document.querySelectorAll('ins.adsbygoogle').forEach(el => {
+          if (activeAdElements.has(el as HTMLElement)) return;
+          const status = el.getAttribute('data-adsbygoogle-status');
+          if (!status) {
+            el.remove();
+          }
+        });
+
+        // @ts-ignore
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+
+        // push 후 우리 요소가 처리되었는지 확인
+        const checkTimer = setTimeout(() => {
+          if (cancelled) return;
+          if (adRef.current) {
+            const filled = adRef.current.getAttribute('data-adsbygoogle-status');
+            if (filled) {
+              isAdLoaded.current = true;
+            } else if (retryCount < maxRetries) {
+              retryCount++;
+              tryPush();
+            }
+          }
+        }, 200);
+        timers.push(checkTimer);
       } catch (err: unknown) {
-        // AdSense 에러 무시
+        // 에러 시에도 재시도
+        if (!cancelled && retryCount < maxRetries) {
+          retryCount++;
+          const t = setTimeout(tryPush, 300);
+          timers.push(t);
+        }
       }
     };
 
-    const timer = setTimeout(() => {
+    const initialTimer = setTimeout(() => {
       if (!isAdLoaded.current) {
         tryPush();
       }
     }, 150);
+    timers.push(initialTimer);
 
     return () => {
-      clearTimeout(timer);
-      clearTimeout(retryTimer!);
+      cancelled = true;
+      timers.forEach(t => clearTimeout(t));
     };
   }, [adSlot]);
 
