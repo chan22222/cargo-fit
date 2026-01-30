@@ -831,6 +831,8 @@ const App: React.FC = () => {
         '/regulations': 'regulations',
         '/tracker': 'tracker',
         '/fssc': 'fssc',
+        '/worldclock': 'worldclock',
+        '/trade-mbti': 'tradembti',
         '/admin': 'admin',
         '/community': 'community',
         '/community/write': 'community-write',
@@ -1559,7 +1561,7 @@ const App: React.FC = () => {
                    <button
                      onClick={() => { setActiveTab('tradembti'); navigate('/trade-mbti'); setOpenDropdown(null); }}
                      className={`w-full px-5 py-2.5 text-center transition-all ${
-                       activeTab === 'tradembti' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                       currentRoute === 'tradembti' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                      }`}
                    >
                      <div className="text-sm font-bold">Trade MBTI</div>
@@ -2214,7 +2216,7 @@ const App: React.FC = () => {
                     <button
                       onClick={() => { setActiveTab('tradembti'); navigate('/trade-mbti'); setMobileMenuOpen(false); }}
                       className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
-                        activeTab === 'tradembti' ? 'bg-blue-50' : 'hover:bg-slate-50'
+                        currentRoute === 'tradembti' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
                       <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

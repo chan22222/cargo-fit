@@ -574,5 +574,53 @@ export const db = {
         return { data: null, error: err };
       }
     }
+  },
+
+  communityComments: {
+    getByPostId: async (postId: string) => {
+      const { data, error } = await supabase
+        .from('community_comments')
+        .select('*')
+        .eq('post_id', postId)
+        .order('created_at', { ascending: true });
+      return { data, error };
+    },
+
+    create: async (comment: { post_id: string; content: string; author_nickname: string; password_hash: string }) => {
+      const { data, error } = await supabase
+        .from('community_comments')
+        .insert([{
+          ...comment,
+          created_at: new Date().toISOString()
+        }])
+        .select();
+      return { data, error };
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('community_comments')
+        .delete()
+        .eq('id', id);
+      return { error };
+    },
+
+    verifyPassword: async (id: string, passwordHash: string) => {
+      const { data, error } = await supabase
+        .from('community_comments')
+        .select('password_hash')
+        .eq('id', id)
+        .single();
+      if (error || !data) return false;
+      return data.password_hash === passwordHash;
+    },
+
+    getCountByPostId: async (postId: string) => {
+      const { count, error } = await supabase
+        .from('community_comments')
+        .select('*', { count: 'exact', head: true })
+        .eq('post_id', postId);
+      return { count, error };
+    }
   }
 };

@@ -10,6 +10,15 @@ export interface CommunityPost {
   updated_at: string;
 }
 
+export interface CommunityComment {
+  id: string;
+  post_id: string;
+  content: string;
+  author_nickname: string;
+  password_hash: string;
+  created_at: string;
+}
+
 export function hashPassword(password: string): string {
   let h1 = 0xdeadbeef;
   let h2 = 0x41c6ce57;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Insight } from '../types/insights';
 import { Feedback } from '../types/feedback';
+import { CommunityPost, CommunityComment } from '../types/community';
 import { db } from '../lib/supabase';
 import { getTodayString } from '../lib/date';
 import TiptapEditor from './TiptapEditor';
@@ -10,7 +11,7 @@ interface AdminDashboardProps {
   onNavigateHome: () => void;
 }
 
-type MenuSection = 'dashboard' | 'insights' | 'feedbacks' | 'fssc' | 'analytics' | 'settings';
+type MenuSection = 'dashboard' | 'insights' | 'feedbacks' | 'community' | 'fssc' | 'analytics' | 'settings';
 
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [activeSection, setActiveSection] = useState<MenuSection>('dashboard');
@@ -18,6 +19,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [unreadFeedbackCount, setUnreadFeedbackCount] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
+  const [communityLoading, setCommunityLoading] = useState(false);
+  const [viewingPost, setViewingPost] = useState<CommunityPost | null>(null);
+  const [viewingPostComments, setViewingPostComments] = useState<CommunityComment[]>([]);
+  const [viewingPostCommentsLoading, setViewingPostCommentsLoading] = useState(false);
   const [showInsightForm, setShowInsightForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<Insight | null>(null);
   const [editingViewCount, setEditingViewCount] = useState<string | null>(null);
@@ -36,6 +42,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   useEffect(() => {
     loadInsights();
     loadFeedbacks();
+    loadCommunityPosts();
   }, []);
 
   const loadInsights = async () => {
@@ -109,6 +116,104 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
         const unreadCount = parsedFeedbacks.filter((f: Feedback) => !f.read).length;
         setUnreadFeedbackCount(unreadCount);
       }
+    }
+  };
+
+  const loadCommunityPosts = async () => {
+    setCommunityLoading(true);
+    try {
+      const { data, error } = await db.communityPosts.getAll(1, 1000);
+      if (!error && data) {
+        setCommunityPosts(data as CommunityPost[]);
+      }
+    } catch (err) {
+      // silently fail
+    }
+    setCommunityLoading(false);
+  };
+
+  const openPostModal = async (post: CommunityPost) => {
+    setViewingPost(post);
+    setViewingPostComments([]);
+    setViewingPostCommentsLoading(true);
+    try {
+      const { data, error } = await db.communityComments.getByPostId(post.id);
+      if (!error && data) {
+        setViewingPostComments(data as CommunityComment[]);
+      }
+    } catch (err) {
+      // silently fail
+    }
+    setViewingPostCommentsLoading(false);
+  };
+
+  const deleteComment = async (commentId: string) => {
+    if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+    try {
+      const { error } = await db.communityComments.delete(commentId);
+      if (!error) {
+        setViewingPostComments(prev => prev.filter(c => c.id !== commentId));
+      }
+    } catch (err) {
+      // silently fail
+    }
+  };
+
+  const getYouTubeId = (url: string): string | null => {
+    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([a-zA-Z0-9_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const renderPostContent = (text: string) => {
+    const parts = text.split(/(\[(?:img|video):[^\]]+\])/g);
+    return parts.map((part, i) => {
+      const imgMatch = part.match(/^\[img:([^\]]+)\]$/);
+      if (imgMatch) {
+        return (
+          <img
+            key={i}
+            src={imgMatch[1].trim()}
+            alt="첨부 이미지"
+            className="max-w-full rounded-lg my-3 border border-gray-200"
+            loading="lazy"
+          />
+        );
+      }
+      const videoMatch = part.match(/^\[video:([^\]]+)\]$/);
+      if (videoMatch) {
+        const url = videoMatch[1].trim();
+        const ytId = getYouTubeId(url);
+        if (ytId) {
+          return (
+            <div key={i} className="aspect-video my-3 rounded-lg overflow-hidden border border-gray-200">
+              <iframe
+                src={`https://www.youtube.com/embed/${ytId}`}
+                className="w-full h-full"
+                allowFullScreen
+                title="YouTube 동영상"
+              />
+            </div>
+          );
+        }
+        return (
+          <video key={i} src={url} controls className="max-w-full rounded-lg my-3 border border-gray-200">
+            동영상을 재생할 수 없습니다.
+          </video>
+        );
+      }
+      return part ? <span key={i}>{part}</span> : null;
+    });
+  };
+
+  const deleteCommunityPost = async (id: string) => {
+    if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
+    try {
+      const { error } = await db.communityPosts.delete(id);
+      if (!error) {
+        setCommunityPosts(prev => prev.filter(p => p.id !== id));
+      }
+    } catch (err) {
+      // silently fail
     }
   };
 
@@ -371,6 +476,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
             </li>
             <li>
               <button
+                onClick={() => setActiveSection('community')}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                  activeSection === 'community' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
+                </svg>
+                {!sidebarCollapsed && <span className="font-medium">게시판 관리</span>}
+              </button>
+            </li>
+            <li>
+              <button
                 onClick={() => setActiveSection('fssc')}
                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   activeSection === 'fssc' ? 'bg-blue-50 text-blue-600' : 'hover:bg-gray-100 text-gray-700'
@@ -436,6 +554,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                 {activeSection === 'dashboard' && '대시보드'}
                 {activeSection === 'insights' && '콘텐츠 관리'}
                 {activeSection === 'feedbacks' && '피드백 관리'}
+                {activeSection === 'community' && '게시판 관리'}
                 {activeSection === 'fssc' && 'FS/SC 관리'}
                 {activeSection === 'analytics' && '분석'}
                 {activeSection === 'settings' && '설정'}
@@ -964,6 +1083,139 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
             </div>
           )}
 
+          {activeSection === 'community' && (
+            <div>
+              {/* Community Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">전체</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{communityPosts.length}</div>
+                  <div className="text-xs text-gray-500 mt-1">전체 게시글</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-green-50 rounded-lg">
+                      <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">공개</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{communityPosts.filter(p => !p.is_private).length}</div>
+                  <div className="text-xs text-gray-500 mt-1">공개 게시글</div>
+                </div>
+                <div className="bg-white rounded-xl p-6 border border-gray-200">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-2 bg-amber-50 rounded-lg">
+                      <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">비밀</span>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">{communityPosts.filter(p => p.is_private).length}</div>
+                  <div className="text-xs text-gray-500 mt-1">비밀 게시글</div>
+                </div>
+              </div>
+
+              {/* Community Posts Table */}
+              <div className="bg-white rounded-xl border border-gray-200">
+                <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">게시글 목록</h2>
+                    <p className="text-sm text-gray-500 mt-1">커뮤니티 게시글을 관리합니다</p>
+                  </div>
+                  <button
+                    onClick={loadCommunityPosts}
+                    className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    새로고침
+                  </button>
+                </div>
+                {communityLoading ? (
+                  <div className="p-12 text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-3 text-sm text-gray-500">게시글을 불러오는 중...</p>
+                  </div>
+                ) : communityPosts.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">게시글이 없습니다</h3>
+                    <p className="text-sm text-gray-500">커뮤니티에 작성된 게시글이 여기에 표시됩니다</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 border-b border-gray-200">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">번호</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">작성자</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">작성일</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">조회수</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">유형</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">작업</th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {communityPosts.map((post, index) => (
+                          <tr key={post.id} onClick={() => openPostModal(post)} className="hover:bg-gray-50 transition-colors cursor-pointer">
+                            <td className="px-6 py-4 text-sm text-gray-400">{communityPosts.length - index}</td>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center gap-2">
+                                {post.is_private && (
+                                  <svg className="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                  </svg>
+                                )}
+                                <span className="text-sm font-medium text-gray-900 line-clamp-1 hover:text-blue-600">{post.title}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{post.author_nickname}</td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {new Date(post.created_at).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">{post.view_count}</td>
+                            <td className="px-6 py-4">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                post.is_private
+                                  ? 'bg-amber-100 text-amber-700'
+                                  : 'bg-green-100 text-green-700'
+                              }`}>
+                                {post.is_private ? '비밀' : '공개'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); deleteCommunityPost(post.id); }}
+                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                title="삭제"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {activeSection === 'fssc' && (
             <FSSCAdmin embedded={true} />
           )}
@@ -994,6 +1246,108 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
           )}
         </div>
       </main>
+
+      {/* Community Post View Modal */}
+      {viewingPost && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl w-full max-w-2xl max-h-[85vh] overflow-auto">
+            <div className="p-6 border-b border-gray-200 flex items-start justify-between">
+              <div className="flex-1 min-w-0 pr-4">
+                <div className="flex items-center gap-2 mb-2">
+                  {viewingPost.is_private && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-semibold rounded border border-amber-200">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                      비밀글
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">{viewingPost.title}</h3>
+                <div className="flex items-center gap-3 mt-2 text-sm text-gray-500">
+                  <span className="font-medium text-gray-700">{viewingPost.author_nickname}</span>
+                  <span>{new Date(viewingPost.created_at).toLocaleString('ko-KR')}</span>
+                  <span>조회 {viewingPost.view_count}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingPost(null)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors shrink-0"
+              >
+                <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="text-sm text-gray-700 whitespace-pre-wrap break-words leading-relaxed">
+                {renderPostContent(viewingPost.content)}
+              </div>
+            </div>
+
+            {/* Comments in Modal */}
+            <div className="border-t border-gray-200">
+              <div className="px-6 py-4 bg-gray-50 flex items-center justify-between">
+                <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  댓글 {viewingPostComments.length > 0 && `(${viewingPostComments.length})`}
+                </h4>
+              </div>
+              {viewingPostCommentsLoading ? (
+                <div className="p-6 text-center">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mx-auto"></div>
+                </div>
+              ) : viewingPostComments.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p className="text-sm text-gray-400">댓글이 없습니다.</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100">
+                  {viewingPostComments.map(comment => (
+                    <div key={comment.id} className="px-6 py-3 flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-semibold text-gray-800">{comment.author_nickname}</span>
+                          <span className="text-xs text-gray-400">
+                            {new Date(comment.created_at).toLocaleString('ko-KR')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 whitespace-pre-wrap break-words">{comment.content}</p>
+                      </div>
+                      <button
+                        onClick={() => deleteComment(comment.id)}
+                        className="shrink-0 p-1 text-gray-300 hover:text-red-500 rounded hover:bg-red-50 transition-colors"
+                        title="댓글 삭제"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-200 flex items-center justify-end gap-3">
+              <button
+                onClick={() => { deleteCommunityPost(viewingPost.id); setViewingPost(null); }}
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+              >
+                게시글 삭제
+              </button>
+              <button
+                onClick={() => setViewingPost(null)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                닫기
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

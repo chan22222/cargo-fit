@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CommunityPost, hashPassword } from '../types/community';
+import { CommunityPost, CommunityComment, hashPassword } from '../types/community';
 import { db } from '../lib/supabase';
 
 interface CommunityDetailProps {
@@ -20,6 +20,16 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
   const [modalPassword, setModalPassword] = useState('');
   const [modalError, setModalError] = useState('');
   const [deleting, setDeleting] = useState(false);
+  const [comments, setComments] = useState<CommunityComment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentNickname, setCommentNickname] = useState('');
+  const [commentPassword, setCommentPassword] = useState('');
+  const [commentContent, setCommentContent] = useState('');
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState('');
+  const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [deleteCommentPw, setDeleteCommentPw] = useState('');
+  const [deleteCommentError, setDeleteCommentError] = useState('');
 
   useEffect(() => {
     const loadPost = async () => {
@@ -53,8 +63,77 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
     };
 
     loadPost();
+    loadComments();
     window.scrollTo(0, 0);
   }, [postId]);
+
+  const loadComments = async () => {
+    setCommentsLoading(true);
+    try {
+      const { data, error } = await db.communityComments.getByPostId(postId);
+      if (!error && data) {
+        setComments(data as CommunityComment[]);
+      }
+    } catch (err) {
+      // silently fail
+    }
+    setCommentsLoading(false);
+  };
+
+  const handleCommentSubmit = async () => {
+    setCommentError('');
+    if (!commentNickname.trim()) { setCommentError('닉네임을 입력해주세요.'); return; }
+    if (!commentPassword.trim()) { setCommentError('비밀번호를 입력해주세요.'); return; }
+    if (!commentContent.trim()) { setCommentError('댓글 내용을 입력해주세요.'); return; }
+    if (commentContent.trim().length > 500) { setCommentError('댓글은 500자 이내로 작성해주세요.'); return; }
+
+    const now = Date.now();
+    const lastComment = parseInt(localStorage.getItem('lastCommentTime') || '0');
+    if (now - lastComment < 30 * 1000) {
+      setCommentError('댓글은 30초에 한 번만 작성할 수 있습니다.');
+      return;
+    }
+
+    setCommentSubmitting(true);
+    try {
+      const passwordHash = hashPassword(commentPassword.trim());
+      const { error } = await db.communityComments.create({
+        post_id: postId,
+        content: commentContent.trim(),
+        author_nickname: commentNickname.trim(),
+        password_hash: passwordHash
+      });
+      if (error) {
+        setCommentError('댓글 등록에 실패했습니다.');
+        setCommentSubmitting(false);
+        return;
+      }
+      localStorage.setItem('lastCommentTime', now.toString());
+      setCommentContent('');
+      await loadComments();
+    } catch (err) {
+      setCommentError('오류가 발생했습니다.');
+    }
+    setCommentSubmitting(false);
+  };
+
+  const handleDeleteComment = async () => {
+    setDeleteCommentError('');
+    if (!deleteCommentPw.trim()) { setDeleteCommentError('비밀번호를 입력해주세요.'); return; }
+    if (!deleteCommentId) return;
+    try {
+      const passwordHash = hashPassword(deleteCommentPw.trim());
+      const isValid = await db.communityComments.verifyPassword(deleteCommentId, passwordHash);
+      if (!isValid) { setDeleteCommentError('비밀번호가 일치하지 않습니다.'); return; }
+      const { error } = await db.communityComments.delete(deleteCommentId);
+      if (error) { setDeleteCommentError('삭제에 실패했습니다.'); return; }
+      setDeleteCommentId(null);
+      setDeleteCommentPw('');
+      await loadComments();
+    } catch (err) {
+      setDeleteCommentError('오류가 발생했습니다.');
+    }
+  };
 
   const handleDelete = async () => {
     setModalError('');
@@ -346,6 +425,101 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
             삭제
           </button>
         </div>
+
+        {/* Comments Section */}
+        {!isPrivateAndLocked && (
+          <div className="mt-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
+              <div className="p-6 border-b border-slate-100">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  댓글 {comments.length > 0 && <span className="text-sm font-semibold text-blue-600">{comments.length}</span>}
+                </h3>
+              </div>
+
+              {/* Comment List */}
+              <div className="divide-y divide-slate-50">
+                {commentsLoading ? (
+                  <div className="p-8 text-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                  </div>
+                ) : comments.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-slate-400">아직 댓글이 없습니다. 첫 댓글을 남겨보세요.</p>
+                  </div>
+                ) : (
+                  comments.map(comment => (
+                    <div key={comment.id} className="p-5 hover:bg-slate-50/50 transition-colors">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="text-sm font-bold text-slate-800">{comment.author_nickname}</span>
+                            <span className="text-xs text-slate-400">{formatDate(comment.created_at)}</span>
+                          </div>
+                          <p className="text-sm text-slate-600 whitespace-pre-wrap break-words leading-relaxed">{comment.content}</p>
+                        </div>
+                        <button
+                          onClick={() => { setDeleteCommentId(comment.id); setDeleteCommentPw(''); setDeleteCommentError(''); }}
+                          className="shrink-0 p-1.5 text-slate-300 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors"
+                          title="삭제"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Comment Form */}
+              <div className="p-5 bg-slate-50/80 border-t border-slate-100">
+                <div className="flex gap-3 mb-3">
+                  <input
+                    type="text"
+                    value={commentNickname}
+                    onChange={e => setCommentNickname(e.target.value)}
+                    placeholder="닉네임"
+                    maxLength={20}
+                    className="flex-1 px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                  />
+                  <input
+                    type="password"
+                    value={commentPassword}
+                    onChange={e => setCommentPassword(e.target.value)}
+                    placeholder="비밀번호"
+                    maxLength={20}
+                    className="flex-1 px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all placeholder:text-slate-400"
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <textarea
+                    value={commentContent}
+                    onChange={e => setCommentContent(e.target.value)}
+                    placeholder="댓글을 입력하세요..."
+                    maxLength={500}
+                    rows={2}
+                    className="flex-1 px-3.5 py-2.5 text-sm border border-slate-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all placeholder:text-slate-400 resize-none"
+                  />
+                  <button
+                    onClick={handleCommentSubmit}
+                    disabled={commentSubmitting}
+                    className="self-end shrink-0 px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {commentSubmitting ? '등록 중...' : '등록'}
+                  </button>
+                </div>
+                {commentError && (
+                  <p className="text-xs text-red-600 font-medium mt-2">{commentError}</p>
+                )}
+                <p className="text-xs text-slate-400 mt-2">{commentContent.length}/500</p>
+              </div>
+            </div>
+          </div>
+        )}
           </div>
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
@@ -424,6 +598,42 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
                 className="px-5 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl hover:bg-blue-700 transition-colors"
               >
                 확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Comment Delete Modal */}
+      {deleteCommentId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-black text-slate-900 mb-2">댓글 삭제</h3>
+            <p className="text-sm text-slate-500 mb-5">삭제하려면 댓글 작성 시 입력한 비밀번호를 입력하세요.</p>
+            <input
+              type="password"
+              value={deleteCommentPw}
+              onChange={e => setDeleteCommentPw(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleDeleteComment()}
+              placeholder="비밀번호"
+              autoFocus
+              className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:border-red-500 transition-all placeholder:text-slate-400"
+            />
+            {deleteCommentError && (
+              <p className="text-sm text-red-600 font-medium mt-2">{deleteCommentError}</p>
+            )}
+            <div className="flex items-center justify-end gap-3 mt-5">
+              <button
+                onClick={() => setDeleteCommentId(null)}
+                className="px-4 py-2.5 text-sm font-bold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleDeleteComment}
+                className="px-5 py-2.5 bg-red-600 text-white text-sm font-bold rounded-xl hover:bg-red-700 transition-colors"
+              >
+                삭제하기
               </button>
             </div>
           </div>
