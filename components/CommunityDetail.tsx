@@ -371,7 +371,8 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
               </div>
             </div>
           )}
-          <div className="flex-1 min-w-0 max-w-3xl mx-auto">
+          <div className="flex-1 min-w-0">
+            <div className="max-w-3xl mx-auto">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden">
           {/* Post Header */}
           <div className="p-6 md:p-8 border-b border-slate-100">
@@ -551,6 +552,7 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
             </div>
           </div>
         )}
+            </div>
           </div>
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">

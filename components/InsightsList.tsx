@@ -173,7 +173,8 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
               </div>
             </div>
           )}
-          <main className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
+            <main className="max-w-5xl mx-auto">
         {filteredInsights.length === 0 ? (
           <div className="text-center py-20">
             <svg className="w-24 h-24 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +289,8 @@ const InsightsList: React.FC<InsightsListProps> = ({ onNavigateToInsight, onNavi
             </div>
           </>
         )}
-          </main>
+            </main>
+          </div>
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
               <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>

@@ -113,7 +113,8 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
               </div>
             </div>
           )}
-          <div className="flex-1 min-w-0 max-w-5xl mx-auto">
+          <div className="flex-1 min-w-0">
+            <div className="max-w-5xl mx-auto">
         {/* Top bar */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-sm text-slate-500">
@@ -261,6 +262,7 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
             )}
           </>
         )}
+            </div>
           </div>
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">

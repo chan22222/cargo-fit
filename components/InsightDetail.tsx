@@ -175,7 +175,8 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
               </div>
             </div>
           )}
-          <main className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0">
+            <main className="max-w-5xl mx-auto">
         {/* Article */}
         <article className="bg-white rounded-3xl shadow-xl overflow-hidden">
           {/* Hero Image */}
@@ -392,7 +393,8 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
             </div>
           </section>
         )}
-          </main>
+            </main>
+          </div>
           {rightSideAdSlot && (
             <div className="hidden md:block w-40 shrink-0">
               <div className="sticky top-24 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" style={{ minHeight: '600px', maxHeight: '800px' }}>
