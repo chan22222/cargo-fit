@@ -5,11 +5,10 @@ import { FSSCRecord, AIRLINE_CODES } from '../types/fssc';
 import { db } from '../lib/supabase';
 import { getTodayString, getLocalDateString } from '../lib/date';
 import { getThumbnailUrl, getFeaturedImageUrl } from '../lib/image';
-import FeedbackModal from './FeedbackModal';
-import CoffeeDonationModal from './CoffeeDonationModal';
-
 // Lazy load ContainerDemo for better LCP
 const ContainerDemo = lazy(() => import('./ContainerDemo'));
+const FeedbackModal = lazy(() => import('./FeedbackModal'));
+const CoffeeDonationModal = lazy(() => import('./CoffeeDonationModal'));
 
 // Placeholder for ContainerDemo while loading
 const ContainerDemoPlaceholder = () => (
@@ -1005,16 +1004,24 @@ const LandingPage: React.FC<LandingPageProps> = ({ onStart, onPrivacy, onTerms, 
       </footer>
 
       {/* Feedback Modal */}
-      <FeedbackModal
-        isOpen={isFeedbackModalOpen}
-        onClose={() => setIsFeedbackModalOpen(false)}
-      />
+      {isFeedbackModalOpen && (
+        <Suspense fallback={null}>
+          <FeedbackModal
+            isOpen={isFeedbackModalOpen}
+            onClose={() => setIsFeedbackModalOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Coffee Donation Modal */}
-      <CoffeeDonationModal
-        isOpen={isCoffeeModalOpen}
-        onClose={() => setIsCoffeeModalOpen(false)}
-      />
+      {isCoffeeModalOpen && (
+        <Suspense fallback={null}>
+          <CoffeeDonationModal
+            isOpen={isCoffeeModalOpen}
+            onClose={() => setIsCoffeeModalOpen(false)}
+          />
+        </Suspense>
+      )}
 
       {/* Currency Selection Modal */}
       {showCurrencyModal && (
