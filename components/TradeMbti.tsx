@@ -47,6 +47,18 @@ export default function TradeMbti({
   const totalQuestions = MBTI_QUESTIONS.length;
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const typeParam = params.get('type');
+    if (typeParam) {
+      const upperCode = typeParam.toUpperCase();
+      if (MBTI_PROFILES[upperCode]) {
+        setResultCode(upperCode);
+        setPhase('result');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (phase === 'intro') {
       const t = setTimeout(() => setIntroVisible(true), 100);
       return () => clearTimeout(t);
@@ -110,13 +122,18 @@ export default function TradeMbti({
     setCurrentQ(0);
     setAnswers([]);
     setResultCode('');
+    if (window.location.search) {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   const profile: MbtiProfile | null = resultCode
     ? MBTI_PROFILES[resultCode]
     : null;
 
-  const SHARE_URL = 'https://www.shipdago.com/trade-mbti';
+  const SHARE_URL = profile
+    ? `https://www.shipdago.com/share/${profile.code}`
+    : 'https://www.shipdago.com/trade-mbti';
 
   const getShareText = () =>
     profile
