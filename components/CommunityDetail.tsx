@@ -80,12 +80,30 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
     setCommentsLoading(false);
   };
 
+  const commentSpamPatterns = [/(.)\1{10,}/, /\b(viagra|casino|lottery|prize|winner|crypto|bitcoin)\b/gi];
+
+  const sanitizeComment = (input: string): string => {
+    return input
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+      .trim();
+  };
+
   const handleCommentSubmit = async () => {
     setCommentError('');
     if (!commentNickname.trim()) { setCommentError('닉네임을 입력해주세요.'); return; }
+    if (commentNickname.trim().length > 20) { setCommentError('닉네임은 20자 이내로 입력해주세요.'); return; }
     if (!commentPassword.trim()) { setCommentError('비밀번호를 입력해주세요.'); return; }
     if (!commentContent.trim()) { setCommentError('댓글 내용을 입력해주세요.'); return; }
+    if (commentContent.trim().length < 2) { setCommentError('댓글은 2자 이상 입력해주세요.'); return; }
     if (commentContent.trim().length > 500) { setCommentError('댓글은 500자 이내로 작성해주세요.'); return; }
+
+    if (commentSpamPatterns.some(p => p.test(commentContent))) {
+      setCommentError('스팸으로 감지되었습니다. 내용을 수정해주세요.');
+      return;
+    }
 
     const now = Date.now();
     const lastComment = parseInt(localStorage.getItem('lastCommentTime') || '0');
@@ -94,13 +112,24 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
       return;
     }
 
+    const hourKey = 'comment_submissions_hour';
+    let hourData: { count: number; reset: number } = { count: 0, reset: now + 3600000 };
+    try {
+      const saved = JSON.parse(localStorage.getItem(hourKey) || '{}');
+      if (saved.reset && saved.reset > now) { hourData = saved; }
+    } catch { /* ignore */ }
+    if (hourData.count >= 10) {
+      setCommentError('댓글을 너무 많이 작성했습니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+
     setCommentSubmitting(true);
     try {
       const passwordHash = hashPassword(commentPassword.trim());
       const { error } = await db.communityComments.create({
         post_id: postId,
-        content: commentContent.trim(),
-        author_nickname: commentNickname.trim(),
+        content: sanitizeComment(commentContent.trim()),
+        author_nickname: sanitizeComment(commentNickname.trim()),
         password_hash: passwordHash
       });
       if (error) {
@@ -109,6 +138,8 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
         return;
       }
       localStorage.setItem('lastCommentTime', now.toString());
+      hourData.count++;
+      localStorage.setItem(hourKey, JSON.stringify(hourData));
       setCommentContent('');
       await loadComments();
     } catch (err) {
