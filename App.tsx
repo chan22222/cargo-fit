@@ -52,9 +52,10 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1000);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti' | 'community' | 'community-post' | 'community-write' | 'notfound'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti' | 'community' | 'community-post' | 'community-write' | 'community-edit' | 'notfound'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
   const [currentPostId, setCurrentPostId] = useState<string | null>(null);
+  const [editPostData, setEditPostData] = useState<{ id: string; data: import('./types/community').CommunityPost } | null>(null);
   const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
@@ -99,6 +100,10 @@ const App: React.FC = () => {
         setCurrentRoute('tradembti');
       } else if (path === '/community/write') {
         setCurrentRoute('community-write');
+      } else if (path.match(/^\/community\/[^/]+\/edit$/)) {
+        const id = path.split('/')[2];
+        setCurrentRoute('community-edit');
+        setCurrentPostId(id);
       } else if (path.startsWith('/community/')) {
         const id = path.split('/')[2];
         setCurrentRoute('community-post');
@@ -831,6 +836,14 @@ const App: React.FC = () => {
         '/community/write': 'community-write',
       };
 
+      // Handle dynamic community edit route
+      if (path.match(/^\/community\/[^/]+\/edit$/)) {
+        const id = path.split('/')[2];
+        setCurrentRoute('community-edit');
+        setCurrentPostId(id);
+        return;
+      }
+
       // Handle dynamic community post route
       if (path.startsWith('/community/') && path !== '/community/write') {
         const id = path.split('/')[2];
@@ -895,6 +908,11 @@ const App: React.FC = () => {
 
   const handleNavigateToCommunityWrite = () => {
     navigate('/community/write');
+  };
+
+  const handleNavigateToCommunityEdit = (id: string, post: import('./types/community').CommunityPost) => {
+    setEditPostData({ id, data: post });
+    navigate(`/community/${id}/edit`);
   };
 
   // Handle navigation from admin to home
@@ -1070,6 +1088,13 @@ const App: React.FC = () => {
         canonicalUrl: `${BASE_URL}/community/write`,
         jsonLd: [schemas.organization],
       },
+      'community-edit': {
+        title: '글 수정 - 커뮤니티',
+        description: 'SHIPDAGO 커뮤니티 게시글을 수정합니다.',
+        keywords: '물류 커뮤니티, 게시판, 글 수정',
+        canonicalUrl: `${BASE_URL}/community`,
+        jsonLd: [schemas.organization],
+      },
       insights: {
         title: '물류 인사이트',
         description: '물류 트렌드, 규제 변화, 실무 팁 등 물류 전문 콘텐츠.',
@@ -1120,7 +1145,7 @@ const App: React.FC = () => {
       setActiveTab('fssc');
     } else if (currentRoute === 'tradembti') {
       setActiveTab('tradembti');
-    } else if (currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' || currentRoute === 'insights' || currentRoute === 'insight') {
+    } else if (currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' || currentRoute === 'community-edit' || currentRoute === 'insights' || currentRoute === 'insight') {
       setActiveTab('community');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
@@ -1525,7 +1550,7 @@ const App: React.FC = () => {
                    <button
                      onClick={() => { setActiveTab('community'); navigate('/community'); setOpenDropdown(null); }}
                      className={`w-full px-5 py-2.5 text-center transition-all ${
-                       currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                       currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' || currentRoute === 'community-edit' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                      }`}
                    >
                      <div className="text-sm font-bold">게시판</div>
@@ -1791,7 +1816,7 @@ const App: React.FC = () => {
                         </button>
                         <button
                           onClick={() => { setActiveTab('community'); navigate('/community'); setMegaMenuOpen(false); setOpenDropdown(null); }}
-                          className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                          className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' || currentRoute === 'community-edit' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
                         >
                           <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -2175,7 +2200,7 @@ const App: React.FC = () => {
                     <button
                       onClick={() => { setActiveTab('community'); navigate('/community'); setMobileMenuOpen(false); }}
                       className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
-                        currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' ? 'bg-blue-50' : 'hover:bg-slate-50'
+                        currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' || currentRoute === 'community-edit' ? 'bg-blue-50' : 'hover:bg-slate-50'
                       }`}
                     >
                       <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2323,6 +2348,7 @@ const App: React.FC = () => {
           <CommunityDetail
             postId={currentPostId}
             onNavigateBack={handleNavigateToCommunity}
+            onNavigateToEdit={handleNavigateToCommunityEdit}
             leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
             rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           />
@@ -2330,6 +2356,13 @@ const App: React.FC = () => {
           <CommunityWrite
             onNavigateBack={handleNavigateToCommunity}
             onPostCreated={handleNavigateToPost}
+          />
+        ) : currentRoute === 'community-edit' && currentPostId && editPostData ? (
+          <CommunityWrite
+            onNavigateBack={() => handleNavigateToPost(currentPostId)}
+            onPostCreated={handleNavigateToPost}
+            editPostId={editPostData.id}
+            initialData={editPostData.data}
           />
         ) : currentRoute === 'insights' ? (
           <InsightsList

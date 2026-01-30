@@ -15,7 +15,7 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 20;
+  const postsPerPage = 10;
 
   useEffect(() => {
     const loadPosts = async () => {
@@ -172,7 +172,12 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
                     >
                       <td className="py-3.5 px-4 text-sm text-slate-400 text-center">{getRowNumber(index)}</td>
                       <td className="py-3.5 px-4">
-                        <span className="text-sm font-semibold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1">
+                        <span className="text-sm font-semibold text-slate-800 hover:text-blue-600 transition-colors line-clamp-1 inline-flex items-center gap-1.5">
+                          {post.is_private && (
+                            <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                          )}
                           {post.title}
                         </span>
                       </td>
@@ -193,7 +198,14 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
                   onClick={() => handlePostClick(post.id)}
                   className="bg-white rounded-xl p-4 shadow-sm border border-slate-200/60 active:bg-slate-50 cursor-pointer transition-colors"
                 >
-                  <h3 className="text-sm font-bold text-slate-800 mb-2 line-clamp-2">{post.title}</h3>
+                  <h3 className="text-sm font-bold text-slate-800 mb-2 line-clamp-2 flex items-center gap-1.5">
+                    {post.is_private && (
+                      <svg className="w-3.5 h-3.5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                      </svg>
+                    )}
+                    {post.title}
+                  </h3>
                   <div className="flex items-center gap-3 text-xs text-slate-400">
                     <span className="font-medium text-slate-500">{post.author_nickname}</span>
                     <span>{formatDate(post.created_at)}</span>

@@ -5,6 +5,7 @@ export interface CommunityPost {
   author_nickname: string;
   password_hash: string;
   view_count: number;
+  is_private: boolean;
   created_at: string;
   updated_at: string;
 }

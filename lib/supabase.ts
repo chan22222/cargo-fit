@@ -503,14 +503,27 @@ export const db = {
       return { data, error };
     },
 
-    create: async (post: { title: string; content: string; author_nickname: string; password_hash: string }) => {
+    create: async (post: { title: string; content: string; author_nickname: string; password_hash: string; is_private?: boolean }) => {
       const { data, error } = await supabase
         .from('community_posts')
         .insert([{
           ...post,
+          is_private: post.is_private || false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }])
+        .select();
+      return { data, error };
+    },
+
+    update: async (id: string, updates: { title?: string; content?: string; is_private?: boolean }) => {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', id)
         .select();
       return { data, error };
     },
