@@ -9,26 +9,6 @@ interface AdSenseProps {
   fullWidthResponsive?: boolean;
 }
 
-// 전역 로드 큐 - 광고를 순차적으로 로드
-let adLoadQueue: (() => void)[] = [];
-let isProcessingQueue = false;
-
-const processQueue = () => {
-  if (isProcessingQueue || adLoadQueue.length === 0) return;
-
-  isProcessingQueue = true;
-  const loadFn = adLoadQueue.shift();
-
-  if (loadFn) {
-    loadFn();
-    // 다음 광고 로드 전 100ms 대기
-    setTimeout(() => {
-      isProcessingQueue = false;
-      processQueue();
-    }, 100);
-  }
-};
-
 const AdSense: React.FC<AdSenseProps> = ({
   adSlot,
   adFormat = 'auto',
@@ -43,32 +23,64 @@ const AdSense: React.FC<AdSenseProps> = ({
   useEffect(() => {
     if (isAdLoaded.current) return;
 
-    const loadAd = () => {
+    let retryCount = 0;
+    const maxRetries = 5;
+    let retryTimer: ReturnType<typeof setTimeout>;
+
+    const tryPush = () => {
       try {
         // @ts-ignore
         if (window.adsbygoogle && adRef.current) {
           const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
-          if (!hasAd) {
-            // @ts-ignore
-            (window.adsbygoogle = window.adsbygoogle || []).push({});
+          if (hasAd) {
+            // 이미 AdSense가 처리함
             isAdLoaded.current = true;
+            return;
           }
+
+          // push 전에 DOM에서 소유자 없는 유령 <ins> 정리
+          document.querySelectorAll('ins.adsbygoogle').forEach(el => {
+            if (el === adRef.current) return; // 자기 자신 스킵
+            const status = el.getAttribute('data-adsbygoogle-status');
+            const slot = el.getAttribute('data-ad-slot');
+            // status 없고 slot도 없는 유령 요소 제거
+            if (!status && !slot) {
+              el.remove();
+            }
+          });
+
+          // @ts-ignore
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+
+          // push 후 실제로 우리 요소가 처리되었는지 확인 (200ms 후)
+          retryTimer = setTimeout(() => {
+            if (adRef.current) {
+              const filled = adRef.current.getAttribute('data-adsbygoogle-status');
+              if (filled) {
+                isAdLoaded.current = true;
+              } else if (retryCount < maxRetries) {
+                // 다른 유령 요소가 push를 가로챘을 수 있음 → 재시도
+                retryCount++;
+                tryPush();
+              }
+            }
+          }, 200);
         }
       } catch (err: unknown) {
         // AdSense 에러는 무시 (중복 push 등)
       }
     };
 
-    // 마운트 후 약간의 지연을 두고 큐에 추가
+    // 마운트 후 약간의 지연을 두고 로드
     const timer = setTimeout(() => {
       if (!isAdLoaded.current) {
-        adLoadQueue.push(loadAd);
-        processQueue();
+        tryPush();
       }
-    }, 100);
+    }, 150);
 
     return () => {
       clearTimeout(timer);
+      clearTimeout(retryTimer!);
     };
   }, [adSlot]);
 
