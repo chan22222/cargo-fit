@@ -24,6 +24,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
   const [viewingPost, setViewingPost] = useState<CommunityPost | null>(null);
   const [viewingPostComments, setViewingPostComments] = useState<CommunityComment[]>([]);
   const [viewingPostCommentsLoading, setViewingPostCommentsLoading] = useState(false);
+  const [latestCommentMap, setLatestCommentMap] = useState<Record<string, string>>({});
   const [showInsightForm, setShowInsightForm] = useState(false);
   const [editingInsight, setEditingInsight] = useState<Insight | null>(null);
   const [editingViewCount, setEditingViewCount] = useState<string | null>(null);
@@ -124,7 +125,19 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     try {
       const { data, error } = await db.communityPosts.getAll(1, 1000);
       if (!error && data) {
-        setCommunityPosts(data as CommunityPost[]);
+        const posts = data as CommunityPost[];
+        setCommunityPosts(posts);
+        const postIds = posts.map(p => p.id);
+        const { data: commentData } = await db.communityComments.getLatestByPostIds(postIds);
+        if (commentData) {
+          const map: Record<string, string> = {};
+          for (const c of commentData) {
+            if (!map[c.post_id] || c.created_at > map[c.post_id]) {
+              map[c.post_id] = c.created_at;
+            }
+          }
+          setLatestCommentMap(map);
+        }
       }
     } catch (err) {
       // silently fail
@@ -132,7 +145,29 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
     setCommunityLoading(false);
   };
 
+  const getAdminVisited = (): Record<string, string> => {
+    try {
+      return JSON.parse(localStorage.getItem('admin_post_visited') || '{}');
+    } catch { return {}; }
+  };
+
+  const markAdminVisited = (postId: string) => {
+    const visited = getAdminVisited();
+    visited[postId] = new Date().toISOString();
+    localStorage.setItem('admin_post_visited', JSON.stringify(visited));
+  };
+
+  const isPostNew = (post: CommunityPost): boolean => {
+    const visited = getAdminVisited();
+    const lastVisit = visited[post.id];
+    if (!lastVisit) return true;
+    const latestComment = latestCommentMap[post.id];
+    if (latestComment && latestComment > lastVisit) return true;
+    return false;
+  };
+
   const openPostModal = async (post: CommunityPost) => {
+    markAdminVisited(post.id);
     setViewingPost(post);
     setViewingPostComments([]);
     setViewingPostCommentsLoading(true);
@@ -1158,12 +1193,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                     <table className="w-full">
                       <thead className="bg-gray-50 border-b border-gray-200">
                         <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">번호</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">번호</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-28">작성자</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-32">작성자</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-36">작성일</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">조회수</th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">유형</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">조회수</th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-24">유형</th>
                           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-20">작업</th>
                         </tr>
                       </thead>
@@ -1179,6 +1214,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateHome }) => {
                                   </svg>
                                 )}
                                 <span className="text-sm font-medium text-gray-900 line-clamp-1 hover:text-blue-600">{post.title}</span>
+                                {isPostNew(post) && (
+                                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded ml-1.5 shrink-0">N</span>
+                                )}
                               </div>
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-500">{post.author_nickname}</td>

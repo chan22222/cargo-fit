@@ -615,6 +615,16 @@ export const db = {
       return data.password_hash === passwordHash;
     },
 
+    getLatestByPostIds: async (postIds: string[]) => {
+      if (postIds.length === 0) return { data: [], error: null };
+      const { data, error } = await supabase
+        .from('community_comments')
+        .select('post_id, created_at')
+        .in('post_id', postIds)
+        .order('created_at', { ascending: false });
+      return { data, error };
+    },
+
     getCountByPostId: async (postId: string) => {
       const { count, error } = await supabase
         .from('community_comments')
