@@ -9,6 +9,9 @@ interface AdSenseProps {
   fullWidthResponsive?: boolean;
 }
 
+// 현재 마운트된 AdSense 요소 레지스트리
+const activeAdElements = new Set<HTMLElement>();
+
 const AdSense: React.FC<AdSenseProps> = ({
   adSlot,
   adFormat = 'auto',
@@ -19,6 +22,15 @@ const AdSense: React.FC<AdSenseProps> = ({
 }) => {
   const adRef = useRef<HTMLModElement>(null);
   const isAdLoaded = useRef(false);
+
+  // 레지스트리에 등록/해제
+  useEffect(() => {
+    const el = adRef.current;
+    if (el) activeAdElements.add(el);
+    return () => {
+      if (el) activeAdElements.delete(el);
+    };
+  }, []);
 
   useEffect(() => {
     if (isAdLoaded.current) return;
@@ -33,18 +45,15 @@ const AdSense: React.FC<AdSenseProps> = ({
         if (window.adsbygoogle && adRef.current) {
           const hasAd = adRef.current.getAttribute('data-adsbygoogle-status');
           if (hasAd) {
-            // 이미 AdSense가 처리함
             isAdLoaded.current = true;
             return;
           }
 
-          // push 전에 DOM에서 소유자 없는 유령 <ins> 정리
+          // push 전: 현재 마운트된 컴포넌트가 아닌 미처리 유령 <ins> 제거
           document.querySelectorAll('ins.adsbygoogle').forEach(el => {
-            if (el === adRef.current) return; // 자기 자신 스킵
+            if (activeAdElements.has(el as HTMLElement)) return;
             const status = el.getAttribute('data-adsbygoogle-status');
-            const slot = el.getAttribute('data-ad-slot');
-            // status 없고 slot도 없는 유령 요소 제거
-            if (!status && !slot) {
+            if (!status) {
               el.remove();
             }
           });
@@ -52,14 +61,13 @@ const AdSense: React.FC<AdSenseProps> = ({
           // @ts-ignore
           (window.adsbygoogle = window.adsbygoogle || []).push({});
 
-          // push 후 실제로 우리 요소가 처리되었는지 확인 (200ms 후)
+          // push 후 우리 요소가 처리되었는지 확인
           retryTimer = setTimeout(() => {
             if (adRef.current) {
               const filled = adRef.current.getAttribute('data-adsbygoogle-status');
               if (filled) {
                 isAdLoaded.current = true;
               } else if (retryCount < maxRetries) {
-                // 다른 유령 요소가 push를 가로챘을 수 있음 → 재시도
                 retryCount++;
                 tryPush();
               }
@@ -67,11 +75,10 @@ const AdSense: React.FC<AdSenseProps> = ({
           }, 200);
         }
       } catch (err: unknown) {
-        // AdSense 에러는 무시 (중복 push 등)
+        // AdSense 에러 무시
       }
     };
 
-    // 마운트 후 약간의 지연을 두고 로드
     const timer = setTimeout(() => {
       if (!isAdLoaded.current) {
         tryPush();
