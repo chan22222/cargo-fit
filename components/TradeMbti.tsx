@@ -345,7 +345,7 @@ export default function TradeMbti({
   // --- Question Phase ---
   const renderQuestion = () => {
     const q = MBTI_QUESTIONS[currentQ];
-    const progress = ((currentQ + 1) / totalQuestions) * 100;
+    const progress = (currentQ / Math.max(totalQuestions - 1, 1)) * 100;
     const dimensionLabel = DIMENSION_LABELS[q.dimension] || q.dimension;
 
     return (
@@ -368,14 +368,16 @@ export default function TradeMbti({
           </div>
 
           {/* Progress bar */}
-          <div className="relative w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-500 ease-out"
-              style={{
-                width: `${progress}%`,
-                background: 'linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4)',
-              }}
-            />
+          <div className="relative w-full h-3">
+            <div className="absolute inset-0 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500 ease-out"
+                style={{
+                  width: `${progress}%`,
+                  background: 'linear-gradient(90deg, #6366f1, #3b82f6, #06b6d4)',
+                }}
+              />
+            </div>
             {/* Progress dot */}
             <div
               className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-[3px] border-indigo-500 rounded-full shadow-md transition-all duration-500 ease-out"
@@ -387,7 +389,7 @@ export default function TradeMbti({
           </div>
 
           {/* Mini step dots */}
-          <div className="flex justify-between mt-2 px-0.5">
+          <div className="flex justify-between mt-2">
             {Array.from({ length: totalQuestions }).map((_, i) => (
               <div
                 key={i}
