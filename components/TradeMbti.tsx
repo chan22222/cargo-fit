@@ -163,7 +163,9 @@ export default function TradeMbti({
   const shareToKakao = () => {
     const text = `${getShareText()}\n${SHARE_URL}`;
     if (navigator.share) {
-      navigator.share({ title: 'Trade MBTI', text: getShareText(), url: SHARE_URL }).catch(() => {});
+      navigator.share({ title: 'Trade MBTI', text: getShareText(), url: SHARE_URL }).catch(() => {
+        execCopy(text);
+      });
     } else {
       execCopy(text);
     }
