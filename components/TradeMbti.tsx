@@ -833,7 +833,7 @@ export default function TradeMbti({
       </div>
 
       {/* Content with Side Rails */}
-      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-6">
+      <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-8">
         <div className="flex gap-6">
           {/* Left Ad */}
           {leftSideAdSlot && (
@@ -849,7 +849,7 @@ export default function TradeMbti({
 
           {/* Main Content */}
           <div className="flex-1 min-w-0" ref={contentRef}>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               {phase === 'intro' && renderIntro()}
               {phase === 'question' && renderQuestion()}
               {phase === 'result' && renderResult()}
