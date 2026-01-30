@@ -76,7 +76,7 @@ const CommunityList: React.FC<CommunityListProps> = ({ onNavigateToPost, onNavig
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 overflow-visible">
+    <div className="flex-1 overflow-visible bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Hero Header */}
       <header className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>

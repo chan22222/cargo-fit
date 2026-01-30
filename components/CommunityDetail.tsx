@@ -304,7 +304,7 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="flex-1 bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
           <p className="mt-4 text-slate-500 text-sm">게시글을 불러오는 중...</p>
@@ -315,7 +315,7 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
+      <div className="flex-1 bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -337,7 +337,7 @@ const CommunityDetail: React.FC<CommunityDetailProps> = ({ postId, onNavigateBac
   const isPrivateAndLocked = post.is_private && !privateUnlocked;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 overflow-visible">
+    <div className="flex-1 overflow-visible bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Hero Header */}
       <header className="relative bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 text-white overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
