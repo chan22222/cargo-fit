@@ -479,5 +479,87 @@ export const db = {
 
       return { isFresh: !error && data && data.length > 0, error };
     }
+  },
+
+  // 커뮤니티 게시판
+  communityPosts: {
+    getAll: async (page: number = 1, limit: number = 20) => {
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+      const { data, error, count } = await supabase
+        .from('community_posts')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
+      return { data, error, count };
+    },
+
+    getById: async (id: string) => {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .select('*')
+        .eq('id', id)
+        .single();
+      return { data, error };
+    },
+
+    create: async (post: { title: string; content: string; author_nickname: string; password_hash: string }) => {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .insert([{
+          ...post,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select();
+      return { data, error };
+    },
+
+    verifyPassword: async (id: string, passwordHash: string) => {
+      const { data, error } = await supabase
+        .from('community_posts')
+        .select('password_hash')
+        .eq('id', id)
+        .single();
+      if (error || !data) return false;
+      return data.password_hash === passwordHash;
+    },
+
+    delete: async (id: string) => {
+      const { error } = await supabase
+        .from('community_posts')
+        .delete()
+        .eq('id', id);
+      return { error };
+    },
+
+    incrementViewCount: async (id: string) => {
+      try {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('increment_post_view_count', { post_id: id });
+
+        if (!rpcError) {
+          return { data: rpcData, error: null };
+        }
+
+        const { data: current } = await supabase
+          .from('community_posts')
+          .select('view_count')
+          .eq('id', id)
+          .single();
+
+        const currentCount = current?.view_count || 0;
+
+        const { data, error } = await supabase
+          .from('community_posts')
+          .update({ view_count: currentCount + 1 })
+          .eq('id', id)
+          .select();
+
+        return { data, error };
+      } catch (err) {
+        return { data: null, error: err };
+      }
+    }
   }
 };

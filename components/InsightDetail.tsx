@@ -163,42 +163,6 @@ const InsightDetail: React.FC<InsightDetailProps> = ({ insightId, onNavigateBack
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <button
-              onClick={onNavigateBack}
-              className="flex items-center gap-2 text-slate-600 hover:text-blue-600 transition-colors"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              <span className="font-medium">돌아가기</span>
-            </button>
-
-            {/* Logo - Clickable to go home */}
-            <div
-              onClick={onNavigateBack}
-              className="flex items-center gap-2 md:gap-4 cursor-pointer group"
-            >
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center font-black text-white text-xl md:text-2xl shadow-md group-hover:shadow-lg transition-all duration-300">
-                <svg width="20" height="20" className="md:w-6 md:h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 3h7v7H3V3zm11 0h7v7h-7V3zM3 14h7v7H3v-7zm11 0h7v7h-7v-7z" stroke="currentColor" strokeWidth="2" fill="currentColor" opacity="0.9"/>
-                </svg>
-              </div>
-              <div>
-                <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight leading-none">SHIPDAGO</h1>
-                <p className="text-[9px] md:text-[10px] text-slate-500 font-medium tracking-wide mt-0.5 md:mt-1 flex items-center gap-1 md:gap-1.5">
-                  <span className="inline-block w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Container Loading Tool
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Article */}

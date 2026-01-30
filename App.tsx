@@ -29,6 +29,9 @@ const Tracker = lazy(() => import('./components/tracker').then(m => ({ default: 
 const FSSC = lazy(() => import('./components/fssc'));
 const WorldClock = lazy(() => import('./components/WorldClock'));
 const TradeMbti = lazy(() => import('./components/TradeMbti'));
+const CommunityList = lazy(() => import('./components/CommunityList'));
+const CommunityDetail = lazy(() => import('./components/CommunityDetail'));
+const CommunityWrite = lazy(() => import('./components/CommunityWrite'));
 const FeedbackModal = lazy(() => import('./components/FeedbackModal'));
 const NotFound = lazy(() => import('./components/NotFound'));
 const AdSense = lazy(() => import('./components/AdSense'));
@@ -49,8 +52,9 @@ const App: React.FC = () => {
   const [isLargeScreen, setIsLargeScreen] = useState(window.innerWidth >= 1000);
   const [isAdminRoute, setIsAdminRoute] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti' | 'notfound'>('home');
+  const [currentRoute, setCurrentRoute] = useState<'home' | 'insights' | 'insight' | 'admin' | 'privacy' | 'terms' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti' | 'community' | 'community-post' | 'community-write' | 'notfound'>('home');
   const [currentInsightId, setCurrentInsightId] = useState<string | null>(null);
+  const [currentPostId, setCurrentPostId] = useState<string | null>(null);
   const [trackerCategory, setTrackerCategory] = useState<'container' | 'air' | 'courier' | 'post' | 'rail'>('container');
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
@@ -93,6 +97,14 @@ const App: React.FC = () => {
         setCurrentRoute('worldclock');
       } else if (path === '/trade-mbti') {
         setCurrentRoute('tradembti');
+      } else if (path === '/community/write') {
+        setCurrentRoute('community-write');
+      } else if (path.startsWith('/community/')) {
+        const id = path.split('/')[2];
+        setCurrentRoute('community-post');
+        setCurrentPostId(id);
+      } else if (path === '/community') {
+        setCurrentRoute('community');
       } else if (path.startsWith('/tracker')) {
         setCurrentRoute('tracker');
         setActiveTab('tracker');
@@ -146,7 +158,7 @@ const App: React.FC = () => {
   }, []);
 
   // Navigation State
-  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'container' | 'pallet' | 'currency' | 'incoterms' | 'holidays' | 'cbm' | 'regulations' | 'privacy' | 'terms' | 'tracker' | 'fssc' | 'worldclock' | 'tradembti' | 'community'>('home');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -815,7 +827,17 @@ const App: React.FC = () => {
         '/tracker': 'tracker',
         '/fssc': 'fssc',
         '/admin': 'admin',
+        '/community': 'community',
+        '/community/write': 'community-write',
       };
+
+      // Handle dynamic community post route
+      if (path.startsWith('/community/') && path !== '/community/write') {
+        const id = path.split('/')[2];
+        setCurrentRoute('community-post');
+        setCurrentPostId(id);
+        return;
+      }
 
       // Handle dynamic insight route
       if (path.startsWith('/insight/')) {
@@ -861,6 +883,18 @@ const App: React.FC = () => {
 
   const handleNavigateBack = () => {
     navigate('/');
+  };
+
+  const handleNavigateToCommunity = () => {
+    navigate('/community');
+  };
+
+  const handleNavigateToPost = (id: string) => {
+    navigate(`/community/${id}`);
+  };
+
+  const handleNavigateToCommunityWrite = () => {
+    navigate('/community/write');
   };
 
   // Handle navigation from admin to home
@@ -1015,6 +1049,27 @@ const App: React.FC = () => {
         canonicalUrl: `${BASE_URL}/trade-mbti`,
         jsonLd: [schemas.softwareApplication('물류 성향 테스트 (Trade MBTI)', '나의 무역 스타일을 인코텀즈로 알아보는 성향 테스트.', `${BASE_URL}/trade-mbti`)],
       },
+      community: {
+        title: '커뮤니티',
+        description: '물류 실무자들의 커뮤니티 게시판. 물류, 포워딩, 수출입 관련 정보를 자유롭게 공유하세요.',
+        keywords: '물류 커뮤니티, 포워딩 게시판, 수출입 정보 공유, 물류 실무자',
+        canonicalUrl: `${BASE_URL}/community`,
+        jsonLd: [schemas.organization],
+      },
+      'community-post': {
+        title: '커뮤니티 게시글',
+        description: 'SHIPDAGO 커뮤니티 게시글',
+        keywords: '물류 커뮤니티, 게시판',
+        canonicalUrl: `${BASE_URL}/community`,
+        jsonLd: [schemas.organization],
+      },
+      'community-write': {
+        title: '글쓰기 - 커뮤니티',
+        description: 'SHIPDAGO 커뮤니티에 게시글을 작성하세요.',
+        keywords: '물류 커뮤니티, 게시판, 글쓰기',
+        canonicalUrl: `${BASE_URL}/community/write`,
+        jsonLd: [schemas.organization],
+      },
       insights: {
         title: '물류 인사이트',
         description: '물류 트렌드, 규제 변화, 실무 팁 등 물류 전문 콘텐츠.',
@@ -1065,6 +1120,8 @@ const App: React.FC = () => {
       setActiveTab('fssc');
     } else if (currentRoute === 'tradembti') {
       setActiveTab('tradembti');
+    } else if (currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' || currentRoute === 'insights' || currentRoute === 'insight') {
+      setActiveTab('community');
     } else if (currentRoute === 'home') {
       setActiveTab('home');
     }
@@ -1087,44 +1144,6 @@ const App: React.FC = () => {
         <SpeedInsights />
         <Analytics />
         <AdminDashboard onNavigateHome={handleAdminToHome} />
-      </>
-    );
-  }
-
-  if (currentRoute === 'insights') {
-    return (
-      <>
-        <SEO
-          title={seoConfig.title}
-          description={seoConfig.description}
-          keywords={seoConfig.keywords}
-          canonicalUrl={seoConfig.canonicalUrl}
-          jsonLd={seoConfig.jsonLd}
-        />
-        <SpeedInsights />
-        <Analytics />
-        <Suspense fallback={<LoadingFallback />}>
-          <InsightsList
-            onNavigateToInsight={handleNavigateToInsight}
-            onNavigateBack={handleNavigateBack}
-          />
-        </Suspense>
-      </>
-    );
-  }
-
-  if (currentRoute === 'insight' && currentInsightId) {
-    return (
-      <>
-        <SpeedInsights />
-        <Analytics />
-        <Suspense fallback={<LoadingFallback />}>
-          <InsightDetail
-            insightId={currentInsightId}
-            onNavigateBack={() => navigate('/insights')}
-            onNavigateToInsight={handleNavigateToInsight}
-          />
-        </Suspense>
       </>
     );
   }
@@ -1409,7 +1428,7 @@ const App: React.FC = () => {
              <button
                onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'info'); setMegaMenuOpen(!megaMenuOpen); }}
                className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
-                 activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'tradembti' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+                 activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
                }`}
              >
                <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
@@ -1466,6 +1485,52 @@ const App: React.FC = () => {
                      <div className="text-sm font-bold">FS/SC 조회</div>
                      <div className="text-[10px] text-slate-400">유류할증료/보안료</div>
                    </button>
+                 </div>
+               </div>
+           </div>
+
+           {/* Divider */}
+           <div className="w-px h-5 bg-slate-200/80 mx-1"></div>
+
+           {/* 커뮤니티 Dropdown */}
+           <div
+             className="relative"
+             onMouseEnter={() => !megaMenuOpen && setOpenDropdown('community')}
+             onMouseLeave={() => !megaMenuOpen && setOpenDropdown(null)}
+           >
+             <button
+               onClick={() => { setOpenDropdown(megaMenuOpen ? null : 'community'); setMegaMenuOpen(!megaMenuOpen); }}
+               className={`relative px-4 py-2 text-sm font-bold transition-all duration-300 rounded-lg flex items-center gap-1.5 group ${
+                 activeTab === 'community' || activeTab === 'tradembti' ? 'text-blue-600' : 'text-slate-500 hover:text-slate-900'
+               }`}
+             >
+               <span className="absolute inset-0 rounded-lg transition-all duration-300 group-hover:bg-gradient-to-r group-hover:from-blue-50 group-hover:to-indigo-50"></span>
+               <span className="relative">커뮤니티</span>
+               <svg className={`relative w-3.5 h-3.5 transition-transform duration-200 ${openDropdown === 'community' || megaMenuOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+               </svg>
+               {(activeTab === 'community' || activeTab === 'tradembti') && <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-blue-500 rounded-full"></span>}
+             </button>
+             <div className={`absolute top-full right-0 pt-2 z-50 transition-all duration-200 origin-top ${openDropdown === 'community' && !megaMenuOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+               <div className="bg-white rounded-xl shadow-xl border border-slate-200/60 py-2 min-w-[180px] overflow-hidden">
+                   <button
+                     onClick={() => { setActiveTab('community'); navigate('/insights'); setOpenDropdown(null); }}
+                     className={`w-full px-5 py-2.5 text-center transition-all ${
+                       currentRoute === 'insights' || currentRoute === 'insight' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                     }`}
+                   >
+                     <div className="text-sm font-bold">인사이트</div>
+                     <div className="text-[10px] text-slate-400">물류 트렌드 콘텐츠</div>
+                   </button>
+                   <button
+                     onClick={() => { setActiveTab('community'); navigate('/community'); setOpenDropdown(null); }}
+                     className={`w-full px-5 py-2.5 text-center transition-all ${
+                       currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                     }`}
+                   >
+                     <div className="text-sm font-bold">게시판</div>
+                     <div className="text-[10px] text-slate-400">자유롭게 소통하기</div>
+                   </button>
                    <button
                      onClick={() => { setActiveTab('tradembti'); navigate('/trade-mbti'); setOpenDropdown(null); }}
                      className={`w-full px-5 py-2.5 text-center transition-all ${
@@ -1491,6 +1556,7 @@ const App: React.FC = () => {
                  if (activeTab === 'tracker') return 'tracker';
                  if (activeTab === 'cbm' || activeTab === 'currency') return 'calculator';
                  if (activeTab === 'worldclock' || activeTab === 'holidays' || activeTab === 'incoterms' || activeTab === 'regulations' || activeTab === 'fssc') return 'info';
+                 if (activeTab === 'community' || activeTab === 'tradembti') return 'community';
                  return null;
                };
                if (!megaMenuOpen) {
@@ -1518,7 +1584,7 @@ const App: React.FC = () => {
           {/* Menu Content */}
           <div className="bg-[#fdfdfe]/[0.98] shadow-xl border-t border-slate-200 backdrop-blur-sm">
             <div className="max-w-5xl mx-auto px-6 py-6">
-              <div className="flex gap-6 items-stretch h-[340px]">
+              <div className="flex gap-6 items-stretch h-[400px]">
                 {/* 좌측 - 카테고리 */}
                 <div className="w-72 flex flex-col pt-6">
                   <p className="text-[11px] font-semibold text-blue-700 uppercase tracking-wider mb-3 px-4">CATEGORIES</p>
@@ -1543,6 +1609,11 @@ const App: React.FC = () => {
                       { id: 'info', label: '수출입 정보', desc: '시간, 공휴일, FS/SC', icon: (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      )},
+                      { id: 'community', label: '커뮤니티', desc: '인사이트, 게시판, MBTI', icon: (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                         </svg>
                       )},
                     ].map(cat => (
@@ -1582,6 +1653,7 @@ const App: React.FC = () => {
                         {openDropdown === 'tracker' && 'TRACKING SERVICES'}
                         {openDropdown === 'calculator' && 'CALCULATORS'}
                         {openDropdown === 'info' && 'INFORMATION'}
+                        {openDropdown === 'community' && 'COMMUNITY'}
                       </p>
                       <button
                         onClick={() => { setMegaMenuOpen(false); setOpenDropdown(null); }}
@@ -1686,7 +1758,6 @@ const App: React.FC = () => {
                           { tab: 'incoterms', route: '/incoterms', label: '인코텀즈', desc: '무역 조건 가이드', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /> },
                           { tab: 'regulations', route: '/regulations', label: '수입 규제', desc: '품목별 규제 확인', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /> },
                           { tab: 'fssc', route: '/fssc', label: 'FS/SC 조회', desc: '유류할증료/보안료', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /> },
-                          { tab: 'tradembti', route: '/trade-mbti', label: 'Trade MBTI', desc: '물류 성향 테스트', icon: <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /> },
                         ].map(item => (
                           <button
                             key={item.tab}
@@ -1700,6 +1771,48 @@ const App: React.FC = () => {
                             </div>
                           </button>
                         ))}
+                      </div>
+                    )}
+
+                    {/* 커뮤니티 메뉴 */}
+                    {openDropdown === 'community' && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => { setActiveTab('community'); navigate('/insights'); setMegaMenuOpen(false); setOpenDropdown(null); }}
+                          className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${currentRoute === 'insights' || currentRoute === 'insight' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                        >
+                          <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                          </svg>
+                          <div className="leading-none">
+                            <span className="text-sm font-semibold text-slate-700 block">인사이트</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">물류 트렌드 콘텐츠</span>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab('community'); navigate('/community'); setMegaMenuOpen(false); setOpenDropdown(null); }}
+                          className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                        >
+                          <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <div className="leading-none">
+                            <span className="text-sm font-semibold text-slate-700 block">게시판</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">자유롭게 소통하기</span>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => { setActiveTab('tradembti'); navigate('/trade-mbti'); setMegaMenuOpen(false); setOpenDropdown(null); }}
+                          className={`group flex items-center gap-2.5 p-3 rounded-lg transition-all text-left ${activeTab === 'tradembti' ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                        >
+                          <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                          </svg>
+                          <div className="leading-none">
+                            <span className="text-sm font-semibold text-slate-700 block">Trade MBTI</span>
+                            <span className="text-[10px] text-slate-400 leading-tight">물류 성향 테스트</span>
+                          </div>
+                        </button>
                       </div>
                     )}
 
@@ -1946,7 +2059,7 @@ const App: React.FC = () => {
                 <button
                   onClick={() => setMobileAccordion(mobileAccordion === 'info' ? null : 'info')}
                   className={`w-full text-left px-4 py-3 font-bold transition-all flex items-center justify-between ${
-                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock' || activeTab === 'tradembti' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                    activeTab === 'incoterms' || activeTab === 'holidays' || activeTab === 'regulations' || activeTab === 'fssc' || activeTab === 'worldclock' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
                   수/출입 정보
@@ -2024,6 +2137,53 @@ const App: React.FC = () => {
                       <div className="leading-none">
                         <span className="text-sm font-semibold text-slate-700 block">FS/SC 조회</span>
                         <span className="text-[10px] text-slate-400 leading-tight">유류할증료/보안료</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* 커뮤니티 Accordion */}
+              <div className="rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setMobileAccordion(mobileAccordion === 'community' ? null : 'community')}
+                  className={`w-full text-left px-4 py-3 font-bold transition-all flex items-center justify-between ${
+                    activeTab === 'community' || activeTab === 'tradembti' ? 'bg-blue-50 text-blue-600' : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  커뮤니티
+                  <svg className={`w-4 h-4 transition-transform duration-200 ${mobileAccordion === 'community' ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                {mobileAccordion === 'community' && (
+                  <div className="bg-white py-2 px-2 space-y-1">
+                    <button
+                      onClick={() => { setActiveTab('community'); navigate('/insights'); setMobileMenuOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        currentRoute === 'insights' || currentRoute === 'insight' ? 'bg-blue-50' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                      </svg>
+                      <div className="leading-none">
+                        <span className="text-sm font-semibold text-slate-700 block">인사이트</span>
+                        <span className="text-[10px] text-slate-400 leading-tight">물류 트렌드 콘텐츠</span>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => { setActiveTab('community'); navigate('/community'); setMobileMenuOpen(false); }}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3 ${
+                        currentRoute === 'community' || currentRoute === 'community-post' || currentRoute === 'community-write' ? 'bg-blue-50' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <svg className="w-6 h-6 text-blue-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                      <div className="leading-none">
+                        <span className="text-sm font-semibold text-slate-700 block">게시판</span>
+                        <span className="text-[10px] text-slate-400 leading-tight">자유롭게 소통하기</span>
                       </div>
                     </button>
                     <button
@@ -2150,6 +2310,35 @@ const App: React.FC = () => {
           leftSideAdSlot={<AdSense adSlot="6357216596" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
           rightSideAdSlot={<AdSense adSlot="1886337160" adFormat="auto" style={{ display: 'block', minHeight: '600px' }} />}
         />
+      ) : activeTab === 'community' ? (
+        currentRoute === 'community' ? (
+          <CommunityList
+            onNavigateToPost={handleNavigateToPost}
+            onNavigateToWrite={handleNavigateToCommunityWrite}
+            onNavigateBack={handleNavigateBack}
+          />
+        ) : currentRoute === 'community-post' && currentPostId ? (
+          <CommunityDetail
+            postId={currentPostId}
+            onNavigateBack={handleNavigateToCommunity}
+          />
+        ) : currentRoute === 'community-write' ? (
+          <CommunityWrite
+            onNavigateBack={handleNavigateToCommunity}
+            onPostCreated={handleNavigateToPost}
+          />
+        ) : currentRoute === 'insights' ? (
+          <InsightsList
+            onNavigateToInsight={handleNavigateToInsight}
+            onNavigateBack={handleNavigateBack}
+          />
+        ) : currentRoute === 'insight' && currentInsightId ? (
+          <InsightDetail
+            insightId={currentInsightId}
+            onNavigateBack={() => navigate('/insights')}
+            onNavigateToInsight={handleNavigateToInsight}
+          />
+        ) : null
       ) : activeTab === 'pallet' ? (
         !isLargeScreen ? (
           // Show message for small screens on pallet tab
