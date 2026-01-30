@@ -160,26 +160,14 @@ export default function TradeMbti({
     }
   };
 
-  const shareToKakao = () => {
-    const text = `${getShareText()}\n${SHARE_URL}`;
+  const handleShare = () => {
     if (navigator.share) {
       navigator.share({ title: 'Trade MBTI', text: getShareText(), url: SHARE_URL }).catch(() => {
-        execCopy(text);
+        execCopy(`${getShareText()}\n${SHARE_URL}`);
       });
     } else {
-      execCopy(text);
+      execCopy(`${getShareText()}\n${SHARE_URL}`);
     }
-  };
-
-  const shareToX = () => {
-    const text = encodeURIComponent(getShareText());
-    const url = encodeURIComponent(SHARE_URL);
-    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=550,height=420');
-  };
-
-  const shareToFacebook = () => {
-    const url = encodeURIComponent(SHARE_URL);
-    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=550,height=420');
   };
 
   const copyUrl = () => execCopy(SHARE_URL);
@@ -241,6 +229,13 @@ export default function TradeMbti({
       @keyframes mbti-progress-pulse {
         0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
         50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0); }
+      }
+      .animate-bounce-in {
+        animation: mbti-toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      @keyframes mbti-toast-in {
+        0% { opacity: 0; transform: translate(-50%, 20px); }
+        100% { opacity: 1; transform: translate(-50%, 0); }
       }
       @keyframes mbti-badge-bounce {
         0%, 100% { transform: scale(1); }
@@ -755,38 +750,16 @@ export default function TradeMbti({
             <span className="text-xl">📣</span>
             결과 공유하기
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {/* 카카오톡 */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* 공유하기 */}
             <button
-              onClick={shareToKakao}
-              className="flex flex-col items-center justify-center gap-1.5 px-3 py-3.5 bg-[#FEE500] rounded-xl hover:brightness-95 transition-all active:scale-[0.97]"
+              onClick={handleShare}
+              className="flex flex-col items-center justify-center gap-1.5 px-3 py-3.5 bg-indigo-500 rounded-xl hover:bg-indigo-600 transition-all active:scale-[0.97]"
             >
-              <svg className="w-7 h-7 text-[#3C1E1E]" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3C6.5 3 2 6.58 2 11c0 2.84 1.87 5.33 4.67 6.73l-.97 3.59a.38.38 0 00.57.42l4.13-2.73c.53.05 1.07.09 1.6.09 5.5 0 10-3.58 10-8s-4.5-8-10-8z" />
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
               </svg>
-              <span className="text-xs font-bold text-[#3C1E1E]">카카오톡</span>
-            </button>
-
-            {/* X (Twitter) */}
-            <button
-              onClick={shareToX}
-              className="flex flex-col items-center justify-center gap-1.5 px-3 py-3.5 bg-black rounded-xl hover:bg-gray-800 transition-all active:scale-[0.97]"
-            >
-              <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-              <span className="text-xs font-bold text-white">X</span>
-            </button>
-
-            {/* Facebook */}
-            <button
-              onClick={shareToFacebook}
-              className="flex flex-col items-center justify-center gap-1.5 px-3 py-3.5 bg-[#1877F2] rounded-xl hover:bg-[#166FE5] transition-all active:scale-[0.97]"
-            >
-              <svg className="w-7 h-7 text-white" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-              </svg>
-              <span className="text-xs font-bold text-white">Facebook</span>
+              <span className="text-xs font-bold text-white">공유하기</span>
             </button>
 
             {/* URL 복사 */}
@@ -890,6 +863,18 @@ export default function TradeMbti({
           )}
         </div>
       </div>
+
+      {/* 복사 완료 토스트 */}
+      {copied && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-bounce-in">
+          <div className="flex items-center gap-2.5 px-5 py-3 bg-slate-900 text-white rounded-full shadow-2xl">
+            <svg className="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-sm font-semibold whitespace-nowrap">링크가 복사되었습니다!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
